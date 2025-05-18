@@ -103,7 +103,8 @@ print("\nAgency:")
 print(agency_df.head())
 
 # ---------------------- OPTIONAL: SAVE TO CSV. RUN ON LOCAL ----------------------
-# filtered_routes_df.to_csv("filtered_routes.csv", index=False)
-# filtered_trips_df.to_csv("filtered_trips.csv", index=False)
-# filtered_stop_times_df.to_csv("filtered_stop_times.csv", index=False)
-# filtered_stops_df.to_csv("filtered_stops.csv", index=False)
+
+filtered_routes_df.to_csv("filtered_routes.csv", index=False, encoding='utf-8-sig')
+filtered_trips_df.to_csv("filtered_trips.csv", index=False, encoding='utf-8-sig')
+filtered_stop_times_df.to_csv("filtered_stop_times.csv", index=False, encoding='utf-8-sig')
+filtered_stops_df.to_csv("filtered_stops.csv", index=False, encoding='utf-8-sig')
