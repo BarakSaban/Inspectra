@@ -1,4 +1,4 @@
-﻿trip_id,arrival_time,departure_time,stop_id,stop_sequence,pickup_type,drop_off_type,shape_dist_traveled
+trip_id,arrival_time,departure_time,stop_id,stop_sequence,pickup_type,drop_off_type,shape_dist_traveled
 10021196_060525,07:06:50,07:06:50,14595,50,1,0,30164.0
 10021201_060525,07:21:50,07:21:50,14595,50,1,0,30164.0
 10147426_060525,17:01:14,17:01:14,13679,17,0,0,8159.0
