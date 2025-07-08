@@ -1,579 +1,321 @@
 {
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.795453,
-          32.082475
-        ]
-      },
-      "properties": {
-        "stop_id": 12889,
-        "stop_name": "ת. רכבת תל אביב סבידור/על פרשת דרכים"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.795351,
-          32.08224
-        ]
-      },
-      "properties": {
-        "stop_id": 12890,
-        "stop_name": "ת. רכבת תל אביב סבידור/על פרשת דרכים"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.809664,
-          32.103834
-        ]
-      },
-      "properties": {
-        "stop_id": 13220,
-        "stop_name": "אקספו תל אביב/שד' רוקח"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.780466,
-          32.055636
-        ]
-      },
-      "properties": {
-        "stop_id": 13319,
-        "stop_name": "ת.מרכזית תל אביב קומה 7/הורדה"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.810684,
-          32.104601
-        ]
-      },
-      "properties": {
-        "stop_id": 13348,
-        "stop_name": "אקספו תל אביב/שד' רוקח"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.795008,
-          32.083482
-        ]
-      },
-      "properties": {
-        "stop_id": 13354,
-        "stop_name": "ת. רכבת תל אביב - סבידור/דרך נמיר"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.779058,
-          32.05693
-        ]
-      },
-      "properties": {
-        "stop_id": 13357,
-        "stop_name": "ת. מרכזית תל אביב/לוינסקי"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.774431,
-          32.095964
-        ]
-      },
-      "properties": {
-        "stop_id": 13662,
-        "stop_name": "נמל תל אביב/הירקון"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.781176,
-          32.082914
-        ]
-      },
-      "properties": {
-        "stop_id": 13679,
-        "stop_name": "עיריית תל אביב - יפו/אבן גבירול"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.7956,
-          32.083783
-        ]
-      },
-      "properties": {
-        "stop_id": 13730,
-        "stop_name": "ת. רכבת תל אביב - סבידור/חנה וסע"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.797682,
-          32.081153
-        ]
-      },
-      "properties": {
-        "stop_id": 14339,
-        "stop_name": "ת. רכבת תל אביב - סבידור/על פרשת דרכים"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.780335,
-          32.055512
-        ]
-      },
-      "properties": {
-        "stop_id": 14595,
-        "stop_name": "ת.מרכזית תל אביב קומה 6/הורדה"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.814327,
-          32.171266
-        ]
-      },
-      "properties": {
-        "stop_id": 29403,
-        "stop_name": "דרך תל אביב/מונטיפיורי"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.794199,
-          32.081367
-        ]
-      },
-      "properties": {
-        "stop_id": 29480,
-        "stop_name": "ת. רכבת תל אביב - סבידור/דרך נמיר"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.779452,
-          32.056413
-        ]
-      },
-      "properties": {
-        "stop_id": 36198,
-        "stop_name": "ת.מרכזית תל אביב קומה 7/רציפים"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.779085,
-          32.055908
-        ]
-      },
-      "properties": {
-        "stop_id": 36290,
-        "stop_name": "ת.מרכזית תל אביב קומה 6/רציפים"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.779085,
-          32.055908
-        ]
-      },
-      "properties": {
-        "stop_id": 36296,
-        "stop_name": "ת.מרכזית תל אביב קומה 6/רציפים"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.779452,
-          32.056413
-        ]
-      },
-      "properties": {
-        "stop_id": 36516,
-        "stop_name": "ת.מרכזית תל אביב קומה 7/רציפים"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.779452,
-          32.056413
-        ]
-      },
-      "properties": {
-        "stop_id": 36541,
-        "stop_name": "ת.מרכזית תל אביב קומה 7/רציפים"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.780031,
-          32.054886
-        ]
-      },
-      "properties": {
-        "stop_id": 36893,
-        "stop_name": "ת.מרכזית תל אביב קומה 7/רציפים"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.780031,
-          32.054886
-        ]
-      },
-      "properties": {
-        "stop_id": 36896,
-        "stop_name": "ת.מרכזית תל אביב קומה 7/רציפים"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.779085,
-          32.055908
-        ]
-      },
-      "properties": {
-        "stop_id": 37525,
-        "stop_name": "ת.מרכזית תל אביב קומה 6/רציפים"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.779261,
-          32.056141
-        ]
-      },
-      "properties": {
-        "stop_id": 37646,
-        "stop_name": "ת.מרכזית תל אביב קומה 7/רציפים"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.779261,
-          32.056141
-        ]
-      },
-      "properties": {
-        "stop_id": 37648,
-        "stop_name": "ת.מרכזית תל אביב קומה 7/רציפים"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.779085,
-          32.055908
-        ]
-      },
-      "properties": {
-        "stop_id": 37682,
-        "stop_name": "ת.מרכזית תל אביב קומה 6/רציפים"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.779085,
-          32.055908
-        ]
-      },
-      "properties": {
-        "stop_id": 37687,
-        "stop_name": "ת.מרכזית תל אביב קומה 6/רציפים"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.779648,
-          32.056487
-        ]
-      },
-      "properties": {
-        "stop_id": 37694,
-        "stop_name": "ת.מרכזית תל אביב קומה 6/רציפים"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.779452,
-          32.056413
-        ]
-      },
-      "properties": {
-        "stop_id": 37760,
-        "stop_name": "ת.מרכזית תל אביב קומה 7/רציפים"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.779592,
-          32.0539
-        ]
-      },
-      "properties": {
-        "stop_id": 42862,
-        "stop_name": "ת.מרכזית תל אביב/דרך שלמה"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.778747,
-          32.054262
-        ]
-      },
-      "properties": {
-        "stop_id": 42863,
-        "stop_name": "ת.מרכזית תל אביב/דרך שלמה"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.796089,
-          32.083157
-        ]
-      },
-      "properties": {
-        "stop_id": 42872,
-        "stop_name": "ת. רכבת תל אביב- סבידור/רציפים A"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.796089,
-          32.083157
-        ]
-      },
-      "properties": {
-        "stop_id": 42876,
-        "stop_name": "ת. רכבת תל אביב- סבידור/רציפים A"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.796638,
-          32.082845
-        ]
-      },
-      "properties": {
-        "stop_id": 42877,
-        "stop_name": "ת. רכבת תל אביב - סבידור/הורדה"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.796089,
-          32.083157
-        ]
-      },
-      "properties": {
-        "stop_id": 42881,
-        "stop_name": "ת. רכבת תל אביב- סבידור/רציפים A"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.796089,
-          32.083157
-        ]
-      },
-      "properties": {
-        "stop_id": 42882,
-        "stop_name": "ת. רכבת תל אביב- סבידור/רציפים A"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.796089,
-          32.083157
-        ]
-      },
-      "properties": {
-        "stop_id": 42883,
-        "stop_name": "ת. רכבת תל אביב- סבידור/רציפים A"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.796089,
-          32.083157
-        ]
-      },
-      "properties": {
-        "stop_id": 42884,
-        "stop_name": "ת. רכבת תל אביב- סבידור/רציפים A"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.762886,
-          32.047253
-        ]
-      },
-      "properties": {
-        "stop_id": 43284,
-        "stop_name": "האקדמית תל אביב-יפו/היינריך היינה"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.762991,
-          32.046458
-        ]
-      },
-      "properties": {
-        "stop_id": 43285,
-        "stop_name": "האקדמית תל אביב-יפו/היינריך היינה"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.779085,
-          32.055908
-        ]
-      },
-      "properties": {
-        "stop_id": 47788,
-        "stop_name": "ת.מרכזית תל אביב קומה 6/רציפים"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          34.795844,
-          32.08255
-        ]
-      },
-      "properties": {
-        "stop_id": 48918,
-        "stop_name": "ת.רכבת תל אביב - סבידור/רציפים C"
-      }
-    }
-  ]
+"type": "FeatureCollection",
+"name": "stops",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "stop_id": 12815, "stop_code": 21001, "stop_name": "אלוף שדה/דרך יצחק רבין", "stop_desc": "רחוב: אלוף שדה עיר: רמת גן רציף:  קומה: ", "stop_lat": 32.059607, "stop_lon": 34.820239, "location_type": 0, "parent_station": null, "zone_id": 21001.0 }, "geometry": { "type": "Point", "coordinates": [ 34.820239, 32.059607 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12816, "stop_code": 21002, "stop_name": "אלוף שדה/דרך יצחק רבין", "stop_desc": "רחוב: אלוף שדה עיר: רמת גן רציף:  קומה: ", "stop_lat": 32.059689, "stop_lon": 34.822156, "location_type": 0, "parent_station": null, "zone_id": 21002.0 }, "geometry": { "type": "Point", "coordinates": [ 34.822156, 32.059689 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12818, "stop_code": 21004, "stop_name": "אלוף שדה/כורזין", "stop_desc": "רחוב: אלוף שדה עיר: רמת גן רציף:  קומה: ", "stop_lat": 32.058774, "stop_lon": 34.817616, "location_type": 0, "parent_station": null, "zone_id": 21004.0 }, "geometry": { "type": "Point", "coordinates": [ 34.817616, 32.058774 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12823, "stop_code": 21022, "stop_name": "ת. רכבת השלום", "stop_desc": "רחוב: גבעת התחמושת עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.073483, "stop_lon": 34.791645, "location_type": 0, "parent_station": null, "zone_id": 21022.0 }, "geometry": { "type": "Point", "coordinates": [ 34.791645, 32.073483 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12824, "stop_code": 21023, "stop_name": "ת. רכבת השלום", "stop_desc": "רחוב: גבעת התחמושת עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.072666, "stop_lon": 34.79339, "location_type": 0, "parent_station": null, "zone_id": 21023.0 }, "geometry": { "type": "Point", "coordinates": [ 34.79339, 32.072666 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12827, "stop_code": 21028, "stop_name": "דרך השלום/יגאל אלון", "stop_desc": "רחוב: דרך השלום 8 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.071995, "stop_lon": 34.795651, "location_type": 0, "parent_station": null, "zone_id": 21028.0 }, "geometry": { "type": "Point", "coordinates": [ 34.795651, 32.071995 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12828, "stop_code": 21030, "stop_name": "דרך השלום/דרך יצחק רבין", "stop_desc": "רחוב: דרך השלום 75 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.065178, "stop_lon": 34.803052, "location_type": 0, "parent_station": null, "zone_id": 21030.0 }, "geometry": { "type": "Point", "coordinates": [ 34.803052, 32.065178 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12829, "stop_code": 21031, "stop_name": "דרך השלום/דרך יצחק רבין", "stop_desc": "רחוב: דרך השלום 72 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.065604, "stop_lon": 34.802729, "location_type": 0, "parent_station": null, "zone_id": 21031.0 }, "geometry": { "type": "Point", "coordinates": [ 34.802729, 32.065604 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12830, "stop_code": 21032, "stop_name": "דרך השלום/המאבק", "stop_desc": "רחוב: דרך השלום 143 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.059083, "stop_lon": 34.809867, "location_type": 0, "parent_station": null, "zone_id": 21032.0 }, "geometry": { "type": "Point", "coordinates": [ 34.809867, 32.059083 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12831, "stop_code": 21033, "stop_name": "דרך השלום/המאבק", "stop_desc": "רחוב: דרך השלום 122 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.05894, "stop_lon": 34.809636, "location_type": 0, "parent_station": null, "zone_id": 21033.0 }, "geometry": { "type": "Point", "coordinates": [ 34.809636, 32.05894 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12834, "stop_code": 21038, "stop_name": "הוועד הפועל/ארלוזורוב", "stop_desc": "רחוב: ארלוזורוב 95 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.08473, "stop_lon": 34.78481, "location_type": 0, "parent_station": null, "zone_id": 21038.0 }, "geometry": { "type": "Point", "coordinates": [ 34.78481, 32.08473 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12839, "stop_code": 21043, "stop_name": "ירקון/ויתקין", "stop_desc": "רחוב: הירקון 248 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.091854, "stop_lon": 34.773124, "location_type": 0, "parent_station": null, "zone_id": 21043.0 }, "geometry": { "type": "Point", "coordinates": [ 34.773124, 32.091854 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12847, "stop_code": 21080, "stop_name": "דרך השלום/תוצרת הארץ", "stop_desc": "רחוב: דרך השלום 15 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.071565, "stop_lon": 34.797751, "location_type": 0, "parent_station": null, "zone_id": 21080.0 }, "geometry": { "type": "Point", "coordinates": [ 34.797751, 32.071565 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12848, "stop_code": 21089, "stop_name": "נמל תל אביב/הירקון", "stop_desc": "רחוב: הירקון 288 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.095145, "stop_lon": 34.774308, "location_type": 0, "parent_station": null, "zone_id": 21089.0 }, "geometry": { "type": "Point", "coordinates": [ 34.774308, 32.095145 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12851, "stop_code": 21092, "stop_name": "שד' לוי אשכול/דב האוזנר", "stop_desc": "רחוב: שדרות לוי אשכול 47 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.109944, "stop_lon": 34.788905, "location_type": 0, "parent_station": null, "zone_id": 21092.0 }, "geometry": { "type": "Point", "coordinates": [ 34.788905, 32.109944 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12862, "stop_code": 21104, "stop_name": "הירקון/ארלוזורוב", "stop_desc": "רחוב: הירקון 194 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.087939, "stop_lon": 34.771282, "location_type": 0, "parent_station": null, "zone_id": 21104.0 }, "geometry": { "type": "Point", "coordinates": [ 34.771282, 32.087939 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12865, "stop_code": 21107, "stop_name": "שד' לוי אשכול/אינשטיין", "stop_desc": "רחוב: שדרות לוי אשכול 53 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.111741, "stop_lon": 34.789253, "location_type": 0, "parent_station": null, "zone_id": 21107.0 }, "geometry": { "type": "Point", "coordinates": [ 34.789253, 32.111741 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12884, "stop_code": 21132, "stop_name": "אלוף שדה/כביש 4", "stop_desc": "רחוב: אלוף שדה עיר: רמת גן רציף:  קומה: ", "stop_lat": 32.057419, "stop_lon": 34.832771, "location_type": 0, "parent_station": null, "zone_id": 21132.0 }, "geometry": { "type": "Point", "coordinates": [ 34.832771, 32.057419 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12885, "stop_code": 21133, "stop_name": "דרך השלום/דרך הטייסים", "stop_desc": "רחוב: דרך השלום עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.06176, "stop_lon": 34.804856, "location_type": 0, "parent_station": null, "zone_id": 21133.0 }, "geometry": { "type": "Point", "coordinates": [ 34.804856, 32.06176 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12899, "stop_code": 21163, "stop_name": "מרכז הספורט/בכור שטרית", "stop_desc": "רחוב: בכור שלום שטרית 16 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.105868, "stop_lon": 34.820154, "location_type": 0, "parent_station": null, "zone_id": 21163.0 }, "geometry": { "type": "Point", "coordinates": [ 34.820154, 32.105868 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12910, "stop_code": 21188, "stop_name": "דרך נמיר/יהודה המכבי", "stop_desc": "רחוב: דרך נמיר 127 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.095376, "stop_lon": 34.794137, "location_type": 0, "parent_station": null, "zone_id": 21188.0 }, "geometry": { "type": "Point", "coordinates": [ 34.794137, 32.095376 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12915, "stop_code": 21194, "stop_name": "דרך משה דיין/ההגנה", "stop_desc": "רחוב: דרך משה דיין 45 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.052456, "stop_lon": 34.799862, "location_type": 0, "parent_station": null, "zone_id": 21194.0 }, "geometry": { "type": "Point", "coordinates": [ 34.799862, 32.052456 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12925, "stop_code": 21209, "stop_name": "לה גווארדייה/לוחמי גליפולי", "stop_desc": "רחוב: לה גווארדיה 50 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.059086, "stop_lon": 34.795294, "location_type": 0, "parent_station": null, "zone_id": 21209.0 }, "geometry": { "type": "Point", "coordinates": [ 34.795294, 32.059086 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12930, "stop_code": 21219, "stop_name": "בית עלמין צבאי/משה סנה", "stop_desc": "רחוב: משה סנה 83 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.128115, "stop_lon": 34.828144, "location_type": 0, "parent_station": null, "zone_id": 21219.0 }, "geometry": { "type": "Point", "coordinates": [ 34.828144, 32.128115 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12945, "stop_code": 21237, "stop_name": "יצחק שדה/המסגר", "stop_desc": "רחוב: יצחק שדה 15 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.065676, "stop_lon": 34.785302, "location_type": 0, "parent_station": null, "zone_id": 21237.0 }, "geometry": { "type": "Point", "coordinates": [ 34.785302, 32.065676 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12952, "stop_code": 21244, "stop_name": "דרך מנחם בגין/הרכבת", "stop_desc": "רחוב: דרך מנחם בגין 48 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.063416, "stop_lon": 34.780072, "location_type": 0, "parent_station": null, "zone_id": 21244.0 }, "geometry": { "type": "Point", "coordinates": [ 34.780072, 32.063416 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12968, "stop_code": 21264, "stop_name": "לה גווארדייה/יגאל אלון", "stop_desc": "רחוב: לה גווארדיה 27 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.059304, "stop_lon": 34.790544, "location_type": 0, "parent_station": null, "zone_id": 21264.0 }, "geometry": { "type": "Point", "coordinates": [ 34.790544, 32.059304 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12969, "stop_code": 21265, "stop_name": "דרך בר לב/דרך הטייסים", "stop_desc": "רחוב: דרך חיים ברלב 207 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.044958, "stop_lon": 34.8114, "location_type": 0, "parent_station": null, "zone_id": 21265.0 }, "geometry": { "type": "Point", "coordinates": [ 34.8114, 32.044958 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12975, "stop_code": 21274, "stop_name": "מחלף לה גווארדייה", "stop_desc": "רחוב: לה גווארדיה עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.059454, "stop_lon": 34.786354, "location_type": 0, "parent_station": null, "zone_id": 21274.0 }, "geometry": { "type": "Point", "coordinates": [ 34.786354, 32.059454 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12978, "stop_code": 21277, "stop_name": "דרך משה דיין/ההגנה", "stop_desc": "רחוב: דרך משה דיין 42 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.051417, "stop_lon": 34.8, "location_type": 0, "parent_station": null, "zone_id": 21277.0 }, "geometry": { "type": "Point", "coordinates": [ 34.8, 32.051417 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12981, "stop_code": 21282, "stop_name": "דרך הטייסים/דרך בר לב", "stop_desc": "רחוב: דרך הטייסים 124 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.046202, "stop_lon": 34.813526, "location_type": 0, "parent_station": null, "zone_id": 21282.0 }, "geometry": { "type": "Point", "coordinates": [ 34.813526, 32.046202 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12982, "stop_code": 21284, "stop_name": "דרך השלום/חביבה רייק", "stop_desc": "רחוב: דרך השלום 31 עיר: גבעתיים רציף:  קומה: ", "stop_lat": 32.069428, "stop_lon": 34.802586, "location_type": 0, "parent_station": null, "zone_id": 21284.0 }, "geometry": { "type": "Point", "coordinates": [ 34.802586, 32.069428 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12983, "stop_code": 21285, "stop_name": "אלוף שדה/עודד", "stop_desc": "רחוב: אלוף שדה עיר: רמת גן רציף:  קומה: ", "stop_lat": 32.05839, "stop_lon": 34.812677, "location_type": 0, "parent_station": null, "zone_id": 21285.0 }, "geometry": { "type": "Point", "coordinates": [ 34.812677, 32.05839 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12984, "stop_code": 21286, "stop_name": "דרך בר לב/אונטרמן", "stop_desc": "רחוב: דרך חיים ברלב 134 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.045863, "stop_lon": 34.804118, "location_type": 0, "parent_station": null, "zone_id": 21286.0 }, "geometry": { "type": "Point", "coordinates": [ 34.804118, 32.045863 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12985, "stop_code": 21287, "stop_name": "דרך בר לב/שד' ששת הימים", "stop_desc": "רחוב: דרך חיים ברלב 178 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.045144, "stop_lon": 34.808098, "location_type": 0, "parent_station": null, "zone_id": 21287.0 }, "geometry": { "type": "Point", "coordinates": [ 34.808098, 32.045144 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12987, "stop_code": 21289, "stop_name": "אסותא/יגאל אלון", "stop_desc": "רחוב: יגאל אלון 98 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.069847, "stop_lon": 34.793808, "location_type": 0, "parent_station": null, "zone_id": 21289.0 }, "geometry": { "type": "Point", "coordinates": [ 34.793808, 32.069847 ] } },
+{ "type": "Feature", "properties": { "stop_id": 12988, "stop_code": 21301, "stop_name": "לה גווארדייה/הגיבור האלמוני", "stop_desc": "רחוב: לה גווארדיה 69 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.059183, "stop_lon": 34.798721, "location_type": 0, "parent_station": null, "zone_id": 21301.0 }, "geometry": { "type": "Point", "coordinates": [ 34.798721, 32.059183 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13000, "stop_code": 21318, "stop_name": "היכל הספורט/יגאל אלון", "stop_desc": "רחוב: יגאל אלון 47 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.060644, "stop_lon": 34.791891, "location_type": 0, "parent_station": null, "zone_id": 21318.0 }, "geometry": { "type": "Point", "coordinates": [ 34.791891, 32.060644 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13019, "stop_code": 21342, "stop_name": "הרכבת/בני ברק", "stop_desc": "רחוב: הרכבת 54 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.060522, "stop_lon": 34.781999, "location_type": 0, "parent_station": null, "zone_id": 21342.0 }, "geometry": { "type": "Point", "coordinates": [ 34.781999, 32.060522 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13028, "stop_code": 21356, "stop_name": "ראול ולנברג/הנחושת", "stop_desc": "רחוב: ראול ולנברג עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.109949, "stop_lon": 34.837112, "location_type": 0, "parent_station": null, "zone_id": 21356.0 }, "geometry": { "type": "Point", "coordinates": [ 34.837112, 32.109949 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13029, "stop_code": 21357, "stop_name": "ראול ולנברג/הארד", "stop_desc": "רחוב: ראול ולנברג עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.111693, "stop_lon": 34.838729, "location_type": 0, "parent_station": null, "zone_id": 21357.0 }, "geometry": { "type": "Point", "coordinates": [ 34.838729, 32.111693 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13030, "stop_code": 21358, "stop_name": "ראול ולנברג/משמר הירדן", "stop_desc": "רחוב: ראול ולנברג עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.106733, "stop_lon": 34.830514, "location_type": 0, "parent_station": null, "zone_id": 21358.0 }, "geometry": { "type": "Point", "coordinates": [ 34.830514, 32.106733 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13033, "stop_code": 21366, "stop_name": "כיכר דיזנגוף/דיזנגוף", "stop_desc": "רחוב: דיזנגוף 93 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.078936, "stop_lon": 34.773907, "location_type": 0, "parent_station": null, "zone_id": 21366.0 }, "geometry": { "type": "Point", "coordinates": [ 34.773907, 32.078936 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13052, "stop_code": 21389, "stop_name": "חיים לבנון/קלצ'קין", "stop_desc": "רחוב: חיים לבנון 83 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.117801, "stop_lon": 34.801382, "location_type": 0, "parent_station": null, "zone_id": 21389.0 }, "geometry": { "type": "Point", "coordinates": [ 34.801382, 32.117801 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13062, "stop_code": 21406, "stop_name": "יגאל אלון/יצחק שדה", "stop_desc": "רחוב: יגאל אלון 61 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.064876, "stop_lon": 34.792274, "location_type": 0, "parent_station": null, "zone_id": 21406.0 }, "geometry": { "type": "Point", "coordinates": [ 34.792274, 32.064876 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13063, "stop_code": 21407, "stop_name": "יגאל אלון/ההגנה", "stop_desc": "רחוב: יגאל אלון 8 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.054622, "stop_lon": 34.791709, "location_type": 0, "parent_station": null, "zone_id": 21407.0 }, "geometry": { "type": "Point", "coordinates": [ 34.791709, 32.054622 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13067, "stop_code": 21415, "stop_name": "דרך נמיר/יהודה המכבי", "stop_desc": "רחוב: דרך נמיר 126 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.095157, "stop_lon": 34.794466, "location_type": 0, "parent_station": null, "zone_id": 21415.0 }, "geometry": { "type": "Point", "coordinates": [ 34.794466, 32.095157 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13079, "stop_code": 21434, "stop_name": "לה גווארדייה/יגאל אלון", "stop_desc": "רחוב: לה גווארדיה 32 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.059204, "stop_lon": 34.791053, "location_type": 0, "parent_station": null, "zone_id": 21434.0 }, "geometry": { "type": "Point", "coordinates": [ 34.791053, 32.059204 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13081, "stop_code": 21436, "stop_name": "דרך בר לב/אונטרמן", "stop_desc": "רחוב: דרך חיים ברלב 139 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.046062, "stop_lon": 34.804024, "location_type": 0, "parent_station": null, "zone_id": 21436.0 }, "geometry": { "type": "Point", "coordinates": [ 34.804024, 32.046062 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13082, "stop_code": 21437, "stop_name": "דרך בר לב/שד' ששת הימים", "stop_desc": "רחוב: דרך חיים ברלב 197 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.045205, "stop_lon": 34.808983, "location_type": 0, "parent_station": null, "zone_id": 21437.0 }, "geometry": { "type": "Point", "coordinates": [ 34.808983, 32.045205 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13083, "stop_code": 21438, "stop_name": "לה גווארדייה/שער הגיא", "stop_desc": "רחוב: לה גווארדיה 43 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.059214, "stop_lon": 34.79378, "location_type": 0, "parent_station": null, "zone_id": 21438.0 }, "geometry": { "type": "Point", "coordinates": [ 34.79378, 32.059214 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13092, "stop_code": 21454, "stop_name": "יגאל אלון/הפלמ''ח", "stop_desc": "רחוב: יגאל אלון 55 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.062878, "stop_lon": 34.792016, "location_type": 0, "parent_station": null, "zone_id": 21454.0 }, "geometry": { "type": "Point", "coordinates": [ 34.792016, 32.062878 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13093, "stop_code": 21455, "stop_name": "מגרשי הטניס/בכור שטרית", "stop_desc": "רחוב: בכור שלום שטרית 4 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.106365, "stop_lon": 34.816519, "location_type": 0, "parent_station": null, "zone_id": 21455.0 }, "geometry": { "type": "Point", "coordinates": [ 34.816519, 32.106365 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13095, "stop_code": 21457, "stop_name": "היכל הספורט/יגאל אלון", "stop_desc": "רחוב: יגאל אלון 58 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.061469, "stop_lon": 34.792128, "location_type": 0, "parent_station": null, "zone_id": 21457.0 }, "geometry": { "type": "Point", "coordinates": [ 34.792128, 32.061469 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13097, "stop_code": 21461, "stop_name": "איצטדיון הדר יוסף/בכור שטרית", "stop_desc": "רחוב: בכור שלום שטרית 37 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.106288, "stop_lon": 34.822207, "location_type": 0, "parent_station": null, "zone_id": 21461.0 }, "geometry": { "type": "Point", "coordinates": [ 34.822207, 32.106288 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13099, "stop_code": 21466, "stop_name": "מרכז הספורט/בכור שטרית", "stop_desc": "רחוב: בכור שלום שטרית 25 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.106049, "stop_lon": 34.81943, "location_type": 0, "parent_station": null, "zone_id": 21466.0 }, "geometry": { "type": "Point", "coordinates": [ 34.81943, 32.106049 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13103, "stop_code": 21472, "stop_name": "קניון עזריאלי/דרך מנחם בגין", "stop_desc": "רחוב: דרך מנחם בגין עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.074592, "stop_lon": 34.790584, "location_type": 0, "parent_station": null, "zone_id": 21472.0 }, "geometry": { "type": "Point", "coordinates": [ 34.790584, 32.074592 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13112, "stop_code": 21486, "stop_name": "מסוף הטייסים", "stop_desc": "רחוב: דרך הטייסים עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.048689, "stop_lon": 34.813804, "location_type": 0, "parent_station": null, "zone_id": 21486.0 }, "geometry": { "type": "Point", "coordinates": [ 34.813804, 32.048689 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13128, "stop_code": 21518, "stop_name": "יגאל אלון/קרמנצקי", "stop_desc": "רחוב: יגאל אלון עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.067602, "stop_lon": 34.792921, "location_type": 0, "parent_station": null, "zone_id": 21518.0 }, "geometry": { "type": "Point", "coordinates": [ 34.792921, 32.067602 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13129, "stop_code": 21520, "stop_name": "כיכר רבין/מלכי ישראל", "stop_desc": "רחוב: מלכי ישראל עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.0796, "stop_lon": 34.780657, "location_type": 0, "parent_station": null, "zone_id": 21520.0 }, "geometry": { "type": "Point", "coordinates": [ 34.780657, 32.0796 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13130, "stop_code": 21521, "stop_name": "יגאל אלון/יצחק שדה", "stop_desc": "רחוב: יגאל אלון 78 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.065464, "stop_lon": 34.792625, "location_type": 0, "parent_station": null, "zone_id": 21521.0 }, "geometry": { "type": "Point", "coordinates": [ 34.792625, 32.065464 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13131, "stop_code": 21525, "stop_name": "בני אפרים/חנה רובינא", "stop_desc": "רחוב: בני אפרים 279 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.12048, "stop_lon": 34.819657, "location_type": 0, "parent_station": null, "zone_id": 21525.0 }, "geometry": { "type": "Point", "coordinates": [ 34.819657, 32.12048 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13132, "stop_code": 21530, "stop_name": "דרך משה דיין/קרייתי", "stop_desc": "רחוב: דרך משה דיין 27 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.049334, "stop_lon": 34.799322, "location_type": 0, "parent_station": null, "zone_id": 21530.0 }, "geometry": { "type": "Point", "coordinates": [ 34.799322, 32.049334 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13136, "stop_code": 21534, "stop_name": "תיכון חדש רבין/דרך נמיר", "stop_desc": "רחוב: דרך נמיר עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.090293, "stop_lon": 34.795303, "location_type": 0, "parent_station": null, "zone_id": 21534.0 }, "geometry": { "type": "Point", "coordinates": [ 34.795303, 32.090293 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13138, "stop_code": 21538, "stop_name": "דרך בר לב/דרך משה דיין", "stop_desc": "רחוב: דרך חיים ברלב 102 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.046689, "stop_lon": 34.799899, "location_type": 0, "parent_station": null, "zone_id": 21538.0 }, "geometry": { "type": "Point", "coordinates": [ 34.799899, 32.046689 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13145, "stop_code": 21547, "stop_name": "קלצ'קין/חיים לבנון", "stop_desc": "רחוב: קלצ'קין עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.118007, "stop_lon": 34.802148, "location_type": 0, "parent_station": null, "zone_id": 21547.0 }, "geometry": { "type": "Point", "coordinates": [ 34.802148, 32.118007 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13153, "stop_code": 21562, "stop_name": "לונה פארק/שד' רוקח", "stop_desc": "רחוב: שדרות רוקח 106 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.105513, "stop_lon": 34.81257, "location_type": 0, "parent_station": null, "zone_id": 21562.0 }, "geometry": { "type": "Point", "coordinates": [ 34.81257, 32.105513 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13154, "stop_code": 21564, "stop_name": "דרך נמיר/ז'בוטינסקי", "stop_desc": "רחוב: דרך נמיר 66 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.086375, "stop_lon": 34.795493, "location_type": 0, "parent_station": null, "zone_id": 21564.0 }, "geometry": { "type": "Point", "coordinates": [ 34.795493, 32.086375 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13155, "stop_code": 21565, "stop_name": "בני אפרים/מנורה", "stop_desc": "רחוב: בני אפרים 297 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.121877, "stop_lon": 34.821768, "location_type": 0, "parent_station": null, "zone_id": 21565.0 }, "geometry": { "type": "Point", "coordinates": [ 34.821768, 32.121877 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13161, "stop_code": 21572, "stop_name": "דרך בר לב/צביה לובטקין", "stop_desc": "רחוב: דרך חיים ברלב 157 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.045785, "stop_lon": 34.805717, "location_type": 0, "parent_station": null, "zone_id": 21572.0 }, "geometry": { "type": "Point", "coordinates": [ 34.805717, 32.045785 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13162, "stop_code": 21574, "stop_name": "דרך בר לב/דרך משה דיין", "stop_desc": "רחוב: דרך חיים ברלב 111 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.046839, "stop_lon": 34.800032, "location_type": 0, "parent_station": null, "zone_id": 21574.0 }, "geometry": { "type": "Point", "coordinates": [ 34.800032, 32.046839 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13173, "stop_code": 21595, "stop_name": "לה גווארדייה/דרך הטייסים", "stop_desc": "רחוב: לה גווארדיה 91 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.059319, "stop_lon": 34.80295, "location_type": 0, "parent_station": null, "zone_id": 21595.0 }, "geometry": { "type": "Point", "coordinates": [ 34.80295, 32.059319 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13181, "stop_code": 21615, "stop_name": "דרך נמיר/פנקס", "stop_desc": "רחוב: דרך נמיר 92 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.092013, "stop_lon": 34.795206, "location_type": 0, "parent_station": null, "zone_id": 21615.0 }, "geometry": { "type": "Point", "coordinates": [ 34.795206, 32.092013 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13186, "stop_code": 21625, "stop_name": "יצחק שדה/המסגר", "stop_desc": "רחוב: יצחק שדה 20 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.065354, "stop_lon": 34.785844, "location_type": 0, "parent_station": null, "zone_id": 21625.0 }, "geometry": { "type": "Point", "coordinates": [ 34.785844, 32.065354 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13195, "stop_code": 21635, "stop_name": "עולי הגרדום/ניסן כהן", "stop_desc": "רחוב: עולי הגרדום 19 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.111576, "stop_lon": 34.835119, "location_type": 0, "parent_station": null, "zone_id": 21635.0 }, "geometry": { "type": "Point", "coordinates": [ 34.835119, 32.111576 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13200, "stop_code": 21655, "stop_name": "דרך השלום/דרך הטייסים", "stop_desc": "רחוב: דרך השלום 115 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.060318, "stop_lon": 34.806529, "location_type": 0, "parent_station": null, "zone_id": 21655.0 }, "geometry": { "type": "Point", "coordinates": [ 34.806529, 32.060318 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13204, "stop_code": 21669, "stop_name": "קניון עזריאלי/דרך מנחם בגין", "stop_desc": "רחוב: דרך מנחם בגין 138 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.075758, "stop_lon": 34.791549, "location_type": 0, "parent_station": null, "zone_id": 21669.0 }, "geometry": { "type": "Point", "coordinates": [ 34.791549, 32.075758 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13206, "stop_code": 21675, "stop_name": "קריית הממשלה/דרך מנחם בגין", "stop_desc": "רחוב: דרך מנחם בגין 125 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.07238, "stop_lon": 34.789654, "location_type": 0, "parent_station": null, "zone_id": 21675.0 }, "geometry": { "type": "Point", "coordinates": [ 34.789654, 32.07238 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13219, "stop_code": 21716, "stop_name": "שד' רוקח/בכור שטרית", "stop_desc": "רחוב: שדרות רוקח 103 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.107454, "stop_lon": 34.814433, "location_type": 0, "parent_station": null, "zone_id": 21716.0 }, "geometry": { "type": "Point", "coordinates": [ 34.814433, 32.107454 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13220, "stop_code": 21717, "stop_name": "אקספו תל אביב/שד' רוקח", "stop_desc": "רחוב: שדרות רוקח 98 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.103834, "stop_lon": 34.809664, "location_type": 0, "parent_station": null, "zone_id": 21717.0 }, "geometry": { "type": "Point", "coordinates": [ 34.809664, 32.103834 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13221, "stop_code": 21718, "stop_name": "ת. רכבת האוניברסיטה/שד' רוקח", "stop_desc": "רחוב: שדרות רוקח עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.102578, "stop_lon": 34.805312, "location_type": 0, "parent_station": null, "zone_id": 21718.0 }, "geometry": { "type": "Point", "coordinates": [ 34.805312, 32.102578 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13225, "stop_code": 21728, "stop_name": "יגאל אלון/ההגנה", "stop_desc": "רחוב: יגאל אלון 11 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.054767, "stop_lon": 34.791618, "location_type": 0, "parent_station": null, "zone_id": 21728.0 }, "geometry": { "type": "Point", "coordinates": [ 34.791618, 32.054767 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13226, "stop_code": 21729, "stop_name": "החשמונאים/קרליבך", "stop_desc": "רחוב: החשמונאים 84 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.069472, "stop_lon": 34.783648, "location_type": 0, "parent_station": null, "zone_id": 21729.0 }, "geometry": { "type": "Point", "coordinates": [ 34.783648, 32.069472 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13241, "stop_code": 21827, "stop_name": "ראול ולנברג/הברזל", "stop_desc": "רחוב: ראול ולנברג 2 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.107031, "stop_lon": 34.833789, "location_type": 0, "parent_station": null, "zone_id": 21827.0 }, "geometry": { "type": "Point", "coordinates": [ 34.833789, 32.107031 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13242, "stop_code": 21828, "stop_name": "מטה מרחב ירקון/ראול ולנברג", "stop_desc": "רחוב: ראול ולנברג 6 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.108001, "stop_lon": 34.835243, "location_type": 0, "parent_station": null, "zone_id": 21828.0 }, "geometry": { "type": "Point", "coordinates": [ 34.835243, 32.108001 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13243, "stop_code": 21829, "stop_name": "ראול ולנברג/הנחושת", "stop_desc": "רחוב: ראול ולנברג 18 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.1097, "stop_lon": 34.837166, "location_type": 0, "parent_station": null, "zone_id": 21829.0 }, "geometry": { "type": "Point", "coordinates": [ 34.837166, 32.1097 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13244, "stop_code": 21830, "stop_name": "ראול ולנברג/הארד", "stop_desc": "רחוב: ראול ולנברג 28 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.112816, "stop_lon": 34.839688, "location_type": 0, "parent_station": null, "zone_id": 21830.0 }, "geometry": { "type": "Point", "coordinates": [ 34.839688, 32.112816 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13245, "stop_code": 21831, "stop_name": "מטה מרחב ירקון/ראול ולנברג", "stop_desc": "רחוב: ראול ולנברג עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.108777, "stop_lon": 34.835807, "location_type": 0, "parent_station": null, "zone_id": 21831.0 }, "geometry": { "type": "Point", "coordinates": [ 34.835807, 32.108777 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13258, "stop_code": 22919, "stop_name": "לונה פארק/שד' רוקח", "stop_desc": "רחוב: שדרות רוקח עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.105529, "stop_lon": 34.812227, "location_type": 0, "parent_station": null, "zone_id": 22919.0 }, "geometry": { "type": "Point", "coordinates": [ 34.812227, 32.105529 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13263, "stop_code": 22926, "stop_name": "אלוף שדה/כורזין", "stop_desc": "רחוב: אלוף שדה עיר: גבעתיים רציף:  קומה: ", "stop_lat": 32.058559, "stop_lon": 34.81531, "location_type": 0, "parent_station": null, "zone_id": 22926.0 }, "geometry": { "type": "Point", "coordinates": [ 34.81531, 32.058559 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13265, "stop_code": 22930, "stop_name": "דרך השלום/דרך הטייסים", "stop_desc": "רחוב: דרך השלום 108 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.060687, "stop_lon": 34.805644, "location_type": 0, "parent_station": null, "zone_id": 22930.0 }, "geometry": { "type": "Point", "coordinates": [ 34.805644, 32.060687 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13267, "stop_code": 22932, "stop_name": "דרך משה דיין/דרך בר לב", "stop_desc": "רחוב: דרך משה דיין עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.047976, "stop_lon": 34.799321, "location_type": 0, "parent_station": null, "zone_id": 22932.0 }, "geometry": { "type": "Point", "coordinates": [ 34.799321, 32.047976 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13268, "stop_code": 22934, "stop_name": "מחלף לה גווארדייה", "stop_desc": "רחוב: לה גווארדיה עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.059174, "stop_lon": 34.786171, "location_type": 0, "parent_station": null, "zone_id": 22934.0 }, "geometry": { "type": "Point", "coordinates": [ 34.786171, 32.059174 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13272, "stop_code": 22939, "stop_name": "יגאל אלון/שד' החי''ל", "stop_desc": "רחוב: יגאל אלון עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.055943, "stop_lon": 34.791749, "location_type": 0, "parent_station": null, "zone_id": 22939.0 }, "geometry": { "type": "Point", "coordinates": [ 34.791749, 32.055943 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13295, "stop_code": 22986, "stop_name": "הרכבת/סלומון", "stop_desc": "רחוב: הרכבת 31 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.062513, "stop_lon": 34.780174, "location_type": 0, "parent_station": null, "zone_id": 22986.0 }, "geometry": { "type": "Point", "coordinates": [ 34.780174, 32.062513 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13306, "stop_code": 22998, "stop_name": "דיזנגוף/בן יהודה", "stop_desc": "רחוב: דיזנגוף 285 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.096302, "stop_lon": 34.775963, "location_type": 0, "parent_station": null, "zone_id": 22998.0 }, "geometry": { "type": "Point", "coordinates": [ 34.775963, 32.096302 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13328, "stop_code": 23023, "stop_name": "לה גווארדייה/המעפילים", "stop_desc": "רחוב: לה גווארדיה 19 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.059392, "stop_lon": 34.788682, "location_type": 0, "parent_station": null, "zone_id": 23023.0 }, "geometry": { "type": "Point", "coordinates": [ 34.788682, 32.059392 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13348, "stop_code": 23074, "stop_name": "אקספו תל אביב/שד' רוקח", "stop_desc": "רחוב: שדרות רוקח עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.104601, "stop_lon": 34.810684, "location_type": 0, "parent_station": null, "zone_id": 23074.0 }, "geometry": { "type": "Point", "coordinates": [ 34.810684, 32.104601 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13354, "stop_code": 24068, "stop_name": "ת. רכבת תל אביב - סבידור/דרך נמיר", "stop_desc": "רחוב:   עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.083482, "stop_lon": 34.795008, "location_type": 0, "parent_station": null, "zone_id": 24068.0 }, "geometry": { "type": "Point", "coordinates": [ 34.795008, 32.083482 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13358, "stop_code": 25071, "stop_name": "סמינר הקיבוצים/דרך נמיר", "stop_desc": "רחוב: דרך נמיר עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.101886, "stop_lon": 34.792779, "location_type": 0, "parent_station": null, "zone_id": 25071.0 }, "geometry": { "type": "Point", "coordinates": [ 34.792779, 32.101886 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13362, "stop_code": 25141, "stop_name": "דרך מנחם בגין/נחמני", "stop_desc": "רחוב: דרך מנחם בגין 32 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.064395, "stop_lon": 34.781449, "location_type": 0, "parent_station": null, "zone_id": 25141.0 }, "geometry": { "type": "Point", "coordinates": [ 34.781449, 32.064395 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13561, "stop_code": 25565, "stop_name": "דיזנגוף סנטר/דיזנגוף", "stop_desc": "רחוב: דיזנגוף 53 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.075411, "stop_lon": 34.775108, "location_type": 0, "parent_station": null, "zone_id": 25565.0 }, "geometry": { "type": "Point", "coordinates": [ 34.775108, 32.075411 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13565, "stop_code": 25575, "stop_name": "כיכר דיזנגוף/ריינס", "stop_desc": "רחוב: ריינס 10 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.07895, "stop_lon": 34.77495, "location_type": 0, "parent_station": null, "zone_id": 25575.0 }, "geometry": { "type": "Point", "coordinates": [ 34.77495, 32.07895 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13575, "stop_code": 25592, "stop_name": "הבימה/שד' רוטשילד", "stop_desc": "רחוב: שדרות רוטשילד 135 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.071428, "stop_lon": 34.778882, "location_type": 0, "parent_station": null, "zone_id": 25592.0 }, "geometry": { "type": "Point", "coordinates": [ 34.778882, 32.071428 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13580, "stop_code": 25604, "stop_name": "הסינמטק/קרליבך", "stop_desc": "רחוב: קרליבך 14 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.070252, "stop_lon": 34.782663, "location_type": 0, "parent_station": null, "zone_id": 25604.0 }, "geometry": { "type": "Point", "coordinates": [ 34.782663, 32.070252 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13581, "stop_code": 25607, "stop_name": "דיזנגוף סנטר/שדרות בן ציון", "stop_desc": "רחוב: שדרות בן ציון 5 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.073814, "stop_lon": 34.776007, "location_type": 0, "parent_station": null, "zone_id": 25607.0 }, "geometry": { "type": "Point", "coordinates": [ 34.776007, 32.073814 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13582, "stop_code": 25608, "stop_name": "דיזנגוף סנטר/שדרות בן ציון", "stop_desc": "רחוב: שדרות בן ציון 4 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.073756, "stop_lon": 34.775586, "location_type": 0, "parent_station": null, "zone_id": 25608.0 }, "geometry": { "type": "Point", "coordinates": [ 34.775586, 32.073756 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13583, "stop_code": 25609, "stop_name": "דיזנגוף סנטר/דיזנגוף", "stop_desc": "רחוב: דיזנגוף 54 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.075295, "stop_lon": 34.775342, "location_type": 0, "parent_station": null, "zone_id": 25609.0 }, "geometry": { "type": "Point", "coordinates": [ 34.775342, 32.075295 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13585, "stop_code": 25614, "stop_name": "היכל התרבות/דיזנגוף", "stop_desc": "רחוב: דיזנגוף 26 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.074359, "stop_lon": 34.778231, "location_type": 0, "parent_station": null, "zone_id": 25614.0 }, "geometry": { "type": "Point", "coordinates": [ 34.778231, 32.074359 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13588, "stop_code": 25617, "stop_name": "המלך ג'ורג'/זמנהוף", "stop_desc": "רחוב: המלך ג'ורג' 93 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.076897, "stop_lon": 34.777315, "location_type": 0, "parent_station": null, "zone_id": 25617.0 }, "geometry": { "type": "Point", "coordinates": [ 34.777315, 32.076897 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13590, "stop_code": 25619, "stop_name": "כיכר מסריק/המלך ג'ורג'", "stop_desc": "רחוב: המלך ג'ורג' 88 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.077639, "stop_lon": 34.778033, "location_type": 0, "parent_station": null, "zone_id": 25619.0 }, "geometry": { "type": "Point", "coordinates": [ 34.778033, 32.077639 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13591, "stop_code": 25621, "stop_name": "הבימה/שד' בן ציון", "stop_desc": "רחוב: מרמורק עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.07188, "stop_lon": 34.779715, "location_type": 0, "parent_station": null, "zone_id": 25621.0 }, "geometry": { "type": "Point", "coordinates": [ 34.779715, 32.07188 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13592, "stop_code": 25622, "stop_name": "היכל התרבות/דיזנגוף", "stop_desc": "רחוב: דיזנגוף 15 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.073958, "stop_lon": 34.779383, "location_type": 0, "parent_station": null, "zone_id": 25622.0 }, "geometry": { "type": "Point", "coordinates": [ 34.779383, 32.073958 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13596, "stop_code": 25629, "stop_name": "כיכר רבין/מלכי ישראל", "stop_desc": "רחוב: מלכי ישראל 4 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.079416, "stop_lon": 34.780372, "location_type": 0, "parent_station": null, "zone_id": 25629.0 }, "geometry": { "type": "Point", "coordinates": [ 34.780372, 32.079416 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13608, "stop_code": 25643, "stop_name": "שוק התקווה/אצ''ל", "stop_desc": "רחוב: אצ''ל 14 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.052962, "stop_lon": 34.791348, "location_type": 0, "parent_station": null, "zone_id": 25643.0 }, "geometry": { "type": "Point", "coordinates": [ 34.791348, 32.052962 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13610, "stop_code": 25645, "stop_name": "שוק התקווה/אצ''ל", "stop_desc": "רחוב: אצ''ל 7 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.053436, "stop_lon": 34.791288, "location_type": 0, "parent_station": null, "zone_id": 25645.0 }, "geometry": { "type": "Point", "coordinates": [ 34.791288, 32.053436 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13612, "stop_code": 25655, "stop_name": "לה גווארדייה/המעפילים", "stop_desc": "רחוב: לה גווארדיה 20 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.059237, "stop_lon": 34.788815, "location_type": 0, "parent_station": null, "zone_id": 25655.0 }, "geometry": { "type": "Point", "coordinates": [ 34.788815, 32.059237 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13614, "stop_code": 25660, "stop_name": "אצ''ל/לח''י", "stop_desc": "רחוב: אצ''ל 76 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.048019, "stop_lon": 34.793353, "location_type": 0, "parent_station": null, "zone_id": 25660.0 }, "geometry": { "type": "Point", "coordinates": [ 34.793353, 32.048019 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13615, "stop_code": 25661, "stop_name": "אצ''ל/לח''י", "stop_desc": "רחוב: אצ''ל 87 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.048306, "stop_lon": 34.793219, "location_type": 0, "parent_station": null, "zone_id": 25661.0 }, "geometry": { "type": "Point", "coordinates": [ 34.793219, 32.048306 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13616, "stop_code": 25662, "stop_name": "אצ''ל/חנוך", "stop_desc": "רחוב: אצ''ל 46 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.050613, "stop_lon": 34.791725, "location_type": 0, "parent_station": null, "zone_id": 25662.0 }, "geometry": { "type": "Point", "coordinates": [ 34.791725, 32.050613 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13617, "stop_code": 25663, "stop_name": "אצ''ל/חנוך", "stop_desc": "רחוב: אצ''ל 49 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.051239, "stop_lon": 34.791655, "location_type": 0, "parent_station": null, "zone_id": 25663.0 }, "geometry": { "type": "Point", "coordinates": [ 34.791655, 32.051239 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13618, "stop_code": 25668, "stop_name": "שכונת הארגזים/לח''י", "stop_desc": "רחוב: לח''י 75 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.047557, "stop_lon": 34.79592, "location_type": 0, "parent_station": null, "zone_id": 25668.0 }, "geometry": { "type": "Point", "coordinates": [ 34.79592, 32.047557 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13619, "stop_code": 25669, "stop_name": "שכונת הארגזים/לח''י", "stop_desc": "רחוב: לח''י 82 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.047282, "stop_lon": 34.796587, "location_type": 0, "parent_station": null, "zone_id": 25669.0 }, "geometry": { "type": "Point", "coordinates": [ 34.796587, 32.047282 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13627, "stop_code": 25682, "stop_name": "יגאל אלון/שד' החי''ל", "stop_desc": "רחוב: יגאל אלון 36 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.057022, "stop_lon": 34.791929, "location_type": 0, "parent_station": null, "zone_id": 25682.0 }, "geometry": { "type": "Point", "coordinates": [ 34.791929, 32.057022 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13628, "stop_code": 25683, "stop_name": "יגאל אלון/לה גווארדייה", "stop_desc": "רחוב: יגאל אלון 43 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.058255, "stop_lon": 34.791868, "location_type": 0, "parent_station": null, "zone_id": 25683.0 }, "geometry": { "type": "Point", "coordinates": [ 34.791868, 32.058255 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13629, "stop_code": 25693, "stop_name": "לה גווארדייה/הגיבור האלמוני", "stop_desc": "רחוב: לה גווארדיה 66 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.059086, "stop_lon": 34.798466, "location_type": 0, "parent_station": null, "zone_id": 25693.0 }, "geometry": { "type": "Point", "coordinates": [ 34.798466, 32.059086 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13652, "stop_code": 25778, "stop_name": "דיזנגוף/ש''ץ", "stop_desc": "רחוב: דיזנגוף 149 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.08366, "stop_lon": 34.774083, "location_type": 0, "parent_station": null, "zone_id": 25778.0 }, "geometry": { "type": "Point", "coordinates": [ 34.774083, 32.08366 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13658, "stop_code": 25787, "stop_name": "דיזנגוף/יודפת", "stop_desc": "רחוב: דיזנגוף 181 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.085415, "stop_lon": 34.774508, "location_type": 0, "parent_station": null, "zone_id": 25787.0 }, "geometry": { "type": "Point", "coordinates": [ 34.774508, 32.085415 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13659, "stop_code": 25794, "stop_name": "דיזנגוף/ארלוזורוב", "stop_desc": "רחוב: דיזנגוף 198 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.086259, "stop_lon": 34.774822, "location_type": 0, "parent_station": null, "zone_id": 25794.0 }, "geometry": { "type": "Point", "coordinates": [ 34.774822, 32.086259 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13661, "stop_code": 25801, "stop_name": "הירקון/שד' נורדאו", "stop_desc": "רחוב: הירקון עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.092146, "stop_lon": 34.773014, "location_type": 0, "parent_station": null, "zone_id": 25801.0 }, "geometry": { "type": "Point", "coordinates": [ 34.773014, 32.092146 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13662, "stop_code": 25803, "stop_name": "נמל תל אביב/הירקון", "stop_desc": "רחוב: הירקון 311 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.095964, "stop_lon": 34.774431, "location_type": 0, "parent_station": null, "zone_id": 25803.0 }, "geometry": { "type": "Point", "coordinates": [ 34.774431, 32.095964 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13664, "stop_code": 25805, "stop_name": "ריינס/גורדון", "stop_desc": "רחוב: ריינס 46 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.081909, "stop_lon": 34.775838, "location_type": 0, "parent_station": null, "zone_id": 25805.0 }, "geometry": { "type": "Point", "coordinates": [ 34.775838, 32.081909 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13669, "stop_code": 25811, "stop_name": "דיזנגוף/ארלוזורוב", "stop_desc": "רחוב: דיזנגוף 203 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.087671, "stop_lon": 34.775072, "location_type": 0, "parent_station": null, "zone_id": 25811.0 }, "geometry": { "type": "Point", "coordinates": [ 34.775072, 32.087671 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13670, "stop_code": 25812, "stop_name": "דיזנגוף/ארלוזורוב", "stop_desc": "רחוב: דיזנגוף 218 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.087957, "stop_lon": 34.775256, "location_type": 0, "parent_station": null, "zone_id": 25812.0 }, "geometry": { "type": "Point", "coordinates": [ 34.775256, 32.087957 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13675, "stop_code": 25818, "stop_name": "עיריית תל אביב - יפו/אבן גבירול", "stop_desc": "רחוב: אבן גבירול 82 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.081798, "stop_lon": 34.781421, "location_type": 0, "parent_station": null, "zone_id": 25818.0 }, "geometry": { "type": "Point", "coordinates": [ 34.781421, 32.081798 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13679, "stop_code": 25823, "stop_name": "עיריית תל אביב - יפו/אבן גבירול", "stop_desc": "רחוב: אבן גבירול 71 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.082914, "stop_lon": 34.781176, "location_type": 0, "parent_station": null, "zone_id": 25823.0 }, "geometry": { "type": "Point", "coordinates": [ 34.781176, 32.082914 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13683, "stop_code": 25832, "stop_name": "דיזנגוף/ז'בוטינסקי", "stop_desc": "רחוב: דיזנגוף 236 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.089631, "stop_lon": 34.77566, "location_type": 0, "parent_station": null, "zone_id": 25832.0 }, "geometry": { "type": "Point", "coordinates": [ 34.77566, 32.089631 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13684, "stop_code": 25833, "stop_name": "דיזנגוף/בזל", "stop_desc": "רחוב: דיזנגוף 237 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.091443, "stop_lon": 34.776014, "location_type": 0, "parent_station": null, "zone_id": 25833.0 }, "geometry": { "type": "Point", "coordinates": [ 34.776014, 32.091443 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13688, "stop_code": 25840, "stop_name": "דיזנגוף/שד' נורדאו", "stop_desc": "רחוב: דיזנגוף 286 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.093287, "stop_lon": 34.776572, "location_type": 0, "parent_station": null, "zone_id": 25840.0 }, "geometry": { "type": "Point", "coordinates": [ 34.776572, 32.093287 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13689, "stop_code": 25841, "stop_name": "דיזנגוף/שד' נורדאו", "stop_desc": "רחוב: דיזנגוף 255 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.093454, "stop_lon": 34.776506, "location_type": 0, "parent_station": null, "zone_id": 25841.0 }, "geometry": { "type": "Point", "coordinates": [ 34.776506, 32.093454 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13700, "stop_code": 25867, "stop_name": "מסוף רדינג/הורדה", "stop_desc": "רחוב:   עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.098973, "stop_lon": 34.778771, "location_type": 1, "parent_station": null, "zone_id": 25867.0 }, "geometry": { "type": "Point", "coordinates": [ 34.778771, 32.098973 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13701, "stop_code": 25868, "stop_name": "אבן גבירול/שד' רוקח", "stop_desc": "רחוב: אבן גבירול 202 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.099594, "stop_lon": 34.782658, "location_type": 0, "parent_station": null, "zone_id": 25868.0 }, "geometry": { "type": "Point", "coordinates": [ 34.782658, 32.099594 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13703, "stop_code": 25870, "stop_name": "ש''י עגנון/אבן גבירול", "stop_desc": "רחוב: ש''י עגנון 2 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.101969, "stop_lon": 34.782974, "location_type": 0, "parent_station": null, "zone_id": 25870.0 }, "geometry": { "type": "Point", "coordinates": [ 34.782974, 32.101969 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13708, "stop_code": 25877, "stop_name": "גימנסיה הרצליה/ז'בוטינסקי", "stop_desc": "רחוב: ז'בוטינסקי 106 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.087558, "stop_lon": 34.784929, "location_type": 0, "parent_station": null, "zone_id": 25877.0 }, "geometry": { "type": "Point", "coordinates": [ 34.784929, 32.087558 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13712, "stop_code": 25886, "stop_name": "כיכר המדינה/תש''ח", "stop_desc": "רחוב: ה' באייר 14 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.0857, "stop_lon": 34.788878, "location_type": 0, "parent_station": null, "zone_id": 25886.0 }, "geometry": { "type": "Point", "coordinates": [ 34.788878, 32.0857 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13726, "stop_code": 25913, "stop_name": "ז'בוטינסקי/כיכר המדינה", "stop_desc": "רחוב: ז'בוטינסקי 137 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.0864, "stop_lon": 34.792221, "location_type": 0, "parent_station": null, "zone_id": 25913.0 }, "geometry": { "type": "Point", "coordinates": [ 34.792221, 32.0864 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13727, "stop_code": 25914, "stop_name": "ז'בוטינסקי/דרך נמיר", "stop_desc": "רחוב: ז'בוטינסקי 150 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.085849, "stop_lon": 34.794018, "location_type": 0, "parent_station": null, "zone_id": 25914.0 }, "geometry": { "type": "Point", "coordinates": [ 34.794018, 32.085849 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13738, "stop_code": 25951, "stop_name": "ש''י עגנון/ישראל גלילי", "stop_desc": "רחוב: ש''י עגנון 3 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.102346, "stop_lon": 34.783987, "location_type": 0, "parent_station": null, "zone_id": 25951.0 }, "geometry": { "type": "Point", "coordinates": [ 34.783987, 32.102346 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13739, "stop_code": 25952, "stop_name": "ש''י עגנון/שד' לוי אשכול", "stop_desc": "רחוב: ש''י עגנון עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.102523, "stop_lon": 34.786844, "location_type": 0, "parent_station": null, "zone_id": 25952.0 }, "geometry": { "type": "Point", "coordinates": [ 34.786844, 32.102523 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13740, "stop_code": 25953, "stop_name": "ספורטק/שד' רוקח", "stop_desc": "רחוב: שדרות רוקח עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.09861, "stop_lon": 34.78494, "location_type": 0, "parent_station": null, "zone_id": 25953.0 }, "geometry": { "type": "Point", "coordinates": [ 34.78494, 32.09861 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13741, "stop_code": 25954, "stop_name": "ש''י עגנון/שד' לוי אשכול", "stop_desc": "רחוב: ש''י עגנון עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.102858, "stop_lon": 34.788004, "location_type": 0, "parent_station": null, "zone_id": 25954.0 }, "geometry": { "type": "Point", "coordinates": [ 34.788004, 32.102858 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13742, "stop_code": 25955, "stop_name": "שדרות לוי אשכול/ש''י עגנון", "stop_desc": "רחוב: שדרות לוי אשכול 23 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.103945, "stop_lon": 34.788631, "location_type": 0, "parent_station": null, "zone_id": 25955.0 }, "geometry": { "type": "Point", "coordinates": [ 34.788631, 32.103945 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13743, "stop_code": 25956, "stop_name": "שדרות לוי אשכול/ש''י עגנון", "stop_desc": "רחוב: שדרות לוי אשכול 24 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.103923, "stop_lon": 34.788945, "location_type": 0, "parent_station": null, "zone_id": 25956.0 }, "geometry": { "type": "Point", "coordinates": [ 34.788945, 32.103923 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13744, "stop_code": 25957, "stop_name": "שד' לוי אשכול/אפטר", "stop_desc": "רחוב: שדרות לוי אשכול 40 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.10672, "stop_lon": 34.788583, "location_type": 0, "parent_station": null, "zone_id": 25957.0 }, "geometry": { "type": "Point", "coordinates": [ 34.788583, 32.10672 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13747, "stop_code": 25960, "stop_name": "שד' לוי אשכול/דב האוזנר", "stop_desc": "רחוב: שדרות לוי אשכול 56 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.10985, "stop_lon": 34.789188, "location_type": 0, "parent_station": null, "zone_id": 25960.0 }, "geometry": { "type": "Point", "coordinates": [ 34.789188, 32.10985 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13750, "stop_code": 25963, "stop_name": "אינשטיין/שד' לוי אשכול", "stop_desc": "רחוב: איינשטיין 24 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.112301, "stop_lon": 34.791008, "location_type": 0, "parent_station": null, "zone_id": 25963.0 }, "geometry": { "type": "Point", "coordinates": [ 34.791008, 32.112301 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13751, "stop_code": 25964, "stop_name": "שד' רוקח/דרך נמיר", "stop_desc": "רחוב: שדרות רוקח עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.100026, "stop_lon": 34.794904, "location_type": 0, "parent_station": null, "zone_id": 25964.0 }, "geometry": { "type": "Point", "coordinates": [ 34.794904, 32.100026 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13752, "stop_code": 25970, "stop_name": "שד' רוקח/דרך נמיר", "stop_desc": "רחוב: שדרות רוקח עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.100547, "stop_lon": 34.796071, "location_type": 0, "parent_station": null, "zone_id": 25970.0 }, "geometry": { "type": "Point", "coordinates": [ 34.796071, 32.100547 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13768, "stop_code": 26005, "stop_name": "צביה לובטקין/צוקרמן", "stop_desc": "רחוב: צביה לובטקין עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.046562, "stop_lon": 34.806724, "location_type": 0, "parent_station": null, "zone_id": 26005.0 }, "geometry": { "type": "Point", "coordinates": [ 34.806724, 32.046562 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13770, "stop_code": 26009, "stop_name": "שד' ששת הימים/דרך בר לב", "stop_desc": "רחוב: שדרות ששת הימים עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.045794, "stop_lon": 34.809878, "location_type": 0, "parent_station": null, "zone_id": 26009.0 }, "geometry": { "type": "Point", "coordinates": [ 34.809878, 32.045794 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13773, "stop_code": 26018, "stop_name": "דרך משה דיין/צבי נשרי", "stop_desc": "רחוב: דרך משה דיין 54 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.054703, "stop_lon": 34.800345, "location_type": 0, "parent_station": null, "zone_id": 26018.0 }, "geometry": { "type": "Point", "coordinates": [ 34.800345, 32.054703 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13774, "stop_code": 26019, "stop_name": "דרך משה דיין/צבי נשרי", "stop_desc": "רחוב: דרך משה דיין 53 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.055144, "stop_lon": 34.800093, "location_type": 0, "parent_station": null, "zone_id": 26019.0 }, "geometry": { "type": "Point", "coordinates": [ 34.800093, 32.055144 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13775, "stop_code": 26020, "stop_name": "בית ברבור/דרך ההגנה", "stop_desc": "רחוב: דרך ההגנה 133 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.053444, "stop_lon": 34.80164, "location_type": 0, "parent_station": null, "zone_id": 26020.0 }, "geometry": { "type": "Point", "coordinates": [ 34.80164, 32.053444 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13777, "stop_code": 26022, "stop_name": "בית ברבור/דרך ההגנה", "stop_desc": "רחוב: דרך ההגנה 136 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.053361, "stop_lon": 34.802179, "location_type": 0, "parent_station": null, "zone_id": 26022.0 }, "geometry": { "type": "Point", "coordinates": [ 34.802179, 32.053361 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13779, "stop_code": 26024, "stop_name": "אסא קדמוני/הרב יוסף צוברי", "stop_desc": "רחוב: אסא קדמוני 13 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.050985, "stop_lon": 34.805331, "location_type": 0, "parent_station": null, "zone_id": 26024.0 }, "geometry": { "type": "Point", "coordinates": [ 34.805331, 32.050985 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13780, "stop_code": 26025, "stop_name": "אסא קדמוני/הרב יוסף צוברי", "stop_desc": "רחוב: אסא קדמוני 13 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.050996, "stop_lon": 34.805222, "location_type": 0, "parent_station": null, "zone_id": 26025.0 }, "geometry": { "type": "Point", "coordinates": [ 34.805222, 32.050996 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13781, "stop_code": 26026, "stop_name": "ביה''ס בעש''ט/צביה לובטקין", "stop_desc": "רחוב: מח''ל 43 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.049237, "stop_lon": 34.80667, "location_type": 0, "parent_station": null, "zone_id": 26026.0 }, "geometry": { "type": "Point", "coordinates": [ 34.80667, 32.049237 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13783, "stop_code": 26028, "stop_name": "הרב אלנקווה/אסא קדמוני", "stop_desc": "רחוב: הרב אלנקווה 78 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.053204, "stop_lon": 34.804423, "location_type": 0, "parent_station": null, "zone_id": 26028.0 }, "geometry": { "type": "Point", "coordinates": [ 34.804423, 32.053204 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13784, "stop_code": 26029, "stop_name": "הרב אלנקווה/אסא קדמוני", "stop_desc": "רחוב: הרב אלנקווה 59 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.05355, "stop_lon": 34.804585, "location_type": 0, "parent_station": null, "zone_id": 26029.0 }, "geometry": { "type": "Point", "coordinates": [ 34.804585, 32.05355 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13785, "stop_code": 26030, "stop_name": "דרך משה דיין/לה גווארדייה", "stop_desc": "רחוב: דרך משה דיין 64 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.057897, "stop_lon": 34.800537, "location_type": 0, "parent_station": null, "zone_id": 26030.0 }, "geometry": { "type": "Point", "coordinates": [ 34.800537, 32.057897 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13786, "stop_code": 26031, "stop_name": "דרך משה דיין/לה גווארדייה", "stop_desc": "רחוב: דרך משה דיין 75 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.058606, "stop_lon": 34.800238, "location_type": 0, "parent_station": null, "zone_id": 26031.0 }, "geometry": { "type": "Point", "coordinates": [ 34.800238, 32.058606 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13793, "stop_code": 26052, "stop_name": "שד' ששת הימים/תקוע", "stop_desc": "רחוב: שדרות ששת הימים 12 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.047742, "stop_lon": 34.810171, "location_type": 0, "parent_station": null, "zone_id": 26052.0 }, "geometry": { "type": "Point", "coordinates": [ 34.810171, 32.047742 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13794, "stop_code": 26053, "stop_name": "מח''ל/שד' ששת הימים", "stop_desc": "רחוב: מח''ל 74 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.049149, "stop_lon": 34.810483, "location_type": 0, "parent_station": null, "zone_id": 26053.0 }, "geometry": { "type": "Point", "coordinates": [ 34.810483, 32.049149 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13800, "stop_code": 26063, "stop_name": "מח''ל/מעפילי אגוז", "stop_desc": "רחוב: מח''ל 82 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.049377, "stop_lon": 34.812225, "location_type": 0, "parent_station": null, "zone_id": 26063.0 }, "geometry": { "type": "Point", "coordinates": [ 34.812225, 32.049377 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13810, "stop_code": 26080, "stop_name": "אלוף שדה/עודד", "stop_desc": "רחוב: אלוף שדה עיר: רמת גן רציף:  קומה: ", "stop_lat": 32.058589, "stop_lon": 34.812816, "location_type": 0, "parent_station": null, "zone_id": 26080.0 }, "geometry": { "type": "Point", "coordinates": [ 34.812816, 32.058589 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13813, "stop_code": 26089, "stop_name": "דרך השלום/חביבה רייק", "stop_desc": "רחוב: דרך השלום 34 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.069918, "stop_lon": 34.802079, "location_type": 0, "parent_station": null, "zone_id": 26089.0 }, "geometry": { "type": "Point", "coordinates": [ 34.802079, 32.069918 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13942, "stop_code": 26296, "stop_name": "מרכז רבין/שד' רוקח", "stop_desc": "רחוב: שדרות רוקח 78 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.101156, "stop_lon": 34.800011, "location_type": 0, "parent_station": null, "zone_id": 26296.0 }, "geometry": { "type": "Point", "coordinates": [ 34.800011, 32.101156 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13946, "stop_code": 26302, "stop_name": "ת. רכבת האוניברסיטה/שד' רוקח", "stop_desc": "רחוב: שדרות רוקח עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.102783, "stop_lon": 34.80697, "location_type": 0, "parent_station": null, "zone_id": 26302.0 }, "geometry": { "type": "Point", "coordinates": [ 34.80697, 32.102783 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13951, "stop_code": 26323, "stop_name": "בני אפרים/בכור שטרית", "stop_desc": "רחוב: בני אפרים עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.108515, "stop_lon": 34.815587, "location_type": 0, "parent_station": null, "zone_id": 26323.0 }, "geometry": { "type": "Point", "coordinates": [ 34.815587, 32.108515 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13988, "stop_code": 26423, "stop_name": "שלום אש/קהילת ורשה", "stop_desc": "רחוב: שלום אש 1 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.108224, "stop_lon": 34.819681, "location_type": 0, "parent_station": null, "zone_id": 26423.0 }, "geometry": { "type": "Point", "coordinates": [ 34.819681, 32.108224 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13989, "stop_code": 26424, "stop_name": "בני אפרים/הדר יוסף", "stop_desc": "רחוב: בני אפרים 205 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.110352, "stop_lon": 34.81622, "location_type": 0, "parent_station": null, "zone_id": 26424.0 }, "geometry": { "type": "Point", "coordinates": [ 34.81622, 32.110352 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13990, "stop_code": 26425, "stop_name": "הדר יוסף/בני אפרים", "stop_desc": "רחוב: הדר יוסף 2 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.110376, "stop_lon": 34.817416, "location_type": 0, "parent_station": null, "zone_id": 26425.0 }, "geometry": { "type": "Point", "coordinates": [ 34.817416, 32.110376 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13993, "stop_code": 26428, "stop_name": "הדר יוסף/קהילת ורשה", "stop_desc": "רחוב: הדר יוסף 7 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.109673, "stop_lon": 34.818831, "location_type": 0, "parent_station": null, "zone_id": 26428.0 }, "geometry": { "type": "Point", "coordinates": [ 34.818831, 32.109673 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13994, "stop_code": 26429, "stop_name": "הדר יוסף/קהילת ורשה", "stop_desc": "רחוב: הדר יוסף 26 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.108838, "stop_lon": 34.819316, "location_type": 0, "parent_station": null, "zone_id": 26429.0 }, "geometry": { "type": "Point", "coordinates": [ 34.819316, 32.108838 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13996, "stop_code": 26432, "stop_name": "שלום אש/קיציס", "stop_desc": "רחוב: שלום אש 11 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.106877, "stop_lon": 34.821139, "location_type": 0, "parent_station": null, "zone_id": 26432.0 }, "geometry": { "type": "Point", "coordinates": [ 34.821139, 32.106877 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13997, "stop_code": 26434, "stop_name": "איצטדיון הדר יוסף/בכור שטרית", "stop_desc": "רחוב: בכור שלום שטרית 20 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.106236, "stop_lon": 34.823049, "location_type": 0, "parent_station": null, "zone_id": 26434.0 }, "geometry": { "type": "Point", "coordinates": [ 34.823049, 32.106236 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13998, "stop_code": 26435, "stop_name": "קהילת ורשה/שלום אש", "stop_desc": "רחוב: קהילת ורשה 99 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.108522, "stop_lon": 34.8203, "location_type": 0, "parent_station": null, "zone_id": 26435.0 }, "geometry": { "type": "Point", "coordinates": [ 34.8203, 32.108522 ] } },
+{ "type": "Feature", "properties": { "stop_id": 13999, "stop_code": 26436, "stop_name": "קהילת יאסי/קהילת ורשה", "stop_desc": "רחוב: קהילת יאסי 4 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.110142, "stop_lon": 34.822846, "location_type": 0, "parent_station": null, "zone_id": 26436.0 }, "geometry": { "type": "Point", "coordinates": [ 34.822846, 32.110142 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14002, "stop_code": 26445, "stop_name": "יד המעביר/קהילת יאסי", "stop_desc": "רחוב: יד המעביר 13 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.109558, "stop_lon": 34.824644, "location_type": 0, "parent_station": null, "zone_id": 26445.0 }, "geometry": { "type": "Point", "coordinates": [ 34.824644, 32.109558 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14003, "stop_code": 26446, "stop_name": "קהילת יאסי/פנחס רוזן", "stop_desc": "רחוב: קהילת יאסי 20 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.110121, "stop_lon": 34.825403, "location_type": 0, "parent_station": null, "zone_id": 26446.0 }, "geometry": { "type": "Point", "coordinates": [ 34.825403, 32.110121 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14004, "stop_code": 26448, "stop_name": "פנחס רוזן/מבצע קדש", "stop_desc": "רחוב: פנחס רוזן עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.111251, "stop_lon": 34.825646, "location_type": 0, "parent_station": null, "zone_id": 26448.0 }, "geometry": { "type": "Point", "coordinates": [ 34.825646, 32.111251 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14005, "stop_code": 26450, "stop_name": "פנחס רוזן/מבצע קדש", "stop_desc": "רחוב: פנחס רוזן 39 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.111225, "stop_lon": 34.825429, "location_type": 0, "parent_station": null, "zone_id": 26450.0 }, "geometry": { "type": "Point", "coordinates": [ 34.825429, 32.111225 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14008, "stop_code": 26454, "stop_name": "ראול ולנברג/משמר הירדן", "stop_desc": "רחוב: ראול ולנברג עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.106866, "stop_lon": 34.83096, "location_type": 0, "parent_station": null, "zone_id": 26454.0 }, "geometry": { "type": "Point", "coordinates": [ 34.83096, 32.106866 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14009, "stop_code": 26455, "stop_name": "הרוגי מלכות/משמר הירדן", "stop_desc": "רחוב: הרוגי מלכות 2 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.110146, "stop_lon": 34.831821, "location_type": 0, "parent_station": null, "zone_id": 26455.0 }, "geometry": { "type": "Point", "coordinates": [ 34.831821, 32.110146 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14010, "stop_code": 26456, "stop_name": "הרוגי מלכות/משמר הירדן", "stop_desc": "רחוב: הרוגי מלכות 6 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.109992, "stop_lon": 34.832249, "location_type": 0, "parent_station": null, "zone_id": 26456.0 }, "geometry": { "type": "Point", "coordinates": [ 34.832249, 32.109992 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14081, "stop_code": 26595, "stop_name": "ראול ולנברג/הברזל", "stop_desc": "רחוב: ראול ולנברג עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.1068, "stop_lon": 34.832216, "location_type": 0, "parent_station": null, "zone_id": 26595.0 }, "geometry": { "type": "Point", "coordinates": [ 34.832216, 32.1068 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14083, "stop_code": 26600, "stop_name": "הרוגי מלכות/עולי הגרדום", "stop_desc": "רחוב: הרוגי מלכות 12 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.109434, "stop_lon": 34.83298, "location_type": 0, "parent_station": null, "zone_id": 26600.0 }, "geometry": { "type": "Point", "coordinates": [ 34.83298, 32.109434 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14084, "stop_code": 26601, "stop_name": "עולי הגרדום/בי''ס ישגב", "stop_desc": "רחוב: עולי הגרדום 2 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.109388, "stop_lon": 34.83387, "location_type": 0, "parent_station": null, "zone_id": 26601.0 }, "geometry": { "type": "Point", "coordinates": [ 34.83387, 32.109388 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14085, "stop_code": 26603, "stop_name": "עולי הגרדום/הרוגי מלכות", "stop_desc": "רחוב: עולי הגרדום 12 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.11009, "stop_lon": 34.834577, "location_type": 0, "parent_station": null, "zone_id": 26603.0 }, "geometry": { "type": "Point", "coordinates": [ 34.834577, 32.11009 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14086, "stop_code": 26605, "stop_name": "עולי הגרדום/ניסן כהן", "stop_desc": "רחוב: עולי הגרדום 24 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.111191, "stop_lon": 34.835061, "location_type": 0, "parent_station": null, "zone_id": 26605.0 }, "geometry": { "type": "Point", "coordinates": [ 34.835061, 32.111191 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14100, "stop_code": 26631, "stop_name": "קניון רמת אביב/אינשטיין", "stop_desc": "רחוב: איינשטיין 54 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.112891, "stop_lon": 34.797161, "location_type": 0, "parent_station": null, "zone_id": 26631.0 }, "geometry": { "type": "Point", "coordinates": [ 34.797161, 32.112891 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14101, "stop_code": 26632, "stop_name": "קניון רמת אביב/אינשטיין", "stop_desc": "רחוב: איינשטיין 43 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.113103, "stop_lon": 34.79716, "location_type": 0, "parent_station": null, "zone_id": 26632.0 }, "geometry": { "type": "Point", "coordinates": [ 34.79716, 32.113103 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14104, "stop_code": 26635, "stop_name": "אינשטיין/אהרון בארט", "stop_desc": "רחוב: איינשטיין 69 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.113309, "stop_lon": 34.799561, "location_type": 0, "parent_station": null, "zone_id": 26635.0 }, "geometry": { "type": "Point", "coordinates": [ 34.799561, 32.113309 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14125, "stop_code": 26682, "stop_name": "מסוף אוניברסיטת ת''א ", "stop_desc": "רחוב:   עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.117204, "stop_lon": 34.804116, "location_type": 0, "parent_station": null, "zone_id": 26682.0 }, "geometry": { "type": "Point", "coordinates": [ 34.804116, 32.117204 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14126, "stop_code": 26683, "stop_name": "מסוף אוניברסיטת ת''א/הורדה", "stop_desc": "רחוב:   עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.117233, "stop_lon": 34.804011, "location_type": 0, "parent_station": null, "zone_id": 26683.0 }, "geometry": { "type": "Point", "coordinates": [ 34.804011, 32.117233 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14139, "stop_code": 26708, "stop_name": "שלונסקי/בני אפרים", "stop_desc": "רחוב: אברהם שלונסקי 6 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.117654, "stop_lon": 34.819701, "location_type": 0, "parent_station": null, "zone_id": 26708.0 }, "geometry": { "type": "Point", "coordinates": [ 34.819701, 32.117654 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14140, "stop_code": 26709, "stop_name": "שלונסקי/בני אפרים", "stop_desc": "רחוב: אברהם שלונסקי 7 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.117871, "stop_lon": 34.819709, "location_type": 0, "parent_station": null, "zone_id": 26709.0 }, "geometry": { "type": "Point", "coordinates": [ 34.819709, 32.117871 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14141, "stop_code": 26710, "stop_name": "בני אפרים/חנה רובינא", "stop_desc": "רחוב: בני אפרים 246 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.12027, "stop_lon": 34.819801, "location_type": 0, "parent_station": null, "zone_id": 26710.0 }, "geometry": { "type": "Point", "coordinates": [ 34.819801, 32.12027 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14142, "stop_code": 26712, "stop_name": "שלונסקי/קהילת ונציה", "stop_desc": "רחוב: אברהם שלונסקי 36 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.116311, "stop_lon": 34.822833, "location_type": 0, "parent_station": null, "zone_id": 26712.0 }, "geometry": { "type": "Point", "coordinates": [ 34.822833, 32.116311 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14143, "stop_code": 26713, "stop_name": "שלונסקי/קהילת ונציה", "stop_desc": "רחוב: אברהם שלונסקי 43 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.116082, "stop_lon": 34.824143, "location_type": 0, "parent_station": null, "zone_id": 26713.0 }, "geometry": { "type": "Point", "coordinates": [ 34.824143, 32.116082 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14144, "stop_code": 26714, "stop_name": "בני אפרים/מנורה", "stop_desc": "רחוב: בני אפרים 258 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.121512, "stop_lon": 34.821577, "location_type": 0, "parent_station": null, "zone_id": 26714.0 }, "geometry": { "type": "Point", "coordinates": [ 34.821577, 32.121512 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14158, "stop_code": 26740, "stop_name": "בית העלמין/קרית שאול", "stop_desc": "רחוב:   עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.129537, "stop_lon": 34.820267, "location_type": 0, "parent_station": null, "zone_id": 26740.0 }, "geometry": { "type": "Point", "coordinates": [ 34.820267, 32.129537 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14181, "stop_code": 26775, "stop_name": "מרכוס/משמר הירדן", "stop_desc": "רחוב: דוד מרכוס 3 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.114415, "stop_lon": 34.833655, "location_type": 0, "parent_station": null, "zone_id": 26775.0 }, "geometry": { "type": "Point", "coordinates": [ 34.833655, 32.114415 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14182, "stop_code": 26776, "stop_name": "מרכוס/משמר הירדן", "stop_desc": "רחוב: דוד מרכוס 6 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.114305, "stop_lon": 34.83374, "location_type": 0, "parent_station": null, "zone_id": 26776.0 }, "geometry": { "type": "Point", "coordinates": [ 34.83374, 32.114305 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14183, "stop_code": 26777, "stop_name": "עולי הגרדום/מרכוס", "stop_desc": "רחוב: עולי הגרדום 31 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.113051, "stop_lon": 34.836287, "location_type": 0, "parent_station": null, "zone_id": 26777.0 }, "geometry": { "type": "Point", "coordinates": [ 34.836287, 32.113051 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14184, "stop_code": 26779, "stop_name": "מרכוס/עולי הגרדום", "stop_desc": "רחוב: דוד מרכוס 15 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.113775, "stop_lon": 34.836, "location_type": 0, "parent_station": null, "zone_id": 26779.0 }, "geometry": { "type": "Point", "coordinates": [ 34.836, 32.113775 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14185, "stop_code": 26780, "stop_name": "מרכוס/עולי הגרדום", "stop_desc": "רחוב: דוד מרכוס 18 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.113713, "stop_lon": 34.835896, "location_type": 0, "parent_station": null, "zone_id": 26780.0 }, "geometry": { "type": "Point", "coordinates": [ 34.835896, 32.113713 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14187, "stop_code": 26782, "stop_name": "משמר הירדן/דבורה הנביאה", "stop_desc": "רחוב: משמר הירדן עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.117212, "stop_lon": 34.833971, "location_type": 0, "parent_station": null, "zone_id": 26782.0 }, "geometry": { "type": "Point", "coordinates": [ 34.833971, 32.117212 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14188, "stop_code": 26783, "stop_name": "משמר הירדן/דבורה הנביאה", "stop_desc": "רחוב: משמר הירדן 117 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.117596, "stop_lon": 34.834004, "location_type": 0, "parent_station": null, "zone_id": 26783.0 }, "geometry": { "type": "Point", "coordinates": [ 34.834004, 32.117596 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14190, "stop_code": 26785, "stop_name": "דבורה הנביאה/צה''ל", "stop_desc": "רחוב: דבורה הנביאה 78 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.11866, "stop_lon": 34.836378, "location_type": 0, "parent_station": null, "zone_id": 26785.0 }, "geometry": { "type": "Point", "coordinates": [ 34.836378, 32.11866 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14193, "stop_code": 26790, "stop_name": "דבורה הנביאה/ראול ולנברג", "stop_desc": "רחוב: דבורה הנביאה עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.115365, "stop_lon": 34.839416, "location_type": 0, "parent_station": null, "zone_id": 26790.0 }, "geometry": { "type": "Point", "coordinates": [ 34.839416, 32.115365 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14197, "stop_code": 26795, "stop_name": "דבורה הנביאה/צה''ל", "stop_desc": "רחוב: דבורה הנביאה 71 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.118723, "stop_lon": 34.836676, "location_type": 0, "parent_station": null, "zone_id": 26795.0 }, "geometry": { "type": "Point", "coordinates": [ 34.836676, 32.118723 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14198, "stop_code": 26797, "stop_name": "דבורה הנביאה/בית אל", "stop_desc": "רחוב: דבורה הנביאה 106 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.117441, "stop_lon": 34.837791, "location_type": 0, "parent_station": null, "zone_id": 26797.0 }, "geometry": { "type": "Point", "coordinates": [ 34.837791, 32.117441 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14200, "stop_code": 26799, "stop_name": "בית אל/דבורה הנביאה", "stop_desc": "רחוב: בית אל 1 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.117921, "stop_lon": 34.838153, "location_type": 0, "parent_station": null, "zone_id": 26799.0 }, "geometry": { "type": "Point", "coordinates": [ 34.838153, 32.117921 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14202, "stop_code": 26802, "stop_name": "בית אל/אח''י דקר", "stop_desc": "רחוב: הצנחנים עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.118462, "stop_lon": 34.839229, "location_type": 0, "parent_station": null, "zone_id": 26802.0 }, "geometry": { "type": "Point", "coordinates": [ 34.839229, 32.118462 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14207, "stop_code": 26808, "stop_name": "ביה''ס משה שרת/הצנחנים", "stop_desc": "רחוב: הצנחנים 22 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.116771, "stop_lon": 34.840383, "location_type": 0, "parent_station": null, "zone_id": 26808.0 }, "geometry": { "type": "Point", "coordinates": [ 34.840383, 32.116771 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14338, "stop_code": 27005, "stop_name": "מתחם שרונה/אליעזר קפלן", "stop_desc": "רחוב: אליעזר קפלן 24 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.073253, "stop_lon": 34.786797, "location_type": 0, "parent_station": null, "zone_id": 27005.0 }, "geometry": { "type": "Point", "coordinates": [ 34.786797, 32.073253 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14349, "stop_code": 27065, "stop_name": "האוניברסיטה/חיים לבנון", "stop_desc": "רחוב: חיים לבנון 66 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.113879, "stop_lon": 34.801548, "location_type": 0, "parent_station": null, "zone_id": 27065.0 }, "geometry": { "type": "Point", "coordinates": [ 34.801548, 32.113879 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14370, "stop_code": 27117, "stop_name": "הרכבת/סלומון", "stop_desc": "רחוב: הרכבת 38 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.061644, "stop_lon": 34.780784, "location_type": 0, "parent_station": null, "zone_id": 27117.0 }, "geometry": { "type": "Point", "coordinates": [ 34.780784, 32.061644 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14472, "stop_code": 27246, "stop_name": "דיזנגוף/בן יהודה", "stop_desc": "רחוב: דיזנגוף 330 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.096391, "stop_lon": 34.776059, "location_type": 0, "parent_station": null, "zone_id": 27246.0 }, "geometry": { "type": "Point", "coordinates": [ 34.776059, 32.096391 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14475, "stop_code": 27257, "stop_name": "סינרמה/יצחק שדה", "stop_desc": "רחוב: יצחק שדה 44 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.064494, "stop_lon": 34.79044, "location_type": 0, "parent_station": null, "zone_id": 27257.0 }, "geometry": { "type": "Point", "coordinates": [ 34.79044, 32.064494 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14512, "stop_code": 28543, "stop_name": "וילנסקי/לוין קיפניס", "stop_desc": "רחוב: משה וילנסקי 32 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.128076, "stop_lon": 34.832253, "location_type": 0, "parent_station": null, "zone_id": 28543.0 }, "geometry": { "type": "Point", "coordinates": [ 34.832253, 32.128076 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14513, "stop_code": 28544, "stop_name": "אלי תבין/וילנסקי", "stop_desc": "רחוב: ד''ר אלי תבין 3 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.12789, "stop_lon": 34.829263, "location_type": 0, "parent_station": null, "zone_id": 28544.0 }, "geometry": { "type": "Point", "coordinates": [ 34.829263, 32.12789 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14514, "stop_code": 28545, "stop_name": "סשה ארגוב/לוין קיפניס", "stop_desc": "רחוב: אלכסנדר סשה ארגוב 24 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.126216, "stop_lon": 34.831077, "location_type": 0, "parent_station": null, "zone_id": 28545.0 }, "geometry": { "type": "Point", "coordinates": [ 34.831077, 32.126216 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14532, "stop_code": 28563, "stop_name": "משמר הירדן/טורקוב", "stop_desc": "רחוב: משמר הירדן עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.108637, "stop_lon": 34.830034, "location_type": 0, "parent_station": null, "zone_id": 28563.0 }, "geometry": { "type": "Point", "coordinates": [ 34.830034, 32.108637 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14533, "stop_code": 28564, "stop_name": "משמר הירדן/טורקוב", "stop_desc": "רחוב: משמר הירדן עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.10796, "stop_lon": 34.830145, "location_type": 0, "parent_station": null, "zone_id": 28564.0 }, "geometry": { "type": "Point", "coordinates": [ 34.830145, 32.10796 ] } },
+{ "type": "Feature", "properties": { "stop_id": 14549, "stop_code": 28581, "stop_name": "מתחם שרונה/אליעזר קפלן", "stop_desc": "רחוב: אליעזר קפלן 21 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.073491, "stop_lon": 34.787018, "location_type": 0, "parent_station": null, "zone_id": 28581.0 }, "geometry": { "type": "Point", "coordinates": [ 34.787018, 32.073491 ] } },
+{ "type": "Feature", "properties": { "stop_id": 15353, "stop_code": 31012, "stop_name": "שדרות בן גוריון/מנדס", "stop_desc": "רחוב: שדרות בן גוריון עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.055383, "stop_lon": 34.851667, "location_type": 0, "parent_station": null, "zone_id": 31012.0 }, "geometry": { "type": "Point", "coordinates": [ 34.851667, 32.055383 ] } },
+{ "type": "Feature", "properties": { "stop_id": 15354, "stop_code": 31013, "stop_name": "בן גוריון / הפרדס", "stop_desc": "רחוב: שדרות בן גוריון עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.056036, "stop_lon": 34.85145, "location_type": 0, "parent_station": null, "zone_id": 31013.0 }, "geometry": { "type": "Point", "coordinates": [ 34.85145, 32.056036 ] } },
+{ "type": "Feature", "properties": { "stop_id": 15405, "stop_code": 31065, "stop_name": "קניון קריית אונו/דרך לוי אשכול", "stop_desc": "רחוב:   עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.054731, "stop_lon": 34.864505, "location_type": 0, "parent_station": null, "zone_id": 31065.0 }, "geometry": { "type": "Point", "coordinates": [ 34.864505, 32.054731 ] } },
+{ "type": "Feature", "properties": { "stop_id": 15406, "stop_code": 31066, "stop_name": "דרך לוי אשכול/התמר", "stop_desc": "רחוב:   עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.05267, "stop_lon": 34.864241, "location_type": 0, "parent_station": null, "zone_id": 31066.0 }, "geometry": { "type": "Point", "coordinates": [ 34.864241, 32.05267 ] } },
+{ "type": "Feature", "properties": { "stop_id": 15407, "stop_code": 31067, "stop_name": "דרך לוי אשכול/מיכאל וולך", "stop_desc": "רחוב:   עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.061032, "stop_lon": 34.86311, "location_type": 0, "parent_station": null, "zone_id": 31067.0 }, "geometry": { "type": "Point", "coordinates": [ 34.86311, 32.061032 ] } },
+{ "type": "Feature", "properties": { "stop_id": 15464, "stop_code": 31129, "stop_name": "דרך לוי אשכול/שטרן", "stop_desc": "רחוב:   עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.049505, "stop_lon": 34.864359, "location_type": 0, "parent_station": null, "zone_id": 31129.0 }, "geometry": { "type": "Point", "coordinates": [ 34.864359, 32.049505 ] } },
+{ "type": "Feature", "properties": { "stop_id": 15473, "stop_code": 31138, "stop_name": "מרכז מסחרי רימון/דרך לוי אשכול", "stop_desc": "רחוב: דרך לוי אשכול עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.04807, "stop_lon": 34.86513, "location_type": 0, "parent_station": null, "zone_id": 31138.0 }, "geometry": { "type": "Point", "coordinates": [ 34.86513, 32.04807 ] } },
+{ "type": "Feature", "properties": { "stop_id": 15493, "stop_code": 31159, "stop_name": "דרך לוי אשכול/לוס אנג'לס", "stop_desc": "רחוב: דרך לוי אשכול עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.063438, "stop_lon": 34.861389, "location_type": 0, "parent_station": null, "zone_id": 31159.0 }, "geometry": { "type": "Point", "coordinates": [ 34.861389, 32.063438 ] } },
+{ "type": "Feature", "properties": { "stop_id": 15527, "stop_code": 31203, "stop_name": "בית ברוש/דרך רב אלוף יעקב דורי", "stop_desc": "רחוב: דרך רב אלוף יעקב דורי עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.048301, "stop_lon": 34.860287, "location_type": 0, "parent_station": null, "zone_id": 31203.0 }, "geometry": { "type": "Point", "coordinates": [ 34.860287, 32.048301 ] } },
+{ "type": "Feature", "properties": { "stop_id": 15678, "stop_code": 31429, "stop_name": "דרך חטיבת אלכסנדרוני/מבואות", "stop_desc": "רחוב: 4622 עיר: סביון רציף:  קומה: ", "stop_lat": 32.045211, "stop_lon": 34.8658, "location_type": 0, "parent_station": null, "zone_id": 31429.0 }, "geometry": { "type": "Point", "coordinates": [ 34.8658, 32.045211 ] } },
+{ "type": "Feature", "properties": { "stop_id": 15684, "stop_code": 31442, "stop_name": "דרך לוי אשכול/מיכאל וולך", "stop_desc": "רחוב:   עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.061571, "stop_lon": 34.86272, "location_type": 0, "parent_station": null, "zone_id": 31442.0 }, "geometry": { "type": "Point", "coordinates": [ 34.86272, 32.061571 ] } },
+{ "type": "Feature", "properties": { "stop_id": 15688, "stop_code": 31447, "stop_name": "לשכת גיוס/דרך רב אלוף יעקב דורי", "stop_desc": "רחוב: דרך רב אלוף יעקב דורי עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.049525, "stop_lon": 34.856072, "location_type": 0, "parent_station": null, "zone_id": 31447.0 }, "geometry": { "type": "Point", "coordinates": [ 34.856072, 32.049525 ] } },
+{ "type": "Feature", "properties": { "stop_id": 15879, "stop_code": 31739, "stop_name": "לשכת גיוס/דרך רב אלוף יעקב דורי", "stop_desc": "רחוב: דרך רב אלוף יעקב דורי עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.05016, "stop_lon": 34.855289, "location_type": 0, "parent_station": null, "zone_id": 31739.0 }, "geometry": { "type": "Point", "coordinates": [ 34.855289, 32.05016 ] } },
+{ "type": "Feature", "properties": { "stop_id": 15880, "stop_code": 31740, "stop_name": "בית ברוש/דרך רב אלוף יעקב דורי", "stop_desc": "רחוב: דרך רב אלוף יעקב דורי עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.048963, "stop_lon": 34.858611, "location_type": 0, "parent_station": null, "zone_id": 31740.0 }, "geometry": { "type": "Point", "coordinates": [ 34.858611, 32.048963 ] } },
+{ "type": "Feature", "properties": { "stop_id": 15907, "stop_code": 31900, "stop_name": "שדרות אהרון קציר/שמחה הולצברג", "stop_desc": "רחוב: שדרות אהרון קציר עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.06257, "stop_lon": 34.846119, "location_type": 0, "parent_station": null, "zone_id": 31900.0 }, "geometry": { "type": "Point", "coordinates": [ 34.846119, 32.06257 ] } },
+{ "type": "Feature", "properties": { "stop_id": 23256, "stop_code": 35333, "stop_name": "דרך לוי אשכול /הרוגי מלכות בבל", "stop_desc": "רחוב:   עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.057723, "stop_lon": 34.864267, "location_type": 0, "parent_station": null, "zone_id": 35333.0 }, "geometry": { "type": "Point", "coordinates": [ 34.864267, 32.057723 ] } },
+{ "type": "Feature", "properties": { "stop_id": 23257, "stop_code": 35334, "stop_name": "כביש 471/זבוטינסקי", "stop_desc": "רחוב: דרך בר אילן עיר: גבעת שמואל רציף:  קומה: ", "stop_lat": 32.067455, "stop_lon": 34.848716, "location_type": 0, "parent_station": null, "zone_id": 35334.0 }, "geometry": { "type": "Point", "coordinates": [ 34.848716, 32.067455 ] } },
+{ "type": "Feature", "properties": { "stop_id": 23316, "stop_code": 35397, "stop_name": "מחלף אונו/כביש 471", "stop_desc": "רחוב:   עיר: פתח תקווה רציף:  קומה: ", "stop_lat": 32.069393, "stop_lon": 34.859462, "location_type": 0, "parent_station": null, "zone_id": 35397.0 }, "geometry": { "type": "Point", "coordinates": [ 34.859462, 32.069393 ] } },
+{ "type": "Feature", "properties": { "stop_id": 24207, "stop_code": 36518, "stop_name": "שדרות בן גוריון/הנשיא", "stop_desc": "רחוב: שדרות בן גוריון 1 עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.059195, "stop_lon": 34.849046, "location_type": 0, "parent_station": null, "zone_id": 36518.0 }, "geometry": { "type": "Point", "coordinates": [ 34.849046, 32.059195 ] } },
+{ "type": "Feature", "properties": { "stop_id": 24208, "stop_code": 36519, "stop_name": "שדרות בן גוריון/הנשיא", "stop_desc": "רחוב: שדרות בן גוריון עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.058077, "stop_lon": 34.849641, "location_type": 0, "parent_station": null, "zone_id": 36519.0 }, "geometry": { "type": "Point", "coordinates": [ 34.849641, 32.058077 ] } },
+{ "type": "Feature", "properties": { "stop_id": 25073, "stop_code": 38110, "stop_name": "דרך לוי אשכול/ירושלים", "stop_desc": "רחוב:   עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.059838, "stop_lon": 34.863451, "location_type": 0, "parent_station": null, "zone_id": 38110.0 }, "geometry": { "type": "Point", "coordinates": [ 34.863451, 32.059838 ] } },
+{ "type": "Feature", "properties": { "stop_id": 25076, "stop_code": 38113, "stop_name": "דרך לוי אשכול/יצחק רבין", "stop_desc": "רחוב: דרך לוי אשכול עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.064496, "stop_lon": 34.860933, "location_type": 0, "parent_station": null, "zone_id": 38113.0 }, "geometry": { "type": "Point", "coordinates": [ 34.860933, 32.064496 ] } },
+{ "type": "Feature", "properties": { "stop_id": 25078, "stop_code": 38115, "stop_name": "דרך לוי אשכול/הרוגי מלכות בבל", "stop_desc": "רחוב:   עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.057125, "stop_lon": 34.86454, "location_type": 0, "parent_station": null, "zone_id": 38115.0 }, "geometry": { "type": "Point", "coordinates": [ 34.86454, 32.057125 ] } },
+{ "type": "Feature", "properties": { "stop_id": 25083, "stop_code": 38120, "stop_name": "מרכז מסחרי רימון/דרך לוי אשכול", "stop_desc": "רחוב: דרך לוי אשכול עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.047858, "stop_lon": 34.865482, "location_type": 0, "parent_station": null, "zone_id": 38120.0 }, "geometry": { "type": "Point", "coordinates": [ 34.865482, 32.047858 ] } },
+{ "type": "Feature", "properties": { "stop_id": 25084, "stop_code": 38121, "stop_name": "קניון קרית אונו/דרך לוי אשכול", "stop_desc": "רחוב:   עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.053996, "stop_lon": 34.864369, "location_type": 0, "parent_station": null, "zone_id": 38121.0 }, "geometry": { "type": "Point", "coordinates": [ 34.864369, 32.053996 ] } },
+{ "type": "Feature", "properties": { "stop_id": 25086, "stop_code": 38123, "stop_name": "דרך לוי אשכול/צה''ל", "stop_desc": "רחוב:   עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.050138, "stop_lon": 34.864103, "location_type": 0, "parent_station": null, "zone_id": 38123.0 }, "geometry": { "type": "Point", "coordinates": [ 34.864103, 32.050138 ] } },
+{ "type": "Feature", "properties": { "stop_id": 25091, "stop_code": 38128, "stop_name": "אוניברסיטת בר אילן/דרך אשכול", "stop_desc": "רחוב: דרך אשכול עיר: רמת גן רציף:  קומה: ", "stop_lat": 32.065608, "stop_lon": 34.843957, "location_type": 0, "parent_station": null, "zone_id": 38128.0 }, "geometry": { "type": "Point", "coordinates": [ 34.843957, 32.065608 ] } },
+{ "type": "Feature", "properties": { "stop_id": 25092, "stop_code": 38129, "stop_name": "אוניברסיטת בר אילן", "stop_desc": "רחוב: דרך בר אילן עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.065377, "stop_lon": 34.845842, "location_type": 0, "parent_station": null, "zone_id": 38129.0 }, "geometry": { "type": "Point", "coordinates": [ 34.845842, 32.065377 ] } },
+{ "type": "Feature", "properties": { "stop_id": 25338, "stop_code": 38438, "stop_name": "ספורטק/דרך לוי אשכול", "stop_desc": "רחוב: דרך לוי אשכול 26 עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.066946, "stop_lon": 34.860276, "location_type": 0, "parent_station": null, "zone_id": 38438.0 }, "geometry": { "type": "Point", "coordinates": [ 34.860276, 32.066946 ] } },
+{ "type": "Feature", "properties": { "stop_id": 29336, "stop_code": 20047, "stop_name": "דרך נמיר/אינשטיין", "stop_desc": "רחוב: דרך נמיר 173 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.111697, "stop_lon": 34.792204, "location_type": 0, "parent_station": null, "zone_id": 20047.0 }, "geometry": { "type": "Point", "coordinates": [ 34.792204, 32.111697 ] } },
+{ "type": "Feature", "properties": { "stop_id": 29339, "stop_code": 20050, "stop_name": "סמינר הקיבוצים/דרך נמיר", "stop_desc": "רחוב: דרך נמיר עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.103962, "stop_lon": 34.792661, "location_type": 0, "parent_station": null, "zone_id": 20050.0 }, "geometry": { "type": "Point", "coordinates": [ 34.792661, 32.103962 ] } },
+{ "type": "Feature", "properties": { "stop_id": 29424, "stop_code": 20195, "stop_name": "משה סנה/בני אפרים", "stop_desc": "רחוב: משה סנה 55 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.125059, "stop_lon": 34.825068, "location_type": 0, "parent_station": null, "zone_id": 20195.0 }, "geometry": { "type": "Point", "coordinates": [ 34.825068, 32.125059 ] } },
+{ "type": "Feature", "properties": { "stop_id": 29457, "stop_code": 20299, "stop_name": "פנחס רוזן/שלונסקי", "stop_desc": "רחוב: פנחס רוזן 72 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.114749, "stop_lon": 34.825525, "location_type": 0, "parent_station": null, "zone_id": 20299.0 }, "geometry": { "type": "Point", "coordinates": [ 34.825525, 32.114749 ] } },
+{ "type": "Feature", "properties": { "stop_id": 29460, "stop_code": 20302, "stop_name": "משה סנה/בני אפרים", "stop_desc": "רחוב: משה סנה עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.124779, "stop_lon": 34.825126, "location_type": 0, "parent_station": null, "zone_id": 20302.0 }, "geometry": { "type": "Point", "coordinates": [ 34.825126, 32.124779 ] } },
+{ "type": "Feature", "properties": { "stop_id": 29463, "stop_code": 20305, "stop_name": "פנחס רוזן/שלונסקי", "stop_desc": "רחוב: פנחס רוזן 67 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.115062, "stop_lon": 34.8253, "location_type": 0, "parent_station": null, "zone_id": 20305.0 }, "geometry": { "type": "Point", "coordinates": [ 34.8253, 32.115062 ] } },
+{ "type": "Feature", "properties": { "stop_id": 29476, "stop_code": 20335, "stop_name": "לה גווארדייה/דרך הטייסים", "stop_desc": "רחוב: לה גווארדיה 81 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.059179, "stop_lon": 34.801864, "location_type": 0, "parent_station": null, "zone_id": 20335.0 }, "geometry": { "type": "Point", "coordinates": [ 34.801864, 32.059179 ] } },
+{ "type": "Feature", "properties": { "stop_id": 29479, "stop_code": 20348, "stop_name": "דרך נמיר/ז'בוטינסקי", "stop_desc": "רחוב: דרך נמיר 55 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.085267, "stop_lon": 34.795006, "location_type": 0, "parent_station": null, "zone_id": 20348.0 }, "geometry": { "type": "Point", "coordinates": [ 34.795006, 32.085267 ] } },
+{ "type": "Feature", "properties": { "stop_id": 29480, "stop_code": 20349, "stop_name": "ת. רכבת תל אביב - סבידור/דרך נמיר", "stop_desc": "רחוב: דרך נמיר 25 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.081367, "stop_lon": 34.794199, "location_type": 0, "parent_station": null, "zone_id": 20349.0 }, "geometry": { "type": "Point", "coordinates": [ 34.794199, 32.081367 ] } },
+{ "type": "Feature", "properties": { "stop_id": 29483, "stop_code": 20356, "stop_name": "המסגר/המלאכה", "stop_desc": "רחוב: המסגר 50 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.066289, "stop_lon": 34.786744, "location_type": 0, "parent_station": null, "zone_id": 20356.0 }, "geometry": { "type": "Point", "coordinates": [ 34.786744, 32.066289 ] } },
+{ "type": "Feature", "properties": { "stop_id": 29490, "stop_code": 20364, "stop_name": "דיזנגוף/יודפת", "stop_desc": "רחוב: דיזנגוף 184 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.085447, "stop_lon": 34.774625, "location_type": 0, "parent_station": null, "zone_id": 20364.0 }, "geometry": { "type": "Point", "coordinates": [ 34.774625, 32.085447 ] } },
+{ "type": "Feature", "properties": { "stop_id": 29516, "stop_code": 20390, "stop_name": "לה גווארדייה/שער הגיא", "stop_desc": "רחוב: לה גווארדיה 38 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.059152, "stop_lon": 34.792881, "location_type": 0, "parent_station": null, "zone_id": 20390.0 }, "geometry": { "type": "Point", "coordinates": [ 34.792881, 32.059152 ] } },
+{ "type": "Feature", "properties": { "stop_id": 37715, "stop_code": 33551, "stop_name": "מסוף קרית אונו", "stop_desc": "רחוב:   עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.037421, "stop_lon": 34.866034, "location_type": 0, "parent_station": null, "zone_id": 33551.0 }, "geometry": { "type": "Point", "coordinates": [ 34.866034, 32.037421 ] } },
+{ "type": "Feature", "properties": { "stop_id": 37716, "stop_code": 33550, "stop_name": "מסוף קרית אונו", "stop_desc": "רחוב: לוחמי האש עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.037735, "stop_lon": 34.866154, "location_type": 0, "parent_station": null, "zone_id": 33550.0 }, "geometry": { "type": "Point", "coordinates": [ 34.866154, 32.037735 ] } },
+{ "type": "Feature", "properties": { "stop_id": 38947, "stop_code": 20013, "stop_name": "דרך נמיר/דרך מנחם בגין", "stop_desc": "רחוב: דרך נמיר עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.080207, "stop_lon": 34.794181, "location_type": 0, "parent_station": null, "zone_id": 20013.0 }, "geometry": { "type": "Point", "coordinates": [ 34.794181, 32.080207 ] } },
+{ "type": "Feature", "properties": { "stop_id": 39962, "stop_code": 20139, "stop_name": "ישראל טל/המסגר", "stop_desc": "רחוב:   עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.063351, "stop_lon": 34.785067, "location_type": 0, "parent_station": null, "zone_id": 20139.0 }, "geometry": { "type": "Point", "coordinates": [ 34.785067, 32.063351 ] } },
+{ "type": "Feature", "properties": { "stop_id": 42855, "stop_code": 20320, "stop_name": "סשה ארגוב/מקס זליגמן", "stop_desc": "רחוב: אלכסנדר סשה ארגוב 54 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.126058, "stop_lon": 34.835016, "location_type": 0, "parent_station": null, "zone_id": 20320.0 }, "geometry": { "type": "Point", "coordinates": [ 34.835016, 32.126058 ] } },
+{ "type": "Feature", "properties": { "stop_id": 42859, "stop_code": 20313, "stop_name": "אליעזר קפלן/דובנוב", "stop_desc": "רחוב: אליעזר קפלן 11 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.07356, "stop_lon": 34.783258, "location_type": 0, "parent_station": null, "zone_id": 20313.0 }, "geometry": { "type": "Point", "coordinates": [ 34.783258, 32.07356 ] } },
+{ "type": "Feature", "properties": { "stop_id": 42860, "stop_code": 20311, "stop_name": "אליעזר קפלן/אבן גבירול", "stop_desc": "רחוב: אליעזר קפלן 6 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.073377, "stop_lon": 34.782953, "location_type": 0, "parent_station": null, "zone_id": 20311.0 }, "geometry": { "type": "Point", "coordinates": [ 34.782953, 32.073377 ] } },
+{ "type": "Feature", "properties": { "stop_id": 43652, "stop_code": 20466, "stop_name": "כיכר המדינה/אריה עקיבא", "stop_desc": "רחוב: ה' באייר 52 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.087673, "stop_lon": 34.790814, "location_type": 0, "parent_station": null, "zone_id": 20466.0 }, "geometry": { "type": "Point", "coordinates": [ 34.790814, 32.087673 ] } },
+{ "type": "Feature", "properties": { "stop_id": 43787, "stop_code": 20469, "stop_name": "פרופ' ישעיהו ליבוביץ'/הרב יעקב טראב", "stop_desc": "רחוב: דרך משה דיין עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.044016, "stop_lon": 34.798023, "location_type": 0, "parent_station": null, "zone_id": 20469.0 }, "geometry": { "type": "Point", "coordinates": [ 34.798023, 32.044016 ] } },
+{ "type": "Feature", "properties": { "stop_id": 44016, "stop_code": 35301, "stop_name": "דרך רב אלוף יעקוב דורי/דרך לוי אשכול", "stop_desc": "רחוב: דרך רב אלוף יעקב דורי עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.047463, "stop_lon": 34.864658, "location_type": 0, "parent_station": null, "zone_id": 35301.0 }, "geometry": { "type": "Point", "coordinates": [ 34.864658, 32.047463 ] } },
+{ "type": "Feature", "properties": { "stop_id": 44134, "stop_code": 35474, "stop_name": "דרך רב אלוף יעקב דורי/גילדסגיים", "stop_desc": "רחוב: דרך רב אלוף יעקב דורי עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.05293, "stop_lon": 34.853028, "location_type": 0, "parent_station": null, "zone_id": 35474.0 }, "geometry": { "type": "Point", "coordinates": [ 34.853028, 32.05293 ] } },
+{ "type": "Feature", "properties": { "stop_id": 44135, "stop_code": 35472, "stop_name": "שדרות בן גוריון/שדרות אהרון קציר", "stop_desc": "רחוב: שדרות בן גוריון עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.061543, "stop_lon": 34.847066, "location_type": 0, "parent_station": null, "zone_id": 35472.0 }, "geometry": { "type": "Point", "coordinates": [ 34.847066, 32.061543 ] } },
+{ "type": "Feature", "properties": { "stop_id": 44255, "stop_code": 20641, "stop_name": "ביה''ס בעש''ט/מח''ל", "stop_desc": "רחוב: מח''ל 42 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.049042, "stop_lon": 34.806271, "location_type": 0, "parent_station": null, "zone_id": 20641.0 }, "geometry": { "type": "Point", "coordinates": [ 34.806271, 32.049042 ] } },
+{ "type": "Feature", "properties": { "stop_id": 44461, "stop_code": 20664, "stop_name": "פרישמן/דב הוז", "stop_desc": "רחוב: פרישמן 31 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.079849, "stop_lon": 34.772121, "location_type": 0, "parent_station": null, "zone_id": 20664.0 }, "geometry": { "type": "Point", "coordinates": [ 34.772121, 32.079849 ] } },
+{ "type": "Feature", "properties": { "stop_id": 44462, "stop_code": 20663, "stop_name": "גורדון/דב הוז", "stop_desc": "רחוב: גורדון 36 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.081955, "stop_lon": 34.772622, "location_type": 0, "parent_station": null, "zone_id": 20663.0 }, "geometry": { "type": "Point", "coordinates": [ 34.772622, 32.081955 ] } },
+{ "type": "Feature", "properties": { "stop_id": 44463, "stop_code": 20662, "stop_name": "חוף גורדון", "stop_desc": "רחוב: גורדון 10 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.082504, "stop_lon": 34.769654, "location_type": 0, "parent_station": null, "zone_id": 20662.0 }, "geometry": { "type": "Point", "coordinates": [ 34.769654, 32.082504 ] } },
+{ "type": "Feature", "properties": { "stop_id": 44470, "stop_code": 20655, "stop_name": "חוף פרישמן", "stop_desc": "רחוב: הירקון 112 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.080415, "stop_lon": 34.768444, "location_type": 0, "parent_station": null, "zone_id": 20655.0 }, "geometry": { "type": "Point", "coordinates": [ 34.768444, 32.080415 ] } },
+{ "type": "Feature", "properties": { "stop_id": 44471, "stop_code": 20654, "stop_name": "הירקון/שדרות בן גוריון", "stop_desc": "רחוב: הירקון 154 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.084191, "stop_lon": 34.769531, "location_type": 0, "parent_station": null, "zone_id": 20654.0 }, "geometry": { "type": "Point", "coordinates": [ 34.769531, 32.084191 ] } },
+{ "type": "Feature", "properties": { "stop_id": 44472, "stop_code": 20653, "stop_name": "אליעזר פרי/ארלוזורוב", "stop_desc": "רחוב: אליעזר פרי 4 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.087486, "stop_lon": 34.770673, "location_type": 0, "parent_station": null, "zone_id": 20653.0 }, "geometry": { "type": "Point", "coordinates": [ 34.770673, 32.087486 ] } },
+{ "type": "Feature", "properties": { "stop_id": 44659, "stop_code": 20277, "stop_name": "מסוף רדינג/רציפים", "stop_desc": "רחוב:   עיר: תל אביב יפו רציף: 1   קומה: ", "stop_lat": 32.098781, "stop_lon": 34.779474, "location_type": 0, "parent_station": 29452.0, "zone_id": 20277.0 }, "geometry": { "type": "Point", "coordinates": [ 34.779474, 32.098781 ] } },
+{ "type": "Feature", "properties": { "stop_id": 45038, "stop_code": 20700, "stop_name": "אבן גבירול/ארלוזורוב", "stop_desc": "רחוב: אבן גבירול 112 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.084898, "stop_lon": 34.781789, "location_type": 0, "parent_station": null, "zone_id": 20700.0 }, "geometry": { "type": "Point", "coordinates": [ 34.781789, 32.084898 ] } },
+{ "type": "Feature", "properties": { "stop_id": 45039, "stop_code": 20699, "stop_name": "אבן גבירול/ארלוזורוב", "stop_desc": "רחוב: אבן גבירול 89 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.084806, "stop_lon": 34.781547, "location_type": 0, "parent_station": null, "zone_id": 20699.0 }, "geometry": { "type": "Point", "coordinates": [ 34.781547, 32.084806 ] } },
+{ "type": "Feature", "properties": { "stop_id": 47416, "stop_code": 20193, "stop_name": "גימנסיה הרצליה/רמז", "stop_desc": "רחוב: רמז 13 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.087197, "stop_lon": 34.786096, "location_type": 0, "parent_station": null, "zone_id": 20193.0 }, "geometry": { "type": "Point", "coordinates": [ 34.786096, 32.087197 ] } },
+{ "type": "Feature", "properties": { "stop_id": 47432, "stop_code": 20160, "stop_name": "הרכבת/המסגר", "stop_desc": "רחוב: הרכבת 63 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.059556, "stop_lon": 34.783556, "location_type": 0, "parent_station": null, "zone_id": 20160.0 }, "geometry": { "type": "Point", "coordinates": [ 34.783556, 32.059556 ] } },
+{ "type": "Feature", "properties": { "stop_id": 48082, "stop_code": 20271, "stop_name": "יהודה הלוי/מרמורק", "stop_desc": "רחוב: יהודה הלוי 142 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.070475, "stop_lon": 34.781467, "location_type": 0, "parent_station": null, "zone_id": 20271.0 }, "geometry": { "type": "Point", "coordinates": [ 34.781467, 32.070475 ] } },
+{ "type": "Feature", "properties": { "stop_id": 48265, "stop_code": 21109, "stop_name": "מסוף אלוף שדה", "stop_desc": "רחוב:   עיר: רמת גן רציף: 1   קומה: ", "stop_lat": 32.054928, "stop_lon": 34.833997, "location_type": 0, "parent_station": 12867.0, "zone_id": 21109.0 }, "geometry": { "type": "Point", "coordinates": [ 34.833997, 32.054928 ] } },
+{ "type": "Feature", "properties": { "stop_id": 48363, "stop_code": 20727, "stop_name": "ת.רק''ל יהודית/דרך מנחם בגין", "stop_desc": "רחוב: דרך מנחם בגין עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.069627, "stop_lon": 34.787954, "location_type": 0, "parent_station": null, "zone_id": 20727.0 }, "geometry": { "type": "Point", "coordinates": [ 34.787954, 32.069627 ] } },
+{ "type": "Feature", "properties": { "stop_id": 48403, "stop_code": 20731, "stop_name": "קניון טי.אל.וי/קרליבך", "stop_desc": "רחוב: קרליבך 8 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.068334, "stop_lon": 34.783206, "location_type": 0, "parent_station": null, "zone_id": 20731.0 }, "geometry": { "type": "Point", "coordinates": [ 34.783206, 32.068334 ] } },
+{ "type": "Feature", "properties": { "stop_id": 48438, "stop_code": 20725, "stop_name": "דרך מנחם בגין/החשמונאים", "stop_desc": "רחוב: דרך מנחם בגין 103 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.068718, "stop_lon": 34.786781, "location_type": 0, "parent_station": null, "zone_id": 20725.0 }, "geometry": { "type": "Point", "coordinates": [ 34.786781, 32.068718 ] } },
+{ "type": "Feature", "properties": { "stop_id": 48701, "stop_code": 36596, "stop_name": "דרך לוי אשכול/התמר", "stop_desc": "רחוב:   עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.052275, "stop_lon": 34.864351, "location_type": 0, "parent_station": null, "zone_id": 36596.0 }, "geometry": { "type": "Point", "coordinates": [ 34.864351, 32.052275 ] } },
+{ "type": "Feature", "properties": { "stop_id": 48870, "stop_code": 36593, "stop_name": "דרך לוי אשכול/ירושלים", "stop_desc": "רחוב:   עיר: קרית אונו רציף:  קומה: ", "stop_lat": 32.05934, "stop_lon": 34.863748, "location_type": 0, "parent_station": null, "zone_id": 36593.0 }, "geometry": { "type": "Point", "coordinates": [ 34.863748, 32.05934 ] } },
+{ "type": "Feature", "properties": { "stop_id": 48911, "stop_code": 20742, "stop_name": "ראול ולנברג/דבורה הנביאה", "stop_desc": "רחוב: ראול ולנברג עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.114832, "stop_lon": 34.841324, "location_type": 0, "parent_station": null, "zone_id": 20742.0 }, "geometry": { "type": "Point", "coordinates": [ 34.841324, 32.114832 ] } },
+{ "type": "Feature", "properties": { "stop_id": 49210, "stop_code": 20750, "stop_name": "ת.רק''ל קרליבך/דרך מנחם בגין A", "stop_desc": "רחוב: דרך מנחם בגין 39 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.065556, "stop_lon": 34.783121, "location_type": 0, "parent_station": null, "zone_id": 20750.0 }, "geometry": { "type": "Point", "coordinates": [ 34.783121, 32.065556 ] } },
+{ "type": "Feature", "properties": { "stop_id": 49938, "stop_code": 20784, "stop_name": "דיזנגוף סנטר/המלך ג'ורג'", "stop_desc": "רחוב: המלך ג'ורג' 63 עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.075397, "stop_lon": 34.776195, "location_type": 0, "parent_station": null, "zone_id": 20784.0 }, "geometry": { "type": "Point", "coordinates": [ 34.776195, 32.075397 ] } },
+{ "type": "Feature", "properties": { "stop_id": 49952, "stop_code": 20785, "stop_name": "דיזנגוף סנטר/המלך ג'ורג'", "stop_desc": "רחוב: המלך ג'ורג' עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.075533, "stop_lon": 34.776404, "location_type": 0, "parent_station": null, "zone_id": 20785.0 }, "geometry": { "type": "Point", "coordinates": [ 34.776404, 32.075533 ] } },
+{ "type": "Feature", "properties": { "stop_id": 51271, "stop_code": 20874, "stop_name": "ראול ולנברג/דבורה הנביאה", "stop_desc": "רחוב: ראול ולנברג עיר: תל אביב יפו רציף:  קומה: ", "stop_lat": 32.114058, "stop_lon": 34.840255, "location_type": 0, "parent_station": null, "zone_id": 20874.0 }, "geometry": { "type": "Point", "coordinates": [ 34.840255, 32.114058 ] } }
+]
 }
