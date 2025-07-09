@@ -17,7 +17,7 @@ OUTPUT_PATH = "./gtfs/gtfs_filtered/"
 
 # 4) target route_ids (lines, can be found in routes.txt in gtfs)
 MY_ROUTE_IDS = [ 
-    "39165", "39166", #Adding in pairs, one for the way forward and other ofr backwards
+    "39165", "39166", #Adding in pairs, one for the way forward and other for backwards
     "27901", "27902",
     "27081", "27082",
     "27083", "27084",
