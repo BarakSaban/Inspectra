@@ -1,0 +1,30 @@
+import urllib.request
+import urllib.parse
+import json
+
+def get_specific_workday_field(route_id):
+    resource_id = 'e6cfac2f-979a-44fd-b439-ecb116ec0b16'
+    filters = json.dumps({"RouteID": str(route_id)})
+    
+    params = {
+        'resource_id': resource_id,
+        'filters': filters
+    }
+    
+    url = 'https://data.gov.il/api/3/action/datastore_search?' + urllib.parse.urlencode(params)
+    
+    with urllib.request.urlopen(url) as response:
+        data = response.read()
+        json_data = json.loads(data)
+
+        records = json_data.get('result', {}).get('records', [])
+        # Extract only the field "WorkDay - 06:00-08:59" from each record
+        field_name = "WorkDay - 06:00-08:59"
+        values = [record.get(field_name) for record in records]
+
+        # Print each value line by line
+        for val in values:
+            print(val)
+
+# Example usage:
+#get_specific_workday_field(10003)
