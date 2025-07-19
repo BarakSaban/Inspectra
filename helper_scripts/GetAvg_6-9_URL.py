@@ -1,8 +1,12 @@
 import urllib.request
 import urllib.parse
 import json
+import ssl
+from gtfs_data_tools.gtfs_filterer import MY_ROUTE_IDS
 
 def get_specific_workday_field(route_id):
+    print(f"Running process for route id {route_id}")
+
     resource_id = 'e6cfac2f-979a-44fd-b439-ecb116ec0b16'
     filters = json.dumps({"RouteID": str(route_id)})
     
@@ -13,7 +17,10 @@ def get_specific_workday_field(route_id):
     
     url = 'https://data.gov.il/api/3/action/datastore_search?' + urllib.parse.urlencode(params)
     
-    with urllib.request.urlopen(url) as response:
+    # Disable SSL certificate verification TODO bring up on zoom
+    context = ssl._create_unverified_context()
+
+    with urllib.request.urlopen(url, context=context) as response:
         data = response.read()
         json_data = json.loads(data)
 
@@ -26,5 +33,5 @@ def get_specific_workday_field(route_id):
         for val in values:
             print(val)
 
-# Example usage:
-#get_specific_workday_field(10003)
+for route in MY_ROUTE_IDS:
+    get_specific_workday_field(route)
