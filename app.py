@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, send_from_directory
 import pandas as pd
+import geopandas as gpd
 import json
 import math
 from datetime import datetime, timedelta
@@ -28,8 +29,8 @@ def parse_time_to_minutes(t_str):
 # ---------- Load data once ----------
 print("Loading GTFS filtered files...")
 stops_gj = json.load(open('static/stops.geojson', 'r', encoding='utf-8'))
-shapes_gj = json.load(open('static/shapes.geojson', 'r', encoding='utf-8'))
 stop_shape_map = json.load(open('static/stop_shape_map.json', 'r', encoding='utf-8'))
+shapes_gj = json.load(open('static/shapes.geojson', 'r', encoding='utf-8'))
 
 # Build quick lookup: stop_id -> stop feature
 stop_lookup = {str(f['properties']['stop_id']): f for f in stops_gj.get('features', [])}
@@ -76,39 +77,50 @@ def nearest_stop():
 @app.route('/api/find_best_trip', methods=['POST'])
 def api_find_best_trip():
     req = request.get_json()
-    lat = float(req['lat']); lon = float(req['lon'])
-    buffer_minutes = float(req.get('buffer', 3))
-    radius_m = float(req.get('radius', 2000000000000)) #Should be 2000
+    lat = float(req['lat'])
+    lon = float(req['lon'])
+    buffer_minutes = float(req.get('buffer', 3))  # Should be 3
+    radius_m = float(req.get('radius', 2000))     # Should be 2000
 
     inspector = Inspector(inspector_id='local', name='Local', latitude=lat, longitude=lon, available=True)
 
-    best = Actions.find_best_fine_trip(inspector,
-                                       stops_df=stops_df,
-                                       stop_times_df=stop_times_df,
-                                       trips_df=trips_df,
-                                       buffer_minutes=buffer_minutes,
-                                       radius_m=radius_m
+    best = Actions.find_best_fine_trip(
+        inspector,
+        stops_df=stops_df,
+        stop_times_df=stop_times_df,
+        trips_df=trips_df,
+        buffer_minutes=buffer_minutes,
+        radius_m=radius_m
     )
 
-    # For robustness, fallback - compute nearest stop + mapping
-    # (if your find_best_fine_trip returns None)
     if not best:
-        # fallback: nearest stop
         nearest_resp = nearest_stop_internal(lat, lon)
         return jsonify({"fallback": nearest_resp})
 
-    # Find stop geometry and shape geometry for the selected option
     stop_id = str(best['stop_id'])
-    mapping_entries = [m for m in stop_shape_map if str(m['stop_id']) == stop_id]
-    chosen_map = mapping_entries[0] if mapping_entries else None
-    shape_feature = None
-    if chosen_map:
-        shape_id = str(chosen_map.get('shape_id'))
-        shape_feature = shape_lookup.get(shape_id)
+    trip_id = str(best['trip_id'])
+
+    # Get stop geo
+    stop_feature = stop_lookup.get(stop_id)
+
+    # Get shape_id for this trip
+    shape_id = None
+    try:
+        shape_id = str(trips_df.loc[trips_df['trip_id'] == trip_id, 'shape_id'].values[0])
+        shape_id = shape_id.replace(".0", "")  # Sanitization, since trips_id has .0 after corresponding shape_id unlike all other dfs
+    except Exception:
+        shape_id = None
+
+    shape_feature = shape_lookup.get(shape_id) if shape_id else None
+
+    print(f"Selected stop_id: {stop_id}")
+    print(f"Selected trip_id: {trip_id}")
+    print(f"Matched shape_id: {shape_id}")
+    print(f"Shape found: {'Yes' if shape_feature else 'No'}")
 
     return jsonify({
         "best_option": best,
-        "stop_feature": stop_lookup.get(stop_id),
+        "stop_feature": stop_feature,
         "shape_feature": shape_feature
     })
 

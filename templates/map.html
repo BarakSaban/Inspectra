@@ -70,6 +70,7 @@
     let shapes = [];       // GeoJSON features for shapes
     let stopShapeMap = []; // Array of {stop_id, shape_id, route_id, ...}
     let currentDisplayed = { stopLayer: null, shapeLayer: null };
+    let displayedLayers = []; // Track added layers so they can be removed
 
     // create map
     function initMap() {
@@ -133,9 +134,9 @@
         return;
       }
 
-      navigator.geolocation.watchPosition(pos => {
-        const lat = pos.coords.latitude;
-        const lon = pos.coords.longitude;
+      navigator.geolocation.watchPosition(pos => { //Change here to input specific coords
+        const lat = 32.0880 //pos.coords.latitude;
+        const lon = 34.7898 //pos.coords.longitude;
         userLatLng = [lat, lon];
 
         // add or update marker
@@ -248,6 +249,7 @@
       }
     }
 
+
     // --- New robust helper for fetch ---
     async function safeJsonFetch(url, options) {
       const resp = await fetch(url, options);
@@ -258,8 +260,7 @@
       return resp.json();
     }
 
-    // --- Replaced fetchBestTripAndShow (server) ---
-    async function fetchBestTripAndShow() {
+  async function fetchBestTripAndShow() {
       if (!userLatLng) return alert('Waiting for location...');
       const [lat, lon] = userLatLng;
 
@@ -278,13 +279,17 @@
           clearDisplayed();
 
           if (json.stop_feature) {
-            L.geoJSON(json.stop_feature, {
+            const stopLayer = L.geoJSON(json.stop_feature, {
               pointToLayer: (f, latlng) => L.marker(latlng, { icon: busIcon })
             }).addTo(map).bindPopup(json.stop_feature.properties && json.stop_feature.properties.stop_name).openPopup();
+            currentDisplayed.stopLayer = stopLayer;
           }
 
           if (json.shape_feature) {
-            L.geoJSON(json.shape_feature, { style: { color: 'green', weight: 4 } }).addTo(map);
+            const shapeLayer = L.geoJSON(json.shape_feature, {
+              style: { color: 'green', weight: 4 }
+            }).addTo(map);
+            currentDisplayed.shapeLayer = shapeLayer;
           }
 
           // optional: show stats
@@ -304,8 +309,7 @@
       }
     }
 
-    // --- Replaced fetchNearestAndShow (server) ---
-    async function fetchNearestAndShow() {
+  async function fetchNearestAndShow() {
       if (!userLatLng) return alert('Waiting for location...');
       const [lat, lon] = userLatLng;
 
@@ -326,20 +330,11 @@
           return;
         }
 
-        L.geoJSON(stopFeature, {
+        const stopMarker = L.geoJSON(stopFeature, {
           pointToLayer: (f, latlng) => L.marker(latlng, { icon: busIcon })
         }).addTo(map).bindPopup(stopFeature.properties && stopFeature.properties.stop_name).openPopup();
 
-        // shape(s) - use in-memory shapes first
-        const mapping = (json.mappings && json.mappings[0]) || null;
-        if (mapping && mapping.shape_id) {
-          const shapeF = shapes.find(s => String(s.properties && s.properties.shape_id) === String(mapping.shape_id));
-          if (shapeF) {
-            L.geoJSON(shapeF, { style: { color: 'red', weight: 4 } }).addTo(map);
-          } else {
-            console.warn('Shape not found in-memory for id', mapping.shape_id);
-          }
-        }
+        currentDisplayed.stopLayer = stopMarker;
 
         // fit bounds to the stop (and inspector if available)
         if (stopFeature.geometry && stopFeature.geometry.coordinates) {
