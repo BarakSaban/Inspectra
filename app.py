@@ -1,11 +1,8 @@
-# app.py
 from flask import Flask, request, jsonify, send_from_directory
 import pandas as pd
 import json
 import math
 from datetime import datetime, timedelta
-
-# Import your modules (adjust path if needed)
 import Actions
 from Classes import Inspector
 
@@ -44,9 +41,7 @@ shape_lookup = {str(f['properties'].get('shape_id')): f for f in shapes_gj.get('
 stop_times_df = pd.read_csv('gtfs/gtfs_filtered/stop_times.txt', sep=',', encoding='utf-8')
 trips_df = pd.read_csv('gtfs/gtfs_filtered/trips.txt', sep=',', encoding='utf-8')
 routes_df = pd.read_csv('gtfs/gtfs_filtered/routes.txt', sep=',', encoding='utf-8')
-
-# If your Actions functions expect specific column names, make sure they match.
-# e.g., ensure arrival_time column named 'arrival_time'.
+stops_df = pd.read_csv('gtfs/gtfs_filtered/stops.txt', sep=',', encoding='utf-8')
 
 # ---------- API endpoints ----------
 
@@ -83,15 +78,17 @@ def api_find_best_trip():
     req = request.get_json()
     lat = float(req['lat']); lon = float(req['lon'])
     buffer_minutes = float(req.get('buffer', 3))
-    radius_m = float(req.get('radius', 2000))
+    radius_m = float(req.get('radius', 2000000000000)) #Should be 2000
 
-    # Create an Inspector object compatible with your Actions functions
     inspector = Inspector(inspector_id='local', name='Local', latitude=lat, longitude=lon, available=True)
 
-    # Actions.find_best_fine_trip expects certain arguments — adapt to your function signature
-    # I will call your find_best_fine_trip with DataFrames loaded above
-    best = Actions.find_best_fine_trip(inspector, stops_df=stop_times_df.rename(columns={'stop_lat':'stop_lat','stop_lon':'stop_lon'}) , stop_times_df=stop_times_df, trips_df=trips_df, buffer_minutes=buffer_minutes, radius_m=radius_m)
-    # NOTE: above line likely needs adjusting to match your function signatures. If Actions.find_best_fine_trip expects stops_df (with lat/lon) then supply `stops` (pandas). If not, you might call find_optional_lines then process.
+    best = Actions.find_best_fine_trip(inspector,
+                                       stops_df=stops_df,
+                                       stop_times_df=stop_times_df,
+                                       trips_df=trips_df,
+                                       buffer_minutes=buffer_minutes,
+                                       radius_m=radius_m
+    )
 
     # For robustness, fallback - compute nearest stop + mapping
     # (if your find_best_fine_trip returns None)
@@ -115,7 +112,6 @@ def api_find_best_trip():
         "shape_feature": shape_feature
     })
 
-
 # helper internal nearest used above
 def nearest_stop_internal(lat, lon):
     best = None; best_d = float('inf')
@@ -125,7 +121,6 @@ def nearest_stop_internal(lat, lon):
         if d < best_d:
             best_d = d; best = f
     return {"stop": best, "distance_m": best_d, "mappings": [m for m in stop_shape_map if str(m['stop_id']) == str(best['properties']['stop_id'])]}
-
 
 # static frontend
 @app.route('/')
