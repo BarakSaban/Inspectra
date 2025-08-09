@@ -1,1 +1,2 @@
 gtfs/*.zip
+__pycache__/
