@@ -1,251 +1,172 @@
-import math
-from datetime import datetime, timedelta
+import osmnx as ox
+import networkx as nx
+from shapely.geometry import LineString
 import pandas as pd
+from datetime import datetime
 
-# --------------------------
-# [1] Haversine distance between two (lat, lon) pairs -> meters
-# --------------------------
-def haversine_meters(pos1, pos2):
-    """
-    pos1, pos2: (lat, lon)
-    returns distance in meters
-    """
-    lat1, lon1 = float(pos1[0]), float(pos1[1])
-    lat2, lon2 = float(pos2[0]), float(pos2[1])
-    R = 6371000.0  # Earth radius in meters
-    phi1 = math.radians(lat1)
-    phi2 = math.radians(lat2)
-    dphi = math.radians(lat2 - lat1)
-    dlambda = math.radians(lon2 - lon1)
-    a = math.sin(dphi/2.0)**2 + math.cos(phi1)*math.cos(phi2)*(math.sin(dlambda/2.0)**2)
-    return 2 * R * math.asin(math.sqrt(a))
+# Note: In production, delete fake_now and uncomment every "datetime.now" instance
+fake_now = datetime(2025, 8, 9, 7, 30, 15)
+class Actions:
+    def __init__(self, stops_df, stop_times_df, trips_df):
+        self.stops_df = stops_df
+        self.stop_times_df = stop_times_df
+        self.trips_df = trips_df
 
-# --------------------------
-# [2] Walking time in minutes given distance in meters
-# --------------------------
-def time_to_walk(distance_m):
-    """
-    walking_speed_m_per_min approx 83.33 m/min (5 km/h)
-    """
-    walking_speed = 5000 / 60.0  # 83.333... m/min
-    return distance_m / walking_speed
+    # --------------------------
+    # Build walking network (cached per search)
+    # --------------------------
+    def build_walking_graph(self, center_lat, center_lon, radius_m=2000):
+        print("Building walking graph at:", center_lat, center_lon, "radius:", radius_m)
+        G = ox.graph_from_point((center_lat, center_lon), dist=radius_m, network_type='walk')
+        nx.set_edge_attributes(G, values=5, name='speed_kph')  # walking speed ~5 km/h
+        G = ox.add_edge_travel_times(G)  # adds 'travel_time' in seconds
+        return G
 
-# --------------------------
-# [3] Parse GTFS time string (handles >24:00:00) -> minutes since midnight (float)
-# --------------------------
-def parse_gtfs_time_to_minutes(t_str):
-    """
-    Parse HH:MM:SS where HH may be >= 24 (GTFS allows >24 for next-day times).
-    Returns minutes from midnight (float).
-    """
-    if not isinstance(t_str, str):
-        raise ValueError("Time must be a string in HH:MM:SS format")
-    parts = t_str.split(":")
-    if len(parts) < 2:
-        raise ValueError("Time format invalid")
-    h = int(parts[0])
-    m = int(parts[1])
-    s = int(parts[2]) if len(parts) > 2 else 0
-    return h * 60 + m + s / 60.0
+    # --------------------------
+    # Get walking time and geometry between two points
+    # --------------------------
+    def get_walking_time_and_route(self, G, origin, destination):
+        orig_node = ox.distance.nearest_nodes(G, origin[1], origin[0])  # (lon, lat)
+        dest_node = ox.distance.nearest_nodes(G, destination[1], destination[0])
 
-# --------------------------
-# [4] Minutes until arrival from now (can be negative if past)
-# --------------------------
-def minutes_until_arrival(arrival_time_str, now_time=None):
-    """
-    Returns minutes from 'now' until arrival_time_str.
-    arrival_time_str can be GTFS style (e.g., "25:10:00").
-    """
-    if now_time is None:
-        now_time = datetime.now()
+        # Shortest path by travel time
+        path_nodes = nx.shortest_path(G, orig_node, dest_node, weight='travel_time')
+        travel_time_sec = nx.shortest_path_length(G, orig_node, dest_node, weight='travel_time')
 
-    # compute now as minutes since midnight, but we must allow comparing to times >24h
-    now_minutes = now_time.hour * 60 + now_time.minute + now_time.second / 60.0
+        # Build geometry
+        path_coords = []
+        for u, v in zip(path_nodes[:-1], path_nodes[1:]):
+            edge_data = min(G.get_edge_data(u, v).values(), key=lambda x: x.get('length', 0))
+            if 'geometry' in edge_data:
+                path_coords.extend(list(edge_data['geometry'].coords))
+            else:
+                path_coords.append((G.nodes[u]['x'], G.nodes[u]['y']))
+                path_coords.append((G.nodes[v]['x'], G.nodes[v]['y']))
 
-    try:
-        arrival_minutes = parse_gtfs_time_to_minutes(arrival_time_str)
-    except Exception:
-        # if parsing fails, return a big negative number to skip it
-        return -99999
+        route_line = LineString(path_coords)
+        walk_minutes = round(travel_time_sec / 60, 2)
+        return walk_minutes, route_line
 
-    # If arrival_minutes is less than now_minutes but arrival_hours >=24,
-    # arrival_minutes may be e.g. 1500 which is > now_minutes. So just subtract.
-    return arrival_minutes - now_minutes
+    # --------------------------
+    # Find nearby stations with realistic walking paths
+    # --------------------------
+    def get_nearby_stations_osm(self, inspector_pos, radius_m=2000, max_walk_minutes=8):
+        G = self.build_walking_graph(inspector_pos[0], inspector_pos[1], radius_m)
+        nearby = []
 
-# --------------------------
-# [5] Get all nearby stations within radius (meters)
-# --------------------------
-def get_nearby_stations(inspector_pos, stops_df, radius_m=2000):
-    """
-    inspector_pos: (lat, lon)
-    stops_df: pandas DataFrame with 'stop_id', 'stop_lat', 'stop_lon' columns
-    returns list of tuples (stop_id, distance_m) sorted by distance
-    """
-    nearby = []
-    # Ensure stops_df has expected columns
-    if 'stop_lat' not in stops_df.columns or 'stop_lon' not in stops_df.columns:
-        raise KeyError("stops_df must have 'stop_lat' and 'stop_lon' columns")
-
-    for _, stop in stops_df.iterrows():
-        stop_pos = (float(stop['stop_lat']), float(stop['stop_lon']))
-        dist = haversine_meters(inspector_pos, stop_pos)
-        if dist <= radius_m:
-            nearby.append((str(stop['stop_id']), dist))
-    return sorted(nearby, key=lambda x: x[1])  # sorted by closest
-
-# --------------------------
-# [6] Get reachable trips for inspector (must arrive buffer_minutes early)
-# --------------------------
-def get_reachable_trips(inspector, stops_df, stop_times_df, buffer_minutes=3, radius_m=2000):
-    """
-    Returns list of trips the inspector can realistically reach in time.
-    inspector: object with .lat and .lon (or Inspector)
-    stops_df: pandas DataFrame (with stop_id, stop_lat, stop_lon)
-    stop_times_df: pandas DataFrame (with trip_id, stop_id, arrival_time)
-    """
-    inspector_pos = (float(getattr(inspector, 'lat', inspector.latitude)),
-                     float(getattr(inspector, 'lon', inspector.longitude)))
-
-    nearby_stations = get_nearby_stations(inspector_pos, stops_df, radius_m=radius_m)
-
-    reachable = []
-
-    for stop_id, distance_m in nearby_stations:
-        walk_minutes = time_to_walk(distance_m)
-
-        stop_times = stop_times_df[stop_times_df['stop_id'].astype(str) == str(stop_id)]
-        for _, row in stop_times.iterrows():
-            arrival_time_str = row.get('arrival_time') or row.get('arrival_time', '')
-            minutes_to_arrival = minutes_until_arrival(str(arrival_time_str))
-            if walk_minutes + buffer_minutes <= minutes_to_arrival:
-                reachable.append({
-                    'trip_id': row['trip_id'],
-                    'stop_id': stop_id,
-                    'arrival_time': arrival_time_str,
-                    'walk_time': round(walk_minutes, 1),
-                    'distance_m': int(distance_m),
-                    'minutes_until_arrival': round(minutes_to_arrival, 1)
-                })
-
-    return reachable
-
-# --------------------------
-# [7] find_optional_lines -> returns DataFrame of options inspector can reach
-# --------------------------
-def find_optional_lines(inspector_lat, inspector_lon, stops_df, stop_times_df, buffer_minutes=3, radius_m=2000):
-    """
-    For a given inspector's coordinates, find all reachable bus trips.
-    Returns a pandas DataFrame (sorted) with reachable trip options.
-    """
-    inspector_pos = (float(inspector_lat), float(inspector_lon))
-
-    # Step 1: Find nearby stations
-    nearby_stations = get_nearby_stations(inspector_pos, stops_df, radius_m=radius_m)
-
-    reachable = []
-
-    for stop_id, distance_m in nearby_stations:
-        walk_minutes = time_to_walk(distance_m)
-        stop_times = stop_times_df[stop_times_df['stop_id'].astype(str) == str(stop_id)]
-
-        for _, row in stop_times.iterrows():
-            arrival_time_str = row.get('arrival_time') or row.get('arrival_time', '')
-            minutes_to_arrival = minutes_until_arrival(str(arrival_time_str))
-            if walk_minutes + buffer_minutes <= minutes_to_arrival:
-                reachable.append({
-                    'trip_id': row['trip_id'],
-                    'stop_id': stop_id,
-                    'arrival_time': arrival_time_str,
-                    'walk_time': round(walk_minutes, 1),
-                    'distance_m': int(distance_m),
-                    'minutes_until_arrival': round(minutes_to_arrival, 1)
-                })
-
-    if not reachable:
-        return pd.DataFrame([], columns=['trip_id', 'stop_id', 'arrival_time', 'walk_time', 'distance_m', 'minutes_until_arrival'])
-
-    return pd.DataFrame(reachable).sort_values(by='minutes_until_arrival')
-
-# --------------------------
-# [8] find_best_fine_trip -> main decision function
-# --------------------------
-def find_best_fine_trip(inspector, stops_df, stop_times_df, trips_df, buffer_minutes=3, radius_m=2000):
-    """
-    Returns the best reachable trip (with most possible fines) for the inspector.
-    inspector: object with .lat / .lon and .available attribute
-    stops_df, stop_times_df, trips_df: pandas DataFrames
-    """
-    if not getattr(inspector, 'available', True):
-        return None
-
-    # now in minutes
-    now = datetime.now()
-    now_minutes = now.hour * 60 + now.minute + now.second / 60.0
-
-    # get reachable candidates
-    reachable_df = find_optional_lines(inspector.lat, inspector.lon, stops_df, stop_times_df, buffer_minutes, radius_m)
-    if reachable_df.empty:
-        return None
-
-    best_option = None
-    max_fines = -1
-
-    checked_trips = set()
-
-    for _, row in reachable_df.iterrows():
-        trip_id = row['trip_id']
-        stop_id = row['stop_id']
-        minutes_until_arrival = float(row['minutes_until_arrival'])
-
-        if trip_id in checked_trips:
-            continue
-        checked_trips.add(trip_id)
-
-        trip_stop_times = stop_times_df[stop_times_df['trip_id'] == trip_id]
-        if trip_stop_times.empty:
-            continue
-
-        # compute latest arrival minute for this trip (handle GTFS >24h)
-        arrival_minutes_list = []
-        for t in trip_stop_times['arrival_time']:
+        for _, stop in self.stops_df.iterrows():
+            stop_pos = (stop['stop_lat'], stop['stop_lon'])
             try:
-                arrival_minutes_list.append(parse_gtfs_time_to_minutes(str(t)))
-            except Exception:
+                walk_minutes, route_geom = self.get_walking_time_and_route(G, inspector_pos, stop_pos)
+                if walk_minutes <= max_walk_minutes:
+                    nearby.append((stop['stop_id'], walk_minutes, route_geom))
+            except Exception as e:
+                print(f"Error finding route to stop {stop['stop_id']}: {e}")
                 continue
-        if not arrival_minutes_list:
-            continue
-        latest_arrival_minutes = max(arrival_minutes_list)
+        print(f"Nearby stations array (called from get_nearby_stations_osm):\n{nearby}")
+        return sorted(nearby, key=lambda x: x[1])
 
-        time_on_board = latest_arrival_minutes - now_minutes
-        if time_on_board <= 0:
-            continue
+    # --------------------------
+    # Convert arrival time to minutes from now
+    # --------------------------
+    def minutes_until_arrival(self, arrival_time_str, now_time=None):
+        if now_time is None:
+            now_time = fake_now #datetime.now()
+        now_minutes = now_time.hour * 60 + now_time.minute + now_time.second / 60
 
-        fines_possible = int(time_on_board // 5)
+        h, m, s = map(int, arrival_time_str.split(":"))
+        arrival_minutes = h * 60 + m + s / 60
+        return arrival_minutes - now_minutes
 
-        # trips_df may contain an 'AvgDontPay' or similar column; handle missing gracefully
-        avg_dont_pay = 0
-        if 'AvgDontPay' in trips_df.columns:
+    # --------------------------
+    # Find all reachable trips with realistic walking
+    # --------------------------
+    def find_optional_lines(self, inspector_lat, inspector_lon, buffer_minutes=3, radius_m=2000):
+        inspector_pos = (inspector_lat, inspector_lon)
+        nearby_stations = self.get_nearby_stations_osm(inspector_pos, radius_m=radius_m)
+        print(f"Currently running find_optional_lines with pos {inspector_pos} on stations:\n{nearby_stations}")
+        reachable = []
+        for stop_id, walk_minutes, route_geom in nearby_stations:
+            stop_times = self.stop_times_df[self.stop_times_df['stop_id'] == stop_id]
+            for _, row in stop_times.iterrows():
+                minutes_to_arrival = self.minutes_until_arrival(row['arrival_time'])
+                if walk_minutes + buffer_minutes <= minutes_to_arrival:
+                    reachable.append({
+                        'trip_id': row['trip_id'],
+                        'stop_id': stop_id,
+                        'arrival_time': row['arrival_time'],
+                        'walk_time': walk_minutes,
+                        'route_geometry': route_geom,  # store walking path
+                        'minutes_until_arrival': round(minutes_to_arrival, 1)
+                    })
+        print(f"Reachable array (called from find_optional_lines):\n{reachable}")
+        if not reachable:
+            return pd.DataFrame()
+        
+        return pd.DataFrame(reachable).sort_values(by='minutes_until_arrival')
+
+    # --------------------------
+    # Find best trip for fines potential
+    # --------------------------
+    def find_best_fine_trip(self, inspector, buffer_minutes=3, radius_m=2000):
+        if not inspector.available:
+            print("Inspector unavailable, exiting...")
+            return None
+
+        now = fake_now #datetime.now()
+        now_minutes = now.hour * 60 + now.minute + now.second / 60
+
+        reachable_df = self.find_optional_lines(inspector.lat, inspector.lon, buffer_minutes, radius_m)
+        if reachable_df.empty:
+            print("Reachable lines empty, existing...")
+            return None
+
+        best_option = None
+        max_fines = 0
+        checked_trips = set()
+
+        for _, row in reachable_df.iterrows():
+            trip_id = row['trip_id']
+            if trip_id in checked_trips:
+                continue
+            checked_trips.add(trip_id)
+
+            trip_stop_times = self.stop_times_df[self.stop_times_df['trip_id'] == trip_id]
+            if trip_stop_times.empty:
+                continue
+
             try:
-                val = trips_df.loc[trips_df['trip_id'] == trip_id, 'AvgDontPay']
-                if not val.empty:
-                    avg_dont_pay = float(val.values[0])
-            except Exception:
-                avg_dont_pay = 0
+                latest_arrival_minutes = max([
+                    int(t.split(":")[0]) * 60 + int(t.split(":")[1]) + int(t.split(":")[2]) / 60
+                    for t in trip_stop_times['arrival_time']
+                    if isinstance(t, str) and len(t.split(":")) == 3
+                ])
+            except:
+                continue
 
-        potential_fines = min(fines_possible, int(avg_dont_pay) if avg_dont_pay else fines_possible)
+            time_on_board = latest_arrival_minutes - now_minutes
+            if time_on_board <= 0:
+                continue
 
-        if potential_fines > max_fines:
-            max_fines = potential_fines
-            best_option = {
-                'trip_id': trip_id,
-                'stop_id': stop_id,
-                'arrival_time': row['arrival_time'],
-                'walk_time_min': row['walk_time'],
-                'distance_m': row['distance_m'],
-                'minutes_until_arrival': minutes_until_arrival,
-                'time_on_board_min': round(time_on_board, 1),
-                'AvgDontPay': avg_dont_pay,
-                'potential_fines': int(potential_fines)
-            }
+            fines_possible = int(time_on_board // 5)
 
-    return best_option
+            avg_dont_pay = self.trips_df[self.trips_df['trip_id'] == trip_id].get('AvgDontPay')
+            avg_dont_pay = float(avg_dont_pay.values[0]) if not avg_dont_pay.empty else 0
+
+            potential_fines = min(fines_possible, int(avg_dont_pay))
+
+            if potential_fines > max_fines:
+                max_fines = potential_fines
+                best_option = {
+                    'trip_id': trip_id,
+                    'stop_id': row['stop_id'],
+                    'arrival_time': row['arrival_time'],
+                    'walk_time': row['walk_time'],
+                    'route_geometry': row['route_geometry'],  # walking path to station
+                    'minutes_until_arrival': row['minutes_until_arrival'],
+                    'time_on_board_min': round(time_on_board, 1),
+                    'AvgDontPay': avg_dont_pay,
+                    'potential_fines': potential_fines
+                }
+        print(f"Best option array (called from find_best_fine_trip):\n{best_option}")
+        return best_option
