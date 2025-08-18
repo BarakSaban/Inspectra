@@ -59,7 +59,7 @@
 
   <script>
     // ---------- CONFIG ----------
-    const SEARCH_RADIUS_METERS = 2000; // optional: only consider stops within this radius
+    const SEARCH_RADIUS_METERS = 666; // optional: only consider stops within this radius
     const BUS_ICON_URL = '/static/bus-stop.png';
     // ---------- END CONFIG ----------
 
@@ -151,7 +151,7 @@
 
         // add or update circle to show search radius (optional)
         if (!inspectorCircle) {
-          inspectorCircle = L.circle(userLatLng, { radius: 500, color: '#3388ff', fillOpacity: 0.05 }).addTo(map);
+          inspectorCircle = L.circle(userLatLng, { radius: 666, color: '#3388ff', fillOpacity: 0.05 }).addTo(map);
         } else {
           inspectorCircle.setLatLng(userLatLng);
         }
@@ -249,6 +249,10 @@
         map.removeLayer(currentDisplayed.shapeLayer);
         currentDisplayed.shapeLayer = null;
       }
+      if (currentDisplayed.walkLayer) {
+        map.removeLayer(currentDisplayed.walkLayer);
+        currentDisplayed.walkLayer = null;
+      }
     }
 
 
@@ -279,6 +283,13 @@
 
         if (json.best_option) {
           clearDisplayed();
+          
+          if (json.best_option.route_geometry) {
+            const walkLayer = L.geoJSON(json.best_option.route_geometry, {
+              style: { color: 'black', weight: 4, opacity: 0.7, dashArray: '8,6' }
+            }).addTo(map);
+            currentDisplayed.walkLayer = walkLayer;
+          }
 
           if (json.stop_feature) {
             const stopLayer = L.geoJSON(json.stop_feature, {

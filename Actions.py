@@ -6,7 +6,7 @@ from datetime import datetime
 from scipy.spatial import KDTree
 import numpy as np
 import math
-
+from shapely.geometry import mapping
 
 
 class Actions:
@@ -210,7 +210,7 @@ class Actions:
                         'stop_id': stop_id,
                         'arrival_time': row['arrival_time'],
                         'walk_time': round(walk_minutes, 2),
-                        'route_geometry': route_geom,
+                        'route_geometry': mapping(route_geom),
                         'minutes_until_arrival': round(minutes_to_arrival, 1)
                     })
         print(f"Reachable array (called from find_optional_lines):\n{reachable}")
@@ -273,6 +273,12 @@ class Actions:
             print(f"fines possible for {trip_id} is {fines_possible}")
             avg_dont_pay = float(self.avg_dont_pay_map.get(trip_id, 0) or 0)
             print(f"count of average non paying users for trip {trip_id} is {avg_dont_pay}")
+
+            #HOTFIX, IMPORTANT TO REMOVE!!! VVV
+            import random
+            avg_dont_pay = random.randrange(0, 18)
+            print(f"Randomized count of average non paying users for trip {trip_id}, now {avg_dont_pay}")
+            #HOTFIX, IMPORTANT TO REMOVE!!! ^^^
 
             potential_fines = min(fines_possible, int(avg_dont_pay))
             if potential_fines > max_fines:
