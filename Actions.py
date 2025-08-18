@@ -7,6 +7,8 @@ from scipy.spatial import KDTree
 import numpy as np
 import math
 
+
+
 class Actions:
     def __init__(self, stops_df, stop_times_df, trips_df):
         self.stops_df = stops_df.reset_index(drop=True)
@@ -41,6 +43,7 @@ class Actions:
             self.avg_dont_pay_map = dict(zip(self.trips_df["trip_id"], self.trips_df["AvgDontPay"]))
         else:
             self.avg_dont_pay_map = {}
+            print("WARNING!!!: Avg Dont pay map is empty!")
 
         # Walking graph cache
         self._cached_graph = None
@@ -223,7 +226,7 @@ class Actions:
             print("Inspector unavailable, exiting...")
             return None
 
-        now = fake_now #datetime.now()
+        now = datetime.now()
         now_minutes = now.hour * 60 + now.minute + now.second / 60
 
         reachable_df = self.find_optional_lines(inspector.lat, inspector.lon, buffer_minutes, radius_m, max_walk_minutes)
@@ -238,11 +241,14 @@ class Actions:
         for _, row in reachable_df.iterrows():
             trip_id = row['trip_id']
             if trip_id in checked_trips:
+                print(f"trip_id {trip_id} was already checked, continuing...")
                 continue
             checked_trips.add(trip_id)
+            print(f"Added {trip_id} trip id to checked trips")
 
             trip_stop_times = self.stop_times_df[self.stop_times_df['trip_id'] == trip_id]
             if trip_stop_times.empty:
+                print(f"trip_stop_times {trip_stop_times} is empty, continuing...")
                 continue
 
             # Latest arrival for this trip
@@ -252,15 +258,21 @@ class Actions:
                     for t in trip_stop_times['arrival_time']
                     if isinstance(t, str) and len(t.split(":")) == 3
                 ])
-            except Exception:
+            except Exception as e:
+                print(f"Encountered exception in finding latest arrival for trip!\n{e}")
                 continue
+            print(f"Latest arrival minutes for trip {trip_id} is {latest_arrival_minutes}")
 
             time_on_board = latest_arrival_minutes - now_minutes
             if time_on_board <= 0:
+                print(f"time on board is less than or equal to 0 ({time_on_board}), continuing...")
                 continue
+            print(f"Time on board for trip {trip_id} is {time_on_board}")
 
             fines_possible = int(time_on_board // 5)
+            print(f"fines possible for {trip_id} is {fines_possible}")
             avg_dont_pay = float(self.avg_dont_pay_map.get(trip_id, 0) or 0)
+            print(f"count of average non paying users for trip {trip_id} is {avg_dont_pay}")
 
             potential_fines = min(fines_possible, int(avg_dont_pay))
             if potential_fines > max_fines:
@@ -276,6 +288,8 @@ class Actions:
                     'AvgDontPay': avg_dont_pay,
                     'potential_fines': potential_fines
                 }
+            else:
+                print(f"Potential fines {potential_fines} isnt bigger than max fines {max_fines}")
 
         print(f"Best option array (called from find_best_fine_trip):\n{best_option}")
         return best_option

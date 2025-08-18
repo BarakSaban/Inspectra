@@ -82,7 +82,7 @@ def api_find_best_trip():
     lat = 32.0880 #float(req['lat']) 
     lon = 34.7898 #float(req['lon'])
     buffer_minutes = float(req.get('buffer', 3))  # Should be 3
-    radius_m = float(req.get('radius', 2000))     # Should be 2000
+    radius_m = float(req.get('radius', 666))     # Should be 2000
 
     inspector = Inspector(inspector_id='local', name='Local', latitude=lat, longitude=lon, available=True)
 

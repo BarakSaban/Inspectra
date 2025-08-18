@@ -274,7 +274,7 @@
         const json = await safeJsonFetch('/api/find_best_trip', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lat, lon, buffer: 3, radius: 2000 })
+          body: JSON.stringify({ lat, lon, buffer: 3, radius: 666 })
         });
 
         if (json.best_option) {
