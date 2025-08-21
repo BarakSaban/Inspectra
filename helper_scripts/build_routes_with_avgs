@@ -25,35 +25,31 @@ def fetch_workday_avgs(nesoa_id):
             return {
                 "WorkDay - 06:00-08:59": 0,
                 "WorkDay - 09:00-11:59": 0,
-                "WorkDay - 12:00-14:59": 0,
-                "WorkDay - 15:00-17:59": 0
+                "WorkDay - 12:00-14:59": 0
             }
         rec = records[0]
         return {
             "WorkDay - 06:00-08:59": rec.get("WorkDay - 06:00-08:59", 0),
             "WorkDay - 09:00-11:59": rec.get("WorkDay - 09:00-11:59", 0),
             "WorkDay - 12:00-14:59": rec.get("WorkDay - 12:00-14:59", 0),
-            "WorkDay - 15:00-17:59": rec.get("WorkDay - 15:00-17:59", 0),
         }
     except Exception as e:
         print(f"Error fetching {nesoa_id}: {e}")
         return {
             "WorkDay - 06:00-08:59": 0,
             "WorkDay - 09:00-11:59": 0,
-            "WorkDay - 12:00-14:59": 0,
-            "WorkDay - 15:00-17:59": 0
+            "WorkDay - 12:00-14:59": 0
         }
 
 def build_routes_with_avgs(routes_df):
     routes_df = routes_df.copy()
     routes_df["NesoaRouteID"] = routes_df["route_desc"].apply(extract_nesoa_id)
 
-    # Fetch workday averages for each NesoaRouteID
+    # Fetch only the first 3 workday averages
     workday_columns = [
         "WorkDay - 06:00-08:59",
         "WorkDay - 09:00-11:59",
-        "WorkDay - 12:00-14:59",
-        "WorkDay - 15:00-17:59"
+        "WorkDay - 12:00-14:59"
     ]
 
     avgs_list = []
@@ -71,7 +67,7 @@ def build_routes_with_avgs(routes_df):
 # ------------------------------
 if __name__ == "__main__":
     # Example: load filtered routes CSV
-    routes_df = pd.read_csv("filtered_routes.csv")
+    routes_df = pd.read_csv(r"gtfs/gtfs_filtered/routes.txt")
     routes_with_avgs = build_routes_with_avgs(routes_df)
     routes_with_avgs.to_csv("routes_with_avgs.csv", index=False, encoding="utf-8-sig")
     print("Static table saved to routes_with_avgs.csv")
