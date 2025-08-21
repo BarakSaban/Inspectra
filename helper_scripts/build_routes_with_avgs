@@ -66,8 +66,10 @@ def build_routes_with_avgs(routes_df):
 # USAGE
 # ------------------------------
 if __name__ == "__main__":
-    # Example: load filtered routes CSV
+    # Load GTFS routes
     routes_df = pd.read_csv(r"gtfs/gtfs_filtered/routes.txt")
     routes_with_avgs = build_routes_with_avgs(routes_df)
-    routes_with_avgs.to_csv("routes_with_avgs.csv", index=False, encoding="utf-8-sig")
-    print("Static table saved to routes_with_avgs.csv")
+    
+    # Save to static folder
+    routes_with_avgs.to_csv(r"static/routes_with_avgs.csv", index=False, encoding="utf-8-sig")
+    print("Static table saved to static/routes_with_avgs.csv")
