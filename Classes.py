@@ -54,15 +54,40 @@ class BusLine:
 
 
 class Inspector:
-    def __init__(self, inspector_id, name, latitude, longitude):
+    def __init__(self, inspector_id, name, latitude, longitude, available=True):
         self.inspector_id = inspector_id
         self.name = name
-        self.latitude = latitude
-        self.longitude = longitude
+        self.latitude = float(latitude)
+        self.longitude = float(longitude)
+        self.available = available  # New field
 
+    # Backwards-compatible properties
     @property
     def position(self):
         return (self.latitude, self.longitude)
 
+    @property
+    def lat(self):
+        return self.latitude
+
+    @property
+    def lon(self):
+        return self.longitude
+
+    def set_availability(self, status: bool):
+        """Set inspector availability."""
+        self.available = status
+
+    def to_dict(self):
+        """Convert Inspector to dictionary."""
+        return {
+            "inspector_id": self.inspector_id,
+            "name": self.name,
+            "latitude": self.latitude,
+            "longitude": self.longitude,
+            "available": self.available
+        }
+
     def __repr__(self):
-        return f"Inspector({self.inspector_id}, {self.name})"
+        return (f"Inspector({self.inspector_id}, {self.name}, "
+                f"Available={self.available})")

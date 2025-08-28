@@ -85,6 +85,11 @@ filtered_stops_df = stops_df[stops_df['stop_id'].isin(used_stop_ids)]
 # 9. Filter routes to include only selected bus routes
 filtered_routes_df = routes_df[routes_df['route_id'].isin(selected_route_ids)]
 
+# ---------------------- ADD NesoaRouteID ----------------------
+# Extract digits before the first dash in route_desc
+filtered_routes_df["NesoaRouteID"] = filtered_routes_df["route_desc"].astype(str).str.extract(r"^(\d+)")
+
+
 # ---------------------- OUTPUT OVERVIEW ----------------------
 
 print("\nFiltered Routes (100 Tel Aviv Bus Lines):")
