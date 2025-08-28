@@ -6,6 +6,8 @@ from datetime import datetime
 from scipy.spatial import KDTree
 import numpy as np
 import math
+from shapely.geometry import mapping
+
 
 class Actions:
     def __init__(self, stops_df, stop_times_df, trips_df):
@@ -41,6 +43,7 @@ class Actions:
             self.avg_dont_pay_map = dict(zip(self.trips_df["trip_id"], self.trips_df["AvgDontPay"]))
         else:
             self.avg_dont_pay_map = {}
+            print("WARNING!!!: Avg Dont pay map is empty!")
 
         # Walking graph cache
         self._cached_graph = None
@@ -71,7 +74,8 @@ class Actions:
     def build_walking_graph(self, center_lat, center_lon, radius_m=666, safety_buffer=120):
         # Expand a bit to avoid clipping at the edges
         effective_radius = int(radius_m + safety_buffer)
-
+        print("Building walking graph at:", center_lat, center_lon, "radius:", radius_m)
+        
         # Reuse cache if close enough and radius didn't shrink/grow a lot
         if self._cached_graph and self._cached_center and self._cached_radius:
             moved_m = self._haversine_m(center_lat, center_lon, self._cached_center[0], self._cached_center[1])
@@ -112,7 +116,7 @@ class Actions:
     # --------------------------
     # (1)+(4) Find nearby stations efficiently (KDTree meters + early skip + single Dijkstra)
     # --------------------------
-    def get_nearby_stations_osm(self, inspector_pos, radius_m=666, max_walk_minutes=8):
+    def get_nearby_stations_osm(self, inspector_pos, radius_m=666, max_walk_minutes=8): #Try block needs to be added, may break
         lat, lon = inspector_pos
         sx, sy = self._to_xy_single(lat, lon)
 
@@ -166,14 +170,15 @@ class Actions:
                     route_geom
                 ))
 
+        print(f"Nearby stations array (called from get_nearby_stations_osm):\n{nearby}")
         return sorted(nearby, key=lambda x: x[1])
 
     # --------------------------
     # Convert arrival time "HH:MM:SS" to minutes from now
     # --------------------------
     def minutes_until_arrival(self, arrival_time_str, now_time=None):
-        if now_time is None:
-            now_time = datetime.now()
+        if now_time is None: 
+            now_time = datetime.now() #Add fake_now
         now_minutes = now_time.hour * 60 + now_time.minute + now_time.second / 60.0
 
         h, m, s = map(int, arrival_time_str.split(":"))
@@ -189,6 +194,7 @@ class Actions:
         if not nearby_stations:
             return pd.DataFrame()
 
+        print(f"Currently running find_optional_lines with pos {inspector_pos} on stations:\n{nearby_stations}")
         reachable = []
         for stop_id, walk_minutes, route_geom in nearby_stations:
             stop_times = self.stop_times_map.get(stop_id)
@@ -204,10 +210,10 @@ class Actions:
                         'stop_id': stop_id,
                         'arrival_time': row['arrival_time'],
                         'walk_time': round(walk_minutes, 2),
-                        'route_geometry': route_geom,
+                        'route_geometry': mapping(route_geom),
                         'minutes_until_arrival': round(minutes_to_arrival, 1)
                     })
-
+        print(f"Reachable array (called from find_optional_lines):\n{reachable}")
         if not reachable:
             return pd.DataFrame()
         return pd.DataFrame(reachable).sort_values(by='minutes_until_arrival')
@@ -221,7 +227,7 @@ class Actions:
             return None
 
         now = datetime.now()
-        now_minutes = now.hour * 60 + now.minute + now.second / 60.0
+        now_minutes = now.hour * 60 + now.minute + now.second / 60
 
         reachable_df = self.find_optional_lines(inspector.lat, inspector.lon, buffer_minutes, radius_m, max_walk_minutes)
         if reachable_df.empty:
@@ -235,11 +241,14 @@ class Actions:
         for _, row in reachable_df.iterrows():
             trip_id = row['trip_id']
             if trip_id in checked_trips:
+                print(f"trip_id {trip_id} was already checked, continuing...")
                 continue
             checked_trips.add(trip_id)
+            print(f"Added {trip_id} trip id to checked trips")
 
             trip_stop_times = self.stop_times_df[self.stop_times_df['trip_id'] == trip_id]
             if trip_stop_times.empty:
+                print(f"trip_stop_times {trip_stop_times} is empty, continuing...")
                 continue
 
             # Latest arrival for this trip
@@ -249,15 +258,27 @@ class Actions:
                     for t in trip_stop_times['arrival_time']
                     if isinstance(t, str) and len(t.split(":")) == 3
                 ])
-            except Exception:
+            except Exception as e:
+                print(f"Encountered exception in finding latest arrival for trip!\n{e}")
                 continue
+            print(f"Latest arrival minutes for trip {trip_id} is {latest_arrival_minutes}")
 
             time_on_board = latest_arrival_minutes - now_minutes
             if time_on_board <= 0:
+                print(f"time on board is less than or equal to 0 ({time_on_board}), continuing...")
                 continue
+            print(f"Time on board for trip {trip_id} is {time_on_board}")
 
             fines_possible = int(time_on_board // 5)
+            print(f"fines possible for {trip_id} is {fines_possible}")
             avg_dont_pay = float(self.avg_dont_pay_map.get(trip_id, 0) or 0)
+            print(f"count of average non paying users for trip {trip_id} is {avg_dont_pay}")
+
+            #HOTFIX, IMPORTANT TO REMOVE!!! VVV
+            import random
+            avg_dont_pay = random.randrange(0, 18)
+            print(f"Randomized count of average non paying users for trip {trip_id}, now {avg_dont_pay}")
+            #HOTFIX, IMPORTANT TO REMOVE!!! ^^^
 
             potential_fines = min(fines_possible, int(avg_dont_pay))
             if potential_fines > max_fines:
@@ -273,5 +294,8 @@ class Actions:
                     'AvgDontPay': avg_dont_pay,
                     'potential_fines': potential_fines
                 }
+            else:
+                print(f"Potential fines {potential_fines} isnt bigger than max fines {max_fines}")
 
+        print(f"Best option array (called from find_best_fine_trip):\n{best_option}")
         return best_option

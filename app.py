@@ -1,13 +1,24 @@
 from flask import Flask, request, jsonify, send_from_directory
 import pandas as pd
-import geopandas as gpd
 import json
 import math
-from datetime import datetime, timedelta
-import Actions
+from datetime import datetime
+from Actions import Actions
 from Classes import Inspector
+from unittest.mock import patch
+import sklearn
+print(f"Version of sklearn is {sklearn.__version__}. sklearn is critical for osmnx to work.")
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
+
+# Note: In production, ensure local location is actually accessed in find_best_trip and uncomment hardcoded location
+
+stops_df = pd.read_csv("./gtfs/gtfs_filtered/stops.txt")
+stop_times_df = pd.read_csv("./gtfs/gtfs_filtered/stop_times.txt")
+trips_df = pd.read_csv("./gtfs/gtfs_filtered/trips.txt")
+
+# Create the Actions instance
+actions = Actions(stops_df, stop_times_df, trips_df)
 
 # ---------- Helpers ----------
 def haversine_meters(lat1, lon1, lat2, lon2):
@@ -17,14 +28,6 @@ def haversine_meters(lat1, lon1, lat2, lon2):
     dphi = math.radians(lat2 - lat1); dlambda = math.radians(lon2 - lon1)
     a = math.sin(dphi/2.0)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2.0)**2
     return 2 * R * math.asin(math.sqrt(a))
-
-def parse_time_to_minutes(t_str):
-    # Handles GTFS times like "25:10:00" (allowed)
-    parts = t_str.split(':')
-    if len(parts) < 2:
-        raise ValueError("Bad time format")
-    h = int(parts[0]); m = int(parts[1]); s = int(parts[2]) if len(parts) > 2 else 0
-    return h*60 + m + s/60.0
 
 # ---------- Load data once ----------
 print("Loading GTFS filtered files...")
@@ -50,7 +53,6 @@ stops_df = pd.read_csv('gtfs/gtfs_filtered/stops.txt', sep=',', encoding='utf-8'
 def nearest_stop():
     data = request.get_json()
     lat = float(data['lat']); lon = float(data['lon'])
-    radius = float(data.get('radius', 5000))
 
     # Find nearest stop (haversine)
     best = None; best_d = float('inf')
@@ -77,18 +79,15 @@ def nearest_stop():
 @app.route('/api/find_best_trip', methods=['POST'])
 def api_find_best_trip():
     req = request.get_json()
-    lat = float(req['lat'])
-    lon = float(req['lon'])
+    lat = 32.0880 #float(req['lat']) 
+    lon = 34.7898 #float(req['lon'])
     buffer_minutes = float(req.get('buffer', 3))  # Should be 3
-    radius_m = float(req.get('radius', 2000))     # Should be 2000
+    radius_m = float(req.get('radius', 666))     # Should be 2000
 
     inspector = Inspector(inspector_id='local', name='Local', latitude=lat, longitude=lon, available=True)
 
-    best = Actions.find_best_fine_trip(
+    best = actions.find_best_fine_trip(
         inspector,
-        stops_df=stops_df,
-        stop_times_df=stop_times_df,
-        trips_df=trips_df,
         buffer_minutes=buffer_minutes,
         radius_m=radius_m
     )
