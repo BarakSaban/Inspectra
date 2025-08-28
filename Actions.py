@@ -10,10 +10,11 @@ from shapely.geometry import mapping
 
 
 class Actions:
-    def __init__(self, stops_df, stop_times_df, trips_df):
+    def __init__(self, stops_df, stop_times_df, trips_df, routes_df):
         self.stops_df = stops_df.reset_index(drop=True)
         self.stop_times_df = stop_times_df
         self.trips_df = trips_df
+        self.routes_df = routes_df
 
         # ---------- (1) KDTree in METERS (local projection) ----------
         # Build a local, near-conformal projection to meters using a fixed reference latitude.
@@ -67,6 +68,30 @@ class Actions:
         x = math.radians(lon) * math.cos(self._ref_lat_rad) * self._R
         y = math.radians(lat) * self._R
         return x, y
+
+    def get_dontpay_value(self, route_id):
+        now = datetime.now().time()
+        hour = now.hour
+
+        if 6 <= hour <= 8:
+            col = "DontPay - 06:00-08:59"
+        elif 9 <= hour <= 11:
+            col = "DontPay - 09:00-11:59"
+        elif 12 <= hour <= 14:
+            col = "DontPay - 12:00-14:59"
+        else:
+            print("Couldn't find DontPay column that fits current time, returning None...")
+            return None  # outside defined windows
+
+        val = self.routes_df.loc[self.routes_df["route_id"] == route_id, col]
+        print(f"Value of dontpay_value() to found route {route_id} is {val}")
+        return val.values[0] if not val.empty else None
+    
+    def get_route_id_from_trip_id(self, trip_id):
+        row = self.trips_df.loc[self.trips_df["trip_id"] == trip_id, "route_id"]
+        if not row.empty:
+            return int(row.values[0])  # convert from numpy.int64 to Python int
+        return None
 
     # --------------------------
     # (3) Build walking network with dynamic radius + cache
@@ -271,14 +296,14 @@ class Actions:
 
             fines_possible = int(time_on_board // 5)
             print(f"fines possible for {trip_id} is {fines_possible}")
-            avg_dont_pay = float(self.avg_dont_pay_map.get(trip_id, 0) or 0)
+            avg_dont_pay = self.get_dontpay_value(self.get_route_id_from_trip_id(trip_id))
             print(f"count of average non paying users for trip {trip_id} is {avg_dont_pay}")
 
-            #HOTFIX, IMPORTANT TO REMOVE!!! VVV
-            import random
-            avg_dont_pay = random.randrange(0, 18)
-            print(f"Randomized count of average non paying users for trip {trip_id}, now {avg_dont_pay}")
-            #HOTFIX, IMPORTANT TO REMOVE!!! ^^^
+            # #HOTFIX, IMPORTANT TO REMOVE!!! VVV
+            # import random
+            # avg_dont_pay = random.randrange(0, 18)
+            # print(f"Randomized count of average non paying users for trip {trip_id}, now {avg_dont_pay}")
+            # #HOTFIX, IMPORTANT TO REMOVE!!! ^^^
 
             potential_fines = min(fines_possible, int(avg_dont_pay))
             if potential_fines > max_fines:

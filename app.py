@@ -6,6 +6,7 @@ from datetime import datetime
 from Actions import Actions
 from Classes import Inspector
 from unittest.mock import patch
+import numpy as np
 import sklearn
 print(f"Version of sklearn is {sklearn.__version__}. sklearn is critical for osmnx to work.")
 
@@ -16,9 +17,10 @@ app = Flask(__name__, static_folder='static', template_folder='templates')
 stops_df = pd.read_csv("./gtfs/gtfs_filtered/stops.txt")
 stop_times_df = pd.read_csv("./gtfs/gtfs_filtered/stop_times.txt")
 trips_df = pd.read_csv("./gtfs/gtfs_filtered/trips.txt")
+routes_df = pd.read_csv("./static/routes_with_avgs.csv") #TODO standardize as .txt
 
 # Create the Actions instance
-actions = Actions(stops_df, stop_times_df, trips_df)
+actions = Actions(stops_df, stop_times_df, trips_df, routes_df)
 
 # ---------- Helpers ----------
 def haversine_meters(lat1, lon1, lat2, lon2):
@@ -28,6 +30,23 @@ def haversine_meters(lat1, lon1, lat2, lon2):
     dphi = math.radians(lat2 - lat1); dlambda = math.radians(lon2 - lon1)
     a = math.sin(dphi/2.0)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2.0)**2
     return 2 * R * math.asin(math.sqrt(a))
+
+def to_serializable(obj):
+    """Recursively convert pandas/numpy objects into JSON-safe Python types."""
+    if isinstance(obj, (np.integer,)):
+        return int(obj)
+    elif isinstance(obj, (np.floating,)):
+        return float(obj)
+    elif isinstance(obj, (np.ndarray,)):
+        return obj.tolist()
+    elif isinstance(obj, (pd.Series, pd.DataFrame)):
+        return obj.to_dict(orient="records")
+    elif isinstance(obj, dict):
+        return {k: to_serializable(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [to_serializable(v) for v in obj]
+    else:
+        return obj
 
 # ---------- Load data once ----------
 print("Loading GTFS filtered files...")
@@ -70,9 +89,9 @@ def nearest_stop():
     mappings = [m for m in stop_shape_map if str(m['stop_id']) == stop_id]
 
     return jsonify({
-        "stop": best,
-        "distance_m": best_d,
-        "mappings": mappings
+        "stop": to_serializable(best),
+        "distance_m": to_serializable(best_d),
+        "mappings": to_serializable(mappings)
     })
 
 
@@ -118,9 +137,9 @@ def api_find_best_trip():
     print(f"Shape found: {'Yes' if shape_feature else 'No'}")
 
     return jsonify({
-        "best_option": best,
-        "stop_feature": stop_feature,
-        "shape_feature": shape_feature
+        "best_option": to_serializable(best),
+        "stop_feature": to_serializable(stop_feature),
+        "shape_feature": to_serializable(shape_feature)
     })
 
 # helper internal nearest used above
