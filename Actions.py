@@ -324,3 +324,104 @@ class Actions:
 
         print(f"Best option array (called from find_best_fine_trip):\n{best_option}")
         return best_option
+    
+
+        # --------------------------
+    # Global assignment: maximize total fines across inspectors
+    # --------------------------
+    def assign_best_trips_global(self, inspectors, buffer_minutes=3, radius_m=666, max_walk_minutes=8):
+        """
+        Assigns inspectors to trips globally to maximize total fines, 
+        avoiding duplicate assignments. Uses max weight bipartite matching.
+        """
+        import networkx as nx
+
+        G = nx.Graph()
+        trip_details = {}
+
+        now = datetime.now()
+        now_minutes = now.hour * 60 + now.minute + now.second / 60
+
+        # 1) Build graph edges: inspector -> trip with weight = potential_fines
+        for inspector in inspectors:
+            if not getattr(inspector, "available", True):
+                continue
+
+            reachable_df = self.find_optional_lines(
+                inspector.lat, inspector.lon,
+                buffer_minutes=buffer_minutes,
+                radius_m=radius_m,
+                max_walk_minutes=max_walk_minutes
+            )
+            if reachable_df.empty:
+                continue
+
+            for _, row in reachable_df.iterrows():
+                trip_id = row["trip_id"]
+
+                trip_stop_times = self.stop_times_df[self.stop_times_df["trip_id"] == trip_id]
+                if trip_stop_times.empty:
+                    continue
+
+                try:
+                    latest_arrival_minutes = max([
+                        int(t.split(":")[0]) * 60 + int(t.split(":")[1]) + int(t.split(":")[2]) / 60.0
+                        for t in trip_stop_times["arrival_time"]
+                        if isinstance(t, str) and len(t.split(":")) == 3
+                    ])
+                except:
+                    continue
+
+                time_on_board = latest_arrival_minutes - now_minutes
+                if time_on_board <= 0:
+                    continue
+
+                fines_possible = int(time_on_board // 5)
+                avg_dont_pay = self.get_dontpay_value(self.get_route_id_from_trip_id(trip_id))
+                if avg_dont_pay is None:
+                    continue
+
+                potential_fines = min(fines_possible, int(avg_dont_pay))
+                if potential_fines <= 0:
+                    continue
+
+                inspector_node = f"inspector_{getattr(inspector, 'id', id(inspector))}"
+                trip_node = f"trip_{trip_id}"
+
+                G.add_edge(inspector_node, trip_node, weight=potential_fines)
+
+                # store details for reconstruction
+                trip_details[(inspector_node, trip_node)] = {
+                    'trip_id': trip_id,
+                    'stop_id': row['stop_id'],
+                    'arrival_time': row['arrival_time'],
+                    'walk_time': row['walk_time'],
+                    'route_geometry': row['route_geometry'],
+                    'minutes_until_arrival': row['minutes_until_arrival'],
+                    'time_on_board_min': round(time_on_board, 1),
+                    'AvgDontPay': avg_dont_pay,
+                    'potential_fines': potential_fines,
+                    'inspector_id': getattr(inspector, "id", None),
+                    'inspector_lat': inspector.lat,
+                    'inspector_lon': inspector.lon
+                }
+
+        if not G.edges:
+            return pd.DataFrame()
+
+        # 2) Solve maximum weight matching
+        matching = nx.algorithms.matching.max_weight_matching(G, maxcardinality=True, weight="weight")
+
+        # 3) Collect results
+        results = []
+        for u, v in matching:
+            if u.startswith("inspector_") and v.startswith("trip_"):
+                inspector_node, trip_node = u, v
+            else:
+                inspector_node, trip_node = v, u
+
+            details = trip_details.get((inspector_node, trip_node))
+            if details:
+                results.append(details)
+
+        return pd.DataFrame(results)
