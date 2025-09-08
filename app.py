@@ -152,6 +152,22 @@ def nearest_stop_internal(lat, lon):
             best_d = d; best = f
     return {"stop": best, "distance_m": best_d, "mappings": [m for m in stop_shape_map if str(m['stop_id']) == str(best['properties']['stop_id'])]}
 
+@app.route('/api/find_global_best', methods=['POST'])
+def api_find_global_best():
+    inspector1 = Inspector(inspector_id='local', name='Benny', latitude=32.0880, longitude=34.7898, available=True)
+    inspector2 = Inspector(inspector_id='local', name='Yossi', latitude=32.0746, longitude=34.7910, available=True) 
+    inspector3 = Inspector(inspector_id='local', name='Ofek', latitude=32.0831, longitude=34.7962, available=True)
+    inspector4 = Inspector(inspector_id='local', name='Barak', latitude=32.0634, longitude=34.7791, available=False)
+    inspectors = [inspector1, inspector2, inspector3, inspector4]
+
+    best_df = actions.assign_best_trips_global(inspectors)
+
+    if best_df.empty:
+        print("find_global_best returned is empty, likely an error. exiting...")
+        return jsonify({"assignments": []})
+
+    best_json = best_df.to_dict(orient="records")
+    return jsonify({"assignments": best_json})
 # static frontend
 @app.route('/')
 def index():

@@ -334,7 +334,6 @@ class Actions:
         Assigns inspectors to trips globally to maximize total fines, 
         avoiding duplicate assignments. Uses max weight bipartite matching.
         """
-        import networkx as nx
 
         G = nx.Graph()
         trip_details = {}
@@ -346,6 +345,7 @@ class Actions:
         for inspector in inspectors:
             if not getattr(inspector, "available", True):
                 continue
+            print(f"\n\nCurrently running for inspector {inspectors}\n\n")
 
             reachable_df = self.find_optional_lines(
                 inspector.lat, inspector.lon,

@@ -41,12 +41,18 @@
     #find-best-btn {
       left: 245px;
     }
+    
+    #find-global-best-btn {
+      left: 404px;
+    }
+
   </style>
 </head>
 
 <body>
   <button id="find-nearest-btn" class="map-button">Find nearest stop (server)</button>
   <button id="find-best-btn" class="map-button">Find best trip (server)</button>
+  <button id="find-global-best-btn" class="map-button">Find global best trip (server)</button>
 
   <div id="map"></div>
 
@@ -360,6 +366,61 @@
       }
     }
 
+  async function fetchGlobalBestAndShow() {
+    const btn = document.getElementById('find-global-best-btn');
+    btn.disabled = true;
+    btn.textContent = 'Assigning...';
+
+    try {
+      const json = await safeJsonFetch('/api/find_global_best', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})  // no extra params for now
+      });
+
+      clearDisplayed();
+
+      if (!json.assignments || json.assignments.length === 0) {
+        alert("No global best trips found.");
+        return;
+      }
+
+      json.assignments.forEach(assign => {
+        // show inspector
+        const inspectorLatLng = [assign.inspector_lat, assign.inspector_lon];
+        const inspectorMarker = L.marker(inspectorLatLng, { icon: inspectorIcon })
+          .addTo(map)
+          .bindPopup(`Inspector ${assign.inspector_id}`);
+
+        displayedLayers.push(inspectorMarker);
+
+        // show stop
+        if (assign.stop_id && assign.route_geometry) {
+          const routeGeoJson = {
+            "type": "Feature",
+            "geometry": assign.route_geometry
+          };
+
+          const walkLayer = L.geoJSON(routeGeoJson, {
+            style: { color: "blue", weight: 3, dashArray: "5,5" }
+          }).addTo(map);
+
+          displayedLayers.push(walkLayer);
+        }
+      });
+
+      // fit map to show everything
+      const group = L.featureGroup(displayedLayers);
+      map.fitBounds(group.getBounds().pad(0.2));
+    } catch (err) {
+      console.error(err);
+      alert("Error assigning global best: " + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Find Global Best';
+    }
+  }
+
     // hook up UI (replaced setupUI)
     function setupUI() {
       document.getElementById('find-nearest-btn').addEventListener('click', () => {
@@ -370,6 +431,10 @@
 
       document.getElementById('find-best-btn').addEventListener('click', () => {
         fetchBestTripAndShow();
+      });
+
+      document.getElementById('find-global-best-btn').addEventListener('click', () => {
+        fetchGlobalBestAndShow();
       });
     }
 
