@@ -2,50 +2,25 @@ import os
 import zipfile
 import pandas as pd
 import geopandas as gpd
-from shapely.geometry import Point, LineString
+from shapely.geometry import LineString
 import shutil
 
 # --- CONFIG ---
-# 1) Path to your GTFS zip file
-gtfs_zip_path = r"./gtfs/israel-public-transportation.zip"
-
-# 2) Temporary extraction directory
+gtfs_zip_path = r"C:\Users\User\Documents\INSPECTRA\Data\tlv_busses_gtfs.zip"
 extract_dir = "./gtfs/gtfs_extracted/"
-
-# 3) Path to output filtered files
 OUTPUT_PATH = "./gtfs/gtfs_filtered/"
 
-# 4) target route_ids (lines, can be found in routes.txt in gtfs)
-MY_ROUTE_IDS = [ 
-    "39165", "39166", #Adding in pairs, one for the way forward and other for backwards
-    "27901", "27902",
-    "27081", "27082",
-    "27083", "27084",
-    "34619", "34620",
-    ################
-    "36503", "36504", 
-    "25957", "25958",
-    "25955", "25956",  
-    "24281", "24282",
-    "23917", "23918", 
-    "22051", "22052",
-    "21999", "22000",
-    "21997", "21988",
-    "21993", "21994",
-    "21189", "21190",
-    "21187", "21188",     
-    "13429", "13430",
-    "11537", "11538",
-    "10933", "10934",
-    "10275", "10276"
+# Allowed cities pool
+ALLOWED_CITIES = [
+    "בני ברק", "רמת גן", "גבעתיים",
+    "חולון", "בת ים", "רמת השרון",
+    "הרצליה", "תל אביב"
 ]
 
 def main():
-    # --- Prepare folders ---
     os.makedirs(extract_dir, exist_ok=True)
     os.makedirs(OUTPUT_PATH, exist_ok=True)
 
-    # --- Extract necessary GTFS files ---
     gtfs_files = [
         'routes.txt',
         'trips.txt',
@@ -66,12 +41,25 @@ def main():
             else:
                 print(f"⚠️ Warning: {file} not found in GTFS zip!")
 
-    # --- 1) Filter routes ---
+    # --- 1) Filter routes: both endpoints must be in the ALLOWED_CITIES pool ---
     routes = pd.read_csv(extract_dir + "routes.txt", dtype={'route_id': str})
-    routes['route_id'] = routes['route_id'].str.strip()
-    filtered_routes = routes[routes['route_id'].isin(MY_ROUTE_IDS)]
+
+    def both_endpoints_in_pool(row):
+        name = str(row.get('route_long_name', ''))
+        if not name or pd.isna(name):
+            name = str(row.get('route_desc', ''))
+        if '<->' in name:
+            origin, destination = name.split('<->', 1)
+            if any(city in origin for city in ALLOWED_CITIES) and any(city in destination for city in ALLOWED_CITIES):
+                return True
+        return False
+
+    filtered_routes = routes[routes.apply(both_endpoints_in_pool, axis=1)]
     filtered_routes.to_csv(OUTPUT_PATH + "routes.txt", index=False)
-    print(f"✅ routes.txt: {len(filtered_routes)} routes kept")
+    print(f"✅ routes.txt: {len(filtered_routes)} routes kept (both endpoints in pool)")
+
+    print("🔎 Example matching routes:")
+    print(filtered_routes['route_long_name'].head(10).to_string(index=False))
 
     # --- 2) Filter trips ---
     trips = pd.read_csv(extract_dir + "trips.txt", dtype={'route_id': str})
@@ -86,12 +74,16 @@ def main():
     filtered_stop_times.to_csv(OUTPUT_PATH + "stop_times.txt", index=False)
     print(f"✅ stop_times.txt: {len(filtered_stop_times)} stop times kept")
 
-    # --- 4) Filter stops ---
+    # --- 4) Filter stops: now keep all stops in allowed cities ---
     stops = pd.read_csv(extract_dir + "stops.txt")
-    used_stop_ids = filtered_stop_times['stop_id'].unique()
-    filtered_stops = stops[stops['stop_id'].isin(used_stop_ids)]
+
+    def stop_in_allowed_city(row):
+        name = str(row.get('stop_name', ''))
+        return any(city in name for city in ALLOWED_CITIES)
+
+    filtered_stops = stops[stops.apply(stop_in_allowed_city, axis=1)]
     filtered_stops.to_csv(OUTPUT_PATH + "stops.txt", index=False)
-    print(f"✅ stops.txt: {len(filtered_stops)} stops kept")
+    print(f"✅ stops.txt: {len(filtered_stops)} stops kept (all stops in allowed cities)")
 
     # --- 5) Filter shapes ---
     try:
@@ -104,25 +96,7 @@ def main():
         filtered_shapes = pd.DataFrame()
         print("⚠️ shapes.txt not found — skipping")
 
-    # # --- 6) Filter calendar ---
-    # try:
-    #     calendar = pd.read_csv(extract_dir + "calendar.txt")
-    #     service_ids = filtered_trips['service_id'].unique()
-    #     filtered_calendar = calendar[calendar['service_id'].isin(service_ids)]
-    #     filtered_calendar.to_csv(OUTPUT_PATH + "calendar.txt", index=False)
-    #     print(f"✅ calendar.txt: {len(filtered_calendar)} services kept")
-    # except FileNotFoundError:
-    #     print("⚠️ calendar.txt not found — skipping")
-
-    # # --- 7) Filter calendar_dates ---
-    # try:
-    #     calendar_dates = pd.read_csv(extract_dir + "calendar_dates.txt")
-    #     filtered_calendar_dates = calendar_dates[calendar_dates['service_id'].isin(service_ids)]
-    #     filtered_calendar_dates.to_csv(OUTPUT_PATH + "calendar_dates.txt", index=False)
-    #     print(f"✅ calendar_dates.txt: {len(filtered_calendar_dates)} exceptions kept")
-    # except FileNotFoundError:
-    #     print("⚠️ calendar_dates.txt not found — skipping")
-
+    # --- Cleanup extraction folder ---
     try:
         shutil.rmtree(extract_dir)
         print(f"🧹 Deleted temporary folder: {extract_dir}")
@@ -145,7 +119,6 @@ def main():
     try:
         if not filtered_shapes.empty:
             print("🌍 Generating shapes.geojson...")
-            # Sort shape points properly
             shapes_sorted = filtered_shapes.sort_values(by=['shape_id', 'shape_pt_sequence'])
 
             lines = []
