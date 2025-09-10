@@ -22,26 +22,32 @@ def fetch_workday_avgs(nesoa_id):
         data = response.json()
         records = data.get("result", {}).get("records", [])
         if not records:
-            rec = {
-                "WorkDay - 06:00-08:59": 0,
-                "WorkDay - 09:00-11:59": 0,
-                "WorkDay - 12:00-14:59": 0
-            }
+            rec = {}
         else:
             rec = records[0]
 
+        # Helper: return safe int
+        def safe_val(key):
+            val = rec.get(key, 0)
+            try:
+                return int(val) if val not in (None, "", "null") else 0
+            except:
+                return 0
+
         # Extract values safely
         workday_vals = {
-            "WorkDay - 06:00-08:59": rec.get("WorkDay - 06:00-08:59", 0),
-            "WorkDay - 09:00-11:59": rec.get("WorkDay - 09:00-11:59", 0),
-            "WorkDay - 12:00-14:59": rec.get("WorkDay - 12:00-14:59", 0),
+            "WorkDay - 00:00-03:59": safe_val("WorkDay - 00:00-03:59"),
+            "WorkDay - 04:00-05:59": safe_val("WorkDay - 04:00-05:59"),
+            "WorkDay - 06:00-08:59": safe_val("WorkDay - 06:00-08:59"),
+            "WorkDay - 09:00-11:59": safe_val("WorkDay - 09:00-11:59"),
+            "WorkDay - 12:00-14:59": safe_val("WorkDay - 12:00-14:59"),
+            "WorkDay - 15:00-18:59": safe_val("WorkDay - 15:00-18:59"),
+            "WorkDay - 19:00-23:59": safe_val("WorkDay - 19:00-23:59"),
         }
 
         # Add DontPay fields (20% of WorkDay, rounded to nearest int)
         dontpay_vals = {
-            "DontPay - 06:00-08:59": round(workday_vals["WorkDay - 06:00-08:59"] * 0.2),
-            "DontPay - 09:00-11:59": round(workday_vals["WorkDay - 09:00-11:59"] * 0.2),
-            "DontPay - 12:00-14:59": round(workday_vals["WorkDay - 12:00-14:59"] * 0.2),
+            f"DontPay - {k.split(' - ')[1]}": round(v * 0.2) for k, v in workday_vals.items()
         }
 
         return {**workday_vals, **dontpay_vals}
@@ -49,12 +55,20 @@ def fetch_workday_avgs(nesoa_id):
     except Exception as e:
         print(f"Error fetching {nesoa_id}: {e}")
         return {
+            "WorkDay - 00:00-03:59": 0,
+            "WorkDay - 04:00-05:59": 0,
             "WorkDay - 06:00-08:59": 0,
             "WorkDay - 09:00-11:59": 0,
             "WorkDay - 12:00-14:59": 0,
+            "WorkDay - 15:00-18:59": 0,
+            "WorkDay - 19:00-23:59": 0,
+            "DontPay - 00:00-03:59": 0,
+            "DontPay - 04:00-05:59": 0,
             "DontPay - 06:00-08:59": 0,
             "DontPay - 09:00-11:59": 0,
             "DontPay - 12:00-14:59": 0,
+            "DontPay - 15:00-18:59": 0,
+            "DontPay - 19:00-23:59": 0,
         }
 
 def build_routes_with_avgs(routes_df):
@@ -63,12 +77,20 @@ def build_routes_with_avgs(routes_df):
 
     # Columns we want to add
     all_columns = [
+        "WorkDay - 00:00-03:59",
+        "WorkDay - 04:00-05:59",
         "WorkDay - 06:00-08:59",
         "WorkDay - 09:00-11:59",
         "WorkDay - 12:00-14:59",
+        "WorkDay - 15:00-18:59",
+        "WorkDay - 19:00-23:59",
+        "DontPay - 00:00-03:59",
+        "DontPay - 04:00-05:59",
         "DontPay - 06:00-08:59",
         "DontPay - 09:00-11:59",
         "DontPay - 12:00-14:59",
+        "DontPay - 15:00-18:59",
+        "DontPay - 19:00-23:59",
     ]
 
     avgs_list = []
