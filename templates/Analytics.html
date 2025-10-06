@@ -1,0 +1,151 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Inspectra — Analytics</title>
+
+  <!-- Google font -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    :root {
+      --inspectra-accent: #1f7bd1;
+      --inspectra-accent-2: #0ea5e9;
+    }
+    body {
+      font-family: "Montserrat", system-ui, sans-serif;
+      background: linear-gradient(180deg, #f8fbff 0%, #eef6fb 100%);
+      color: #0f172a;
+    }
+    header.topbar {
+      background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.85));
+      box-shadow: 0 2px 12px rgba(16,24,40,0.06);
+      backdrop-filter: blur(6px);
+    }
+    .stat-card {
+      background-color: #ffffff;
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 6px 18px rgba(15,23,42,0.06);
+    }
+    .stat-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      background-color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .stat-value {
+      font-weight: 700;
+      font-size: 1.6rem;
+    }
+    .stat-label {
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+    .stat-sub {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- TOP NAV -->
+  <header class="topbar py-8">
+    <div class="max-w-6xl mx-auto px-6 flex flex-col items-center">
+      <img src="/static/INSPECTRA_NEW.png" alt="Inspectra" style="height:84px; object-fit:contain;" />
+      <h1 class="mt-3 text-3xl font-extrabold text-blue-900">Analytics</h1>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="py-8">
+    <div class="max-w-6xl mx-auto px-6 space-y-8">
+      <!-- STAT CARDS -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        
+        <!-- Card 1: Total Fines -->
+        <div class="stat-card">
+          <div class="stat-icon text-blue-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M12 1v22M17 6H9.5a3.5 3.5 0 0 0 0 7H15a3.5 3.5 0 0 1 0 7H7"/>
+            </svg>
+          </div>
+          <div>
+            <div class="stat-value" id="totalFines">0</div>
+            <div class="stat-label">Total Fines</div>
+            <div class="stat-sub">All inspectors</div>
+          </div>
+        </div>
+
+        <!-- Card 2: Avg Efficiency -->
+        <div class="stat-card">
+          <div class="stat-icon text-green-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="3.5"/>
+              <path d="M19.4 15a1.9 1.9 0 0 0 .2 2l.6.6-1 1-.6-.6a1.9 1.9 0 0 0-2 .2l-1 1-1-1a1.9 1.9 0 0 0-2 .2l-.6.6-1-1 .6-.6a1.9 1.9 0 0 0 .2-2l-1-1 1-1 1 1a1.9 1.9 0 0 0 2-.2l.6-.6 1 1"/>
+            </svg>
+          </div>
+          <div>
+            <div class="stat-value" id="avgEfficiency">—</div>
+            <div class="stat-label">Avg Efficiency</div>
+            <div class="stat-sub">Rating out of 10</div>
+          </div>
+        </div>
+
+        <!-- Card 3: Coverage -->
+        <div class="stat-card">
+          <div class="stat-icon text-purple-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M3 3h18v18H3z"/><path d="M8 8h8v8H8z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="stat-value" id="coverage">—</div>
+            <div class="stat-label">Route Coverage</div>
+            <div class="stat-sub">Active routes</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart Placeholder -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-xl font-bold mb-4">Weekly Trends</h2>
+        <canvas id="weeklyChart" style="width:100%;height:350px;"></canvas>
+      </div>
+    </div>
+  </main>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const ctx = document.getElementById('weeklyChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+        datasets: [{
+          label: 'Fines',
+          data: [12, 19, 3, 5, 2, 3, 9],
+          borderColor: '#1f7bd1',
+          backgroundColor: 'rgba(31,123,209,0.2)',
+          fill: true,
+          tension: 0.4
+        }]
+      }
+    });
+  </script>
+</body>
+</html>
