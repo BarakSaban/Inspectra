@@ -1,107 +1,353 @@
+<!doctype html>
+<html lang="en">
 
-<style>
-:root {
-  --inspectra-accent: #1f7bd1;
-  --inspectra-accent-2: #0ea5e9;
-}
-body {
-  font-family: "Montserrat", system-ui, sans-serif;
-  background: linear-gradient(180deg, #f8fbff 0%, #eef6fb 100%);
-  color: #0f172a;
-}
-.stat-card {
-  background-color: #ffffff;
-  border-radius: 14px;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  box-shadow: 0 6px 18px rgba(15,23,42,0.06);
-}
-</style>
-{% endblock %}
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Inspectra — Admin Dashboard</title>
+  <!-- Google font -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <style>
+    :root {
+      --inspectra-accent: #1f7bd1;
+      --inspectra-accent-2: #0ea5e9;
+    }
 
-{% block content %}
-<header class="topbar py-6">
-  <div class="max-w-6xl mx-auto px-6 flex flex-col items-center">
-    <img src="/static/INSPECTRA_NEW.png" alt="Inspectra" style="height:64px; object-fit:contain;" />
-    <h1 class="mt-3 text-3xl font-extrabold text-blue-900">Analytics</h1>
-  </div>
-</header>
+    body {
+      font-family: "Montserrat", system-ui, sans-serif;
+      background: linear-gradient(180deg, #f8fbff 0%, #eef6fb 100%);
+      color: #0f172a;
+    }
 
-<main class="py-8">
-  <div class="max-w-6xl mx-auto px-6 space-y-8">
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-      <!-- Total Fines -->
-      <div class="stat-card">
-        <div class="stat-icon text-blue-600">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path d="M12 1v22M17 6H9.5a3.5 3.5 0 0 0 0 7H15a3.5 3.5 0 0 1 0 7H7"/>
-          </svg>
+    header.topbar {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.85));
+      box-shadow: 0 2px 12px rgba(16, 24, 40, 0.06);
+      backdrop-filter: blur(6px);
+    }
+
+    .stat-card {
+      background-color: #ffffff;
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+    }
+
+    .stat-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      background-color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stat-value {
+      font-weight: 700;
+      font-size: 1.6rem;
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+
+    .stat-sub {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+
+    .stat-trend {
+      font-size: 0.85rem;
+      color: #16a34a;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    .map-card,
+    .table-card,
+    .opt-card {
+      border-radius: 14px;
+      background: #ffffff;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+    }
+
+    #map {
+      min-height: 420px;
+      width: 100%;
+    }
+
+    .table-card {
+      padding: 20px;
+    }
+
+    .table-row:hover {
+      background: rgba(31, 123, 209, 0.06);
+    }
+
+    .badge-available {
+      color: #065f46;
+      background: rgba(16, 185, 129, 0.12);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    .badge-busy {
+      color: #b45309;
+      background: rgba(245, 158, 11, 0.12);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    .opt-card {
+      padding: 18px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- TOP NAV -->
+  <header class="topbar py-8">
+    <div class="max-w-6xl mx-auto px-6 flex flex-col items-center">
+      <!-- IMPORTANT: put INSPECTRA_NEW.png in the ./static folder and load it from /static -->
+      <img src="/static/INSPECTRA_NEW.png" alt="Inspectra" style="height:84px; object-fit:contain;" />
+      <h1 class="mt-3 text-3xl font-extrabold text-blue-900">Admin Dashboard</h1>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="py-8">
+    <div class="max-w-6xl mx-auto px-6 space-y-8">
+      <!-- STAT CARDS -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        <!-- Card 1 -->
+        <div class="stat-card">
+          <div class="stat-icon text-green-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M12 1v22" />
+              <path d="M17 6H9.5a3.5 3.5 0 0 0 0 7H15a3.5 3.5 0 0 1 0 7H7" />
+            </svg>
+          </div>
+          <div>
+            <div class="stat-value" id="finesValue">0</div>
+            <div class="stat-label">Today's Fines</div>
+            <div class="stat-trend" id="finesTrend">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24">
+                <path d="M5 12l5 5L20 7" />
+              </svg>
+              Live
+            </div>
+          </div>
         </div>
-        <div>
-          <div class="stat-value" id="totalFines">0</div>
-          <div class="stat-label">Total Fines</div>
-          <div class="stat-sub">All inspectors</div>
+
+        <!-- Card 2 -->
+        <div class="stat-card">
+          <div class="stat-icon text-blue-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M16 11a4 4 0 1 0-8 0" />
+              <path d="M4 21v-2a4 4 0 0 1 4-4h3" />
+              <path d="M20 8l-3 3-2-2" />
+            </svg>
+          </div>
+          <div>
+            <div class="stat-value" id="inspectorsValue">0</div>
+            <div class="stat-label">Active Inspectors</div>
+            <div class="stat-sub" id="inspectorsSub">—</div>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="stat-card">
+          <div class="stat-icon text-purple-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M12 21s-6-5.4-6-10a6 6 0 1 1 12 0c0 4.6-6 10-6 10z" />
+              <circle cx="12" cy="11" r="2" />
+            </svg>
+          </div>
+          <div>
+            <div class="stat-value" id="locationsValue">0</div>
+            <div class="stat-label">Trip Progress</div>
+            <div class="stat-sub" id="locationsSub">—</div>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="stat-card">
+          <div class="stat-icon text-yellow-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="3.5" />
+              <path
+                d="M19.4 15a1.9 1.9 0 0 0 .2 2l.6.6-1 1-.6-.6a1.9 1.9 0 0 0-2 .2l-1 1-1-1a1.9 1.9 0 0 0-2 .2l-.6.6-1-1 .6-.6a1.9 1.9 0 0 0 .2-2l-1-1 1-1 1 1a1.9 1.9 0 0 0 2-.2l.6-.6 1 1" />
+            </svg>
+          </div>
+          <div>
+            <div class="stat-value" id="avgEffValue">—</div>
+            <div class="stat-label">Avg Efficiency</div>
+            <div class="stat-sub" id="avgEffSub">—</div>
+          </div>
+        </div>
+
+        <!-- Card 5 -->
+        <div class="stat-card">
+          <div class="stat-icon text-indigo-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M3 3h18v18H3z" />
+              <path d="M8 8h8v8H8z" />
+            </svg>
+          </div>
+          <div>
+            <div class="stat-value" id="weeklyTotalValue">—</div>
+            <div class="stat-label">Weekly Total</div>
+            <div class="stat-sub">This week's collection</div>
+          </div>
+        </div>
+
+        <!-- Card 6 -->
+        <div class="stat-card">
+          <div class="stat-icon text-pink-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M4 4h16v16H4z" />
+              <path d="M4 9h16" />
+            </svg>
+          </div>
+          <div>
+            <div class="stat-value" id="routesActiveValue">—</div>
+            <div class="stat-label">Routes Active</div>
+            <div class="stat-sub">Total route coverage</div>
+          </div>
+        </div>
+
+        <!-- Card 7 -->
+        <div class="stat-card">
+          <div class="stat-icon text-orange-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M12 6v6l4 2" />
+              <circle cx="12" cy="12" r="10" />
+            </svg>
+          </div>
+          <div>
+            <div class="stat-value" id="responseTimeValue">—</div>
+            <div class="stat-label">Response Time</div>
+            <div class="stat-sub">Avg assignment time</div>
+          </div>
+        </div>
+
+        <!-- Card 8 -->
+        <div class="stat-card">
+          <div class="stat-icon text-green-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div>
+            <div class="stat-value" id="successRateValue">—</div>
+            <div class="stat-label">Success Rate</div>
+            <div class="stat-trend" id="successRateTrend">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24">
+                <path d="M5 12l5 5L20 7" />
+              </svg>
+              Live
+            </div>
+          </div>
         </div>
       </div>
-      <!-- Avg Efficiency -->
-      <div class="stat-card">
-        <div class="stat-icon text-green-600">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="3.5"/>
-            <path d="M19.4 15a1.9 1.9 0 0 0 .2 2l.6.6-1 1-.6-.6a1.9 1.9 0 0 0-2 .2l-1 1-1-1a1.9 1.9 0 0 0-2 .2l-.6.6-1-1 .6-.6a1.9 1.9 0 0 0 .2-2l-1-1 1-1 1 1a1.9 1.9 0 0 0 2-.2l.6-.6 1 1"/>
-          </svg>
+
+      <!-- MAP + TABLE -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 map-card p-4">
+          <h3 class="text-lg font-semibold mb-3">Live Inspector Tracking</h3>
+          <div id="map"></div>
         </div>
-        <div>
-          <div class="stat-value" id="avgEfficiency">—</div>
-          <div class="stat-label">Avg Efficiency</div>
-          <div class="stat-sub">Rating out of 10</div>
-        </div>
-      </div>
-      <!-- Route Coverage -->
-      <div class="stat-card">
-        <div class="stat-icon text-purple-600">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path d="M3 3h18v18H3z"/><path d="M8 8h8v8H8z"/>
-          </svg>
-        </div>
-        <div>
-          <div class="stat-value" id="coverage">—</div>
-          <div class="stat-label">Route Coverage</div>
-          <div class="stat-sub">Active routes</div>
+
+        <div class="space-y-6">
+          <div class="table-card">
+            <h4 class="text-lg font-bold mb-3">Inspector Status</h4>
+            <table class="w-full text-left text-sm">
+              <thead>
+                <tr class="text-gray-500 border-b">
+                  <th class="py-3">Inspector</th>
+                  <th class="py-3">Status</th>
+                  <th class="py-3">Fines</th>
+                </tr>
+              </thead>
+              <tbody id="inspectorTable"></tbody>
+            </table>
+          </div>
+
+          <div class="opt-card">
+            <h4 class="text-lg font-bold mb-2">Optimization</h4>
+            <button id="runOptBtn" class="w-full py-2 rounded-md text-white"
+              style="background:linear-gradient(90deg,var(--inspectra-accent), var(--inspectra-accent-2));">Run
+              Optimization</button>
+          </div>
         </div>
       </div>
     </div>
+  </main>
 
-    <div class="bg-white rounded-xl shadow-md p-6">
-      <h2 class="text-xl font-bold mb-4">Weekly Trends</h2>
-      <canvas id="weeklyChart" style="width:100%;height:350px;"></canvas>
-    </div>
-  </div>
-</main>
-{% endblock %}
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
-{% block scripts %}
-<script>
-const ctx = document.getElementById('weeklyChart').getContext('2d');
-new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
-    datasets: [{
-      label: 'Fines',
-      data: [12, 19, 3, 5, 2, 3, 9],
-      borderColor: '#1f7bd1',
-      backgroundColor: 'rgba(31,123,209,0.2)',
-      fill: true,
-      tension: 0.4
-    }]
-  }
-});
+  <script>
+    // Fix default Leaflet marker icons
+    (function fixLeafletIcons() {
+      delete L.Icon.Default.prototype._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png'
+      });
+    })();
 
-fetch('/api/analytics').then(r => r.json()).then(d => {
-  if(d.totalFines) document.getElementById('totalFines').innerText = d.totalFines;
-  if(d.avgEfficiency) document.getElementById('avgEfficiency').innerText = d.avgEfficiency;
-});
-</script>
+    let map, markerLayer;
+
+    function initMap() {
+      map = L.map('map').setView([32.0880, 34.7898], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+      markerLayer = L.layerGroup().addTo(map);
+
+      // Example markers (temporary demo data)
+      const demoInspectors = [
+        { name: 'Inspector 1', lat: 32.0853, lon: 34.7818 },
+        { name: 'Inspector 2', lat: 32.0890, lon: 34.7920 }
+      ];
+
+      demoInspectors.forEach(i => {
+        const marker = L.marker([i.lat, i.lon]).addTo(markerLayer);
+        marker.bindPopup(`<b>${i.name}</b>`);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initMap();
+    });
+  </script>
+</body>
+
+</html>
