@@ -29,8 +29,10 @@ shape_lookup = {str(f['properties'].get('shape_id')): f for f in shapes_gj.get('
 # ---------- Helper functions ----------
 def haversine_meters(lat1, lon1, lat2, lon2):
     R = 6371000.0
-    phi1 = math.radians(lat1); phi2 = math.radians(lat2)
-    dphi = math.radians(lat2 - lat1); dlambda = math.radians(lon2 - lon1)
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
     a = math.sin(dphi/2.0)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2.0)**2
     return 2 * R * math.asin(math.sqrt(a))
 
@@ -63,18 +65,19 @@ def admin_dashboard():
 def analytics_page():
     return render_template('Analytics.html')
 
-
-
 @app.route('/api/nearest_stop', methods=['POST'])
 def nearest_stop():
     data = request.get_json()
-    lat = float(data['lat']); lon = float(data['lon'])
-    best = None; best_d = float('inf')
+    lat = float(data['lat'])
+    lon = float(data['lon'])
+    best = None
+    best_d = float('inf')
     for f in stops_gj.get('features', []):
         coords = f['geometry']['coordinates']
         d = haversine_meters(lat, lon, coords[1], coords[0])
         if d < best_d:
-            best_d = d; best = f
+            best_d = d
+            best = f
     if best is None:
         return jsonify({"error": "no stops"}), 404
     stop_id = str(best['properties']['stop_id'])
@@ -88,7 +91,6 @@ def nearest_stop():
 @app.route('/api/find_best_trip', methods=['POST'])
 def api_find_best_trip():
     req = request.get_json()
-    # default inspector position fallback, your client code can pass lat/lon if needed
     lat = float(req.get('lat', 32.0880))
     lon = float(req.get('lon', 34.7898))
     buffer_minutes = float(req.get('buffer', 3))
@@ -112,12 +114,8 @@ def api_find_best_trip():
         "shape_feature": to_serializable(shape_feature)
     })
 
-# ---------- Analytics API ----------
 @app.route('/api/analytics')
 def api_analytics():
-    # If you want dynamic KPI values computed from routes_df or other dataframes,
-    # replace the dummy values below with calculations, for example:
-    # total_fines = int(routes_df['avg_fines'].sum())  # example only
     data = {
         "totalFines": 1432,
         "avgEfficiency": 82,
@@ -142,6 +140,5 @@ def api_analytics():
     }
     return jsonify(data)
 
-# ---------- Run App ----------
 if __name__ == '__main__':
     app.run(debug=True)
