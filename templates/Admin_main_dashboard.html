@@ -11,6 +11,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+
   <style>
     :root {
       --inspectra-accent: #1f7bd1;
@@ -21,12 +22,30 @@
       font-family: "Montserrat", system-ui, sans-serif;
       background: linear-gradient(180deg, #f8fbff 0%, #eef6fb 100%);
       color: #0f172a;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    /* Sidebar topbar */
+    #sidebar-container {
+      width: 100%;
+      position: static; /* static at the top */
+      top: 0;
+      left: 0;
+      z-index: 1200;
+    }
+
+    main {
+      margin-top: 100px; /* height of sidebar */
+      flex-grow: 1;
     }
 
     header.topbar {
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.85));
       box-shadow: 0 2px 12px rgba(16, 24, 40, 0.06);
       backdrop-filter: blur(6px);
+      position: relative;
+      z-index: 100;
     }
 
     .stat-card {
@@ -120,200 +139,218 @@
 </head>
 
 <body>
-  <!-- TOP NAV -->
-  <header class="topbar py-8">
-    <div class="max-w-6xl mx-auto px-6 flex flex-col items-center">
-      <!-- IMPORTANT: put INSPECTRA_NEW.png in the ./static folder and load it from /static -->
-      <img src="/static/INSPECTRA_NEW.png" alt="Inspectra" style="height:84px; object-fit:contain;" />
-      <h1 class="mt-3 text-3xl font-extrabold text-blue-900">Admin Dashboard</h1>
-    </div>
-  </header>
 
-  <!-- MAIN -->
-  <main class="py-8">
-    <div class="max-w-6xl mx-auto px-6 space-y-8">
-      <!-- STAT CARDS -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-        <!-- Card 1 -->
-        <div class="stat-card">
-          <div class="stat-icon text-green-600">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
-              viewBox="0 0 24 24">
-              <path d="M12 1v22" />
-              <path d="M17 6H9.5a3.5 3.5 0 0 0 0 7H15a3.5 3.5 0 0 1 0 7H7" />
-            </svg>
-          </div>
-          <div>
-            <div class="stat-value" id="finesValue">0</div>
-            <div class="stat-label">Today's Fines</div>
-            <div class="stat-trend" id="finesTrend">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
-                viewBox="0 0 24 24">
-                <path d="M5 12l5 5L20 7" />
+  <!-- Sidebar (topbar) -->
+  <div id="sidebar-container"></div>
+
+  <script>
+    // Load sidebar dynamically
+    fetch("/static/sidebar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("sidebar-container").innerHTML = html;
+      })
+      .catch(err => console.error("Error loading sidebar:", err));
+  </script>
+
+  <!-- MAIN CONTENT -->
+  <main>
+    <!-- TOP NAV -->
+    <header class="topbar py-8">
+      <div class="max-w-6xl mx-auto px-6 flex flex-col items-center">
+        <h1 class="mt-3 text-3xl font-extrabold text-blue-900">Admin Dashboard</h1>
+      </div>
+    </header>
+
+    <!-- MAIN -->
+    <section class="py-8">
+      <div class="max-w-6xl mx-auto px-6 space-y-8">
+        <!-- STAT CARDS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+
+          <!-- CARD 1 -->
+          <div class="stat-card">
+            <div class="stat-icon text-green-600">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor"
+                stroke-width="2" viewBox="0 0 24 24">
+                <path d="M12 1v22" />
+                <path d="M17 6H9.5a3.5 3.5 0 0 0 0 7H15a3.5 3.5 0 0 1 0 7H7" />
               </svg>
-              Live
+            </div>
+            <div>
+              <div class="stat-value" id="finesValue">0</div>
+              <div class="stat-label">Today's Fines</div>
+              <div class="stat-trend" id="finesTrend">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor"
+                  stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M5 12l5 5L20 7" />
+                </svg>
+                Live
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Card 2 -->
-        <div class="stat-card">
-          <div class="stat-icon text-blue-600">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
-              viewBox="0 0 24 24">
-              <path d="M16 11a4 4 0 1 0-8 0" />
-              <path d="M4 21v-2a4 4 0 0 1 4-4h3" />
-              <path d="M20 8l-3 3-2-2" />
-            </svg>
-          </div>
-          <div>
-            <div class="stat-value" id="inspectorsValue">0</div>
-            <div class="stat-label">Active Inspectors</div>
-            <div class="stat-sub" id="inspectorsSub">—</div>
-          </div>
-        </div>
-
-        <!-- Card 3 -->
-        <div class="stat-card">
-          <div class="stat-icon text-purple-600">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
-              viewBox="0 0 24 24">
-              <path d="M12 21s-6-5.4-6-10a6 6 0 1 1 12 0c0 4.6-6 10-6 10z" />
-              <circle cx="12" cy="11" r="2" />
-            </svg>
-          </div>
-          <div>
-            <div class="stat-value" id="locationsValue">0</div>
-            <div class="stat-label">Trip Progress</div>
-            <div class="stat-sub" id="locationsSub">—</div>
-          </div>
-        </div>
-
-        <!-- Card 4 -->
-        <div class="stat-card">
-          <div class="stat-icon text-yellow-600">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
-              viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="3.5" />
-              <path
-                d="M19.4 15a1.9 1.9 0 0 0 .2 2l.6.6-1 1-.6-.6a1.9 1.9 0 0 0-2 .2l-1 1-1-1a1.9 1.9 0 0 0-2 .2l-.6.6-1-1 .6-.6a1.9 1.9 0 0 0 .2-2l-1-1 1-1 1 1a1.9 1.9 0 0 0 2-.2l.6-.6 1 1" />
-            </svg>
-          </div>
-          <div>
-            <div class="stat-value" id="avgEffValue">—</div>
-            <div class="stat-label">Avg Efficiency</div>
-            <div class="stat-sub" id="avgEffSub">—</div>
-          </div>
-        </div>
-
-        <!-- Card 5 -->
-        <div class="stat-card">
-          <div class="stat-icon text-indigo-600">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
-              viewBox="0 0 24 24">
-              <path d="M3 3h18v18H3z" />
-              <path d="M8 8h8v8H8z" />
-            </svg>
-          </div>
-          <div>
-            <div class="stat-value" id="weeklyTotalValue">—</div>
-            <div class="stat-label">Weekly Total</div>
-            <div class="stat-sub">This week's collection</div>
-          </div>
-        </div>
-
-        <!-- Card 6 -->
-        <div class="stat-card">
-          <div class="stat-icon text-pink-600">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
-              viewBox="0 0 24 24">
-              <path d="M4 4h16v16H4z" />
-              <path d="M4 9h16" />
-            </svg>
-          </div>
-          <div>
-            <div class="stat-value" id="routesActiveValue">—</div>
-            <div class="stat-label">Routes Active</div>
-            <div class="stat-sub">Total route coverage</div>
-          </div>
-        </div>
-
-        <!-- Card 7 -->
-        <div class="stat-card">
-          <div class="stat-icon text-orange-600">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
-              viewBox="0 0 24 24">
-              <path d="M12 6v6l4 2" />
-              <circle cx="12" cy="12" r="10" />
-            </svg>
-          </div>
-          <div>
-            <div class="stat-value" id="responseTimeValue">—</div>
-            <div class="stat-label">Response Time</div>
-            <div class="stat-sub">Avg assignment time</div>
-          </div>
-        </div>
-
-        <!-- Card 8 -->
-        <div class="stat-card">
-          <div class="stat-icon text-green-600">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
-              viewBox="0 0 24 24">
-              <path d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <div>
-            <div class="stat-value" id="successRateValue">—</div>
-            <div class="stat-label">Success Rate</div>
-            <div class="stat-trend" id="successRateTrend">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
-                viewBox="0 0 24 24">
-                <path d="M5 12l5 5L20 7" />
+          <!-- CARD 2 -->
+          <div class="stat-card">
+            <div class="stat-icon text-blue-600">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor"
+                stroke-width="2" viewBox="0 0 24 24">
+                <path d="M16 11a4 4 0 1 0-8 0" />
+                <path d="M4 21v-2a4 4 0 0 1 4-4h3" />
+                <path d="M20 8l-3 3-2-2" />
               </svg>
-              Live
+            </div>
+            <div>
+              <div class="stat-value" id="inspectorsValue">0</div>
+              <div class="stat-label">Active Inspectors</div>
+              <div class="stat-sub" id="inspectorsSub">—</div>
+            </div>
+          </div>
+
+          <!-- CARD 3 -->
+          <div class="stat-card">
+            <div class="stat-icon text-purple-600">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor"
+                stroke-width="2" viewBox="0 0 24 24">
+                <path d="M12 21s-6-5.4-6-10a6 6 0 1 1 12 0c0 4.6-6 10-6 10z" />
+                <circle cx="12" cy="11" r="2" />
+              </svg>
+            </div>
+            <div>
+              <div class="stat-value" id="locationsValue">0</div>
+              <div class="stat-label">Trip Progress</div>
+              <div class="stat-sub" id="locationsSub">—</div>
+            </div>
+          </div>
+
+          <!-- CARD 4 -->
+          <div class="stat-card">
+            <div class="stat-icon text-yellow-600">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor"
+                stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="3.5" />
+                <path
+                  d="M19.4 15a1.9 1.9 0 0 0 .2 2l.6.6-1 1-.6-.6a1.9 1.9 0 0 0-2 .2l-1 1-1-1a1.9 1.9 0 0 0-2 .2l-.6.6-1-1 .6-.6a1.9 1.9 0 0 0 .2-2l-1-1 1-1 1 1a1.9 1.9 0 0 0 2-.2l.6-.6 1 1" />
+              </svg>
+            </div>
+            <div>
+              <div class="stat-value" id="avgEffValue">—</div>
+              <div class="stat-label">Avg Efficiency</div>
+              <div class="stat-sub" id="avgEffSub">—</div>
+            </div>
+          </div>
+
+          <!-- CARD 5 -->
+          <div class="stat-card">
+            <div class="stat-icon text-indigo-600">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor"
+                stroke-width="2" viewBox="0 0 24 24">
+                <path d="M3 3h18v18H3z" />
+                <path d="M8 8h8v8H8z" />
+              </svg>
+            </div>
+            <div>
+              <div class="stat-value" id="weeklyTotalValue">—</div>
+              <div class="stat-label">Weekly Total</div>
+              <div class="stat-sub">This week's collection</div>
+            </div>
+          </div>
+
+          <!-- CARD 6 -->
+          <div class="stat-card">
+            <div class="stat-icon text-pink-600">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor"
+                stroke-width="2" viewBox="0 0 24 24">
+                <path d="M4 4h16v16H4z" />
+                <path d="M4 9h16" />
+              </svg>
+            </div>
+            <div>
+              <div class="stat-value" id="routesActiveValue">—</div>
+              <div class="stat-label">Routes Active</div>
+              <div class="stat-sub">Total route coverage</div>
+            </div>
+          </div>
+
+          <!-- CARD 7 -->
+          <div class="stat-card">
+            <div class="stat-icon text-orange-600">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor"
+                stroke-width="2" viewBox="0 0 24 24">
+                <path d="M12 6v6l4 2" />
+                <circle cx="12" cy="12" r="10" />
+              </svg>
+            </div>
+            <div>
+              <div class="stat-value" id="responseTimeValue">—</div>
+              <div class="stat-label">Response Time</div>
+              <div class="stat-sub">Avg assignment time</div>
+            </div>
+          </div>
+
+          <!-- CARD 8 -->
+          <div class="stat-card">
+            <div class="stat-icon text-green-600">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor"
+                stroke-width="2" viewBox="0 0 24 24">
+                <path d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <div class="stat-value" id="successRateValue">—</div>
+              <div class="stat-label">Success Rate</div>
+              <div class="stat-trend" id="successRateTrend">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor"
+                  stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M5 12l5 5L20 7" />
+                </svg>
+                Live
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- MAP + TABLE -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 map-card p-4">
+            <h3 class="text-lg font-semibold mb-3">Live Inspector Tracking</h3>
+            <div id="map"></div>
+          </div>
+
+          <div class="space-y-6">
+            <div class="table-card">
+              <h4 class="text-lg font-bold mb-3">Inspector Status</h4>
+              <table class="w-full text-left text-sm">
+                <thead>
+                  <tr class="text-gray-500 border-b">
+                    <th class="py-3">Inspector</th>
+                    <th class="py-3">Status</th>
+                    <th class="py-3">Fines</th>
+                  </tr>
+                </thead>
+                <tbody id="inspectorTable"></tbody>
+              </table>
+            </div>
+
+            <div class="opt-card">
+              <h4 class="text-lg font-bold mb-2">Optimization</h4>
+              <button id="runOptBtn" class="w-full py-2 rounded-md text-white"
+                style="background:linear-gradient(90deg,var(--inspectra-accent), var(--inspectra-accent-2));">
+                Run Optimization
+              </button>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- MAP + TABLE -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2 map-card p-4">
-          <h3 class="text-lg font-semibold mb-3">Live Inspector Tracking</h3>
-          <div id="map"></div>
-        </div>
-
-        <div class="space-y-6">
-          <div class="table-card">
-            <h4 class="text-lg font-bold mb-3">Inspector Status</h4>
-            <table class="w-full text-left text-sm">
-              <thead>
-                <tr class="text-gray-500 border-b">
-                  <th class="py-3">Inspector</th>
-                  <th class="py-3">Status</th>
-                  <th class="py-3">Fines</th>
-                </tr>
-              </thead>
-              <tbody id="inspectorTable"></tbody>
-            </table>
-          </div>
-
-          <div class="opt-card">
-            <h4 class="text-lg font-bold mb-2">Optimization</h4>
-            <button id="runOptBtn" class="w-full py-2 rounded-md text-white"
-              style="background:linear-gradient(90deg,var(--inspectra-accent), var(--inspectra-accent-2));">Run
-              Optimization</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    </section>
   </main>
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
   <script>
-    // Fix default Leaflet marker icons
+    // Fix Leaflet icons
     (function fixLeafletIcons() {
       delete L.Icon.Default.prototype._getIconUrl;
       L.Icon.Default.mergeOptions({
@@ -330,9 +367,10 @@
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
       }).addTo(map);
+
       markerLayer = L.layerGroup().addTo(map);
 
-      // Example markers (temporary demo data)
+      // Example demo markers
       const demoInspectors = [
         { name: 'Inspector 1', lat: 32.0853, lon: 34.7818 },
         { name: 'Inspector 2', lat: 32.0890, lon: 34.7920 }
@@ -344,10 +382,8 @@
       });
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      initMap();
-    });
+    document.addEventListener('DOMContentLoaded', initMap);
   </script>
-</body>
 
+</body>
 </html>
