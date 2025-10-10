@@ -1,0 +1,115 @@
+<!-- templates/sidebar.html -->
+<nav class="inspectra-topbar">
+  <div class="nav-content">
+    <ul class="nav-menu">
+      <li>
+        <a href="/analytics" id="analyticsLink" class="nav-link">
+          <i class="fas fa-chart-line"></i>
+          <span>Analytics</span>
+        </a>
+      </li>
+
+      <li class="nav-logo">
+        <img src="/static/INSPECTRA_NEW.png" alt="Inspectra Logo" class="logo-img" />
+      </li>
+
+      <li>
+        <a href="/admin" id="adminLink" class="nav-link">
+          <i class="fas fa-tachometer-alt"></i>
+          <span>Admin Dashboard</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+/>
+
+<style>
+  .inspectra-topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.1);
+    z-index: 1200;
+  }
+
+  .nav-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 24px;
+  }
+
+  .nav-menu {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-img {
+    height: 48px;
+    object-fit: contain;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #334155;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 8px 16px;
+    border-radius: 30px;
+    transition: all 0.25s ease;
+  }
+
+  .nav-link:hover,
+  .nav-link.active {
+    background-color: rgba(31, 123, 209, 0.1);
+    color: #1f7bd1;
+    transform: translateY(-1px);
+  }
+
+  .nav-link i {
+    color: #1f7bd1;
+    font-size: 1rem;
+  }
+
+  @media (max-width: 600px) {
+    .nav-menu {
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+    .logo-img {
+      height: 36px;
+    }
+  }
+</style>
+
+<script>
+  // highlight active link
+  const currentPath = window.location.pathname;
+  if (currentPath.includes("analytics")) {
+    document.getElementById("analyticsLink").classList.add("active");
+  } else if (currentPath.includes("admin")) {
+    document.getElementById("adminLink").classList.add("active");
+  }
+</script>
