@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Inspector Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+  <!-- AwesomeMarkers CSS -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.awesome-markers/2.0.4/leaflet.awesome-markers.css" />
+
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* Fullscreen map */
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
+
+    /* Floating Action Buttons Container */
+    .map-controls {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 1001;
+    }
+
+    /* Stylish Buttons */
+    .map-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background-color: #1f7bd1;
+      color: white;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 16px;
+      box-shadow: 0 4px 12px rgba(31, 123, 209, 0.3);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-size: 0.9rem;
+    }
+
+    .map-btn i {
+      font-size: 1.1rem;
+    }
+
+    .map-btn:hover {
+      background-color: #0e68c4;
+      transform: translateY(-2px);
+    }
+
+    .map-btn:disabled {
+      background-color: #94a3b8;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Mobile view: move buttons to bottom bar */
+    @media (max-width: 768px) {
+      .map-controls {
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        bottom: 20px;
+        top: auto;
+        right: 0;
+        left: 0;
+      }
+
+      .map-btn {
+        flex: 1;
+        border-radius: 30px;
+        padding: 12px 10px;
+        font-size: 0.9rem;
+      }
+
+      .map-btn i {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Floating Control Buttons -->
+  <div class="map-controls">
+    <button id="find-nearest-btn" class="map-btn">
+      <i class="fas fa-map-marker-alt"></i> Nearest Stop
+    </button>
+    <button id="find-best-btn" class="map-btn">
+      <i class="fas fa-route"></i> Best Trip
+    </button>
+  </div>
+
+  <!-- Map -->
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.awesome-markers/2.0.4/leaflet.awesome-markers.js"></script>
+
+  <script>
+    // ---------------- CONFIG ----------------
+    const SEARCH_RADIUS_METERS = 666;
+    const BUS_ICON_URL = '/static/bus-stop.png';
+    // ---------------- END CONFIG ----------------
+
+    let map, inspectorMarker = null, inspectorCircle = null, userLatLng = null;
+    let stops = [], shapes = [], stopShapeMap = [];
+    let currentDisplayed = { stopLayer: null, shapeLayer: null, walkLayer: null };
+
+    function initMap() {
+      map = L.map('map').setView([32.0853, 34.7818], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+    }
+
+    async function loadData() {
+      const [stopsResp, shapesResp, mappingResp] = await Promise.all([
+        fetch('/static/stops.geojson'),
+        fetch('/static/shapes.geojson'),
+        fetch('/static/stop_shape_map.json')
+      ]);
+      stops = (await stopsResp.json()).features || [];
+      shapes = (await shapesResp.json()).features || [];
+      stopShapeMap = await mappingResp.json() || [];
+    }
+
+    function createBusIcon() {
+      try {
+        return L.AwesomeMarkers.icon({
+          icon: 'bus',
+          prefix: 'fa',
+          markerColor: 'blue',
+          iconColor: 'white'
+        });
+      } catch {
+        return L.icon({
+          iconUrl: BUS_ICON_URL,
+          iconSize: [28, 28],
+          iconAnchor: [14, 28],
+          popupAnchor: [0, -28]
+        });
+      }
+    }
+
+    const busIcon = createBusIcon();
+    const inspectorIcon = L.icon({
+      iconUrl: 'https://cdn-icons-png.flaticon.com/512/64/64572.png',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+      popupAnchor: [0, -14]
+    });
+
+    function startGeolocation() {
+      if (!navigator.geolocation) {
+        alert('Geolocation not supported.');
+        return;
+      }
+
+      navigator.geolocation.watchPosition(pos => {
+        const lat = 32.0880; // pos.coords.latitude
+        const lon = 34.7898; // pos.coords.longitude
+        userLatLng = [lat, lon];
+
+        if (!inspectorMarker) {
+          inspectorMarker = L.marker(userLatLng, { icon: inspectorIcon }).addTo(map);
+          inspectorMarker.bindPopup('You (Inspector)').openPopup();
+        } else inspectorMarker.setLatLng(userLatLng);
+
+        if (!inspectorCircle) {
+          inspectorCircle = L.circle(userLatLng, { radius: 666, color: '#1f7bd1', fillOpacity: 0.05 }).addTo(map);
+        } else inspectorCircle.setLatLng(userLatLng);
+      }, err => console.error(err), { enableHighAccuracy: true });
+    }
+
+    function clearDisplayed() {
+      for (let k of Object.keys(currentDisplayed)) {
+        if (currentDisplayed[k]) {
+          map.removeLayer(currentDisplayed[k]);
+          currentDisplayed[k] = null;
+        }
+      }
+    }
+
+    async function safeJsonFetch(url, options) {
+      const resp = await fetch(url, options);
+      if (!resp.ok) throw new Error(`Network error ${resp.status}`);
+      return resp.json();
+    }
+
+    async function fetchNearestAndShow() {
+      if (!userLatLng) return alert('Waiting for location...');
+      const [lat, lon] = userLatLng;
+      try {
+        const json = await safeJsonFetch('/api/nearest_stop', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lat, lon, radius: SEARCH_RADIUS_METERS })
+        });
+        clearDisplayed();
+        const stopFeature = json.stop;
+        if (!stopFeature?.geometry) return alert('No valid stop returned.');
+        const stopMarker = L.geoJSON(stopFeature, {
+          pointToLayer: (f, latlng) => L.marker(latlng, { icon: busIcon })
+        }).addTo(map).bindPopup(stopFeature.properties?.stop_name || '').openPopup();
+        currentDisplayed.stopLayer = stopMarker;
+      } catch (err) { alert('Error: ' + err.message); }
+    }
+
+    async function fetchBestTripAndShow() {
+      if (!userLatLng) return alert('Waiting for location...');
+      const btn = document.getElementById('find-best-btn');
+      btn.disabled = true; btn.textContent = 'Finding...';
+      try {
+        const [lat, lon] = userLatLng;
+        const json = await safeJsonFetch('/api/find_best_trip', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lat, lon, buffer: 3, radius: 666 })
+        });
+        clearDisplayed();
+        if (json.best_option) {
+          if (json.best_option.route_geometry) {
+            currentDisplayed.walkLayer = L.geoJSON(json.best_option.route_geometry, {
+              style: { color: 'black', weight: 4, dashArray: '8,6' }
+            }).addTo(map);
+          }
+          if (json.stop_feature) {
+            currentDisplayed.stopLayer = L.geoJSON(json.stop_feature, {
+              pointToLayer: (f, latlng) => L.marker(latlng, { icon: busIcon })
+            }).addTo(map).bindPopup(json.stop_feature.properties?.stop_name || '').openPopup();
+          }
+          if (json.shape_feature) {
+            currentDisplayed.shapeLayer = L.geoJSON(json.shape_feature, {
+              style: { color: 'green', weight: 4 }
+            }).addTo(map);
+          }
+        } else alert('No reachable trip found.');
+      } catch (err) { alert('Error: ' + err.message); }
+      finally { btn.disabled = false; btn.textContent = 'Best Trip'; }
+    }
+
+    function setupUI() {
+      document.getElementById('find-nearest-btn').addEventListener('click', fetchNearestAndShow);
+      document.getElementById('find-best-btn').addEventListener('click', fetchBestTripAndShow);
+    }
+
+    (async function main() {
+      initMap();
+      await loadData();
+      startGeolocation();
+      setupUI();
+    })();
+  </script>
+</body>
+</html>

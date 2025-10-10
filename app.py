@@ -65,6 +65,10 @@ def admin_dashboard():
 def analytics_page():
     return render_template('Analytics.html')
 
+@app.route('/inspect')
+def inspect_page():
+    return render_template('inspector_view.html')
+
 @app.route('/api/nearest_stop', methods=['POST'])
 def nearest_stop():
     data = request.get_json()

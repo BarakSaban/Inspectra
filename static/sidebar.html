@@ -1,6 +1,7 @@
-<!-- templates/sidebar.html -->
+<!-- static/sidebar.html -->
 <nav class="inspectra-topbar">
   <div class="nav-content">
+    <!-- Left/Middle Menu -->
     <ul class="nav-menu">
       <li>
         <a href="/analytics" id="analyticsLink" class="nav-link">
@@ -20,6 +21,14 @@
         </a>
       </li>
     </ul>
+
+    <!-- Right-Aligned Button, for supervisors -->
+    <div class="nav-right">
+      <a href="/inspect" id="inspectorsLink" class="inspect-btn">
+        <i class="fas fa-user-tie"></i>
+        Inspect
+      </a>
+    </div>
   </div>
 </nav>
 
@@ -42,7 +51,7 @@
 
   .nav-content {
     display: flex;
-    justify-content: center;
+    justify-content: space-between; /* Left menu and right button separated */
     align-items: center;
     padding: 10px 24px;
   }
@@ -93,7 +102,43 @@
     font-size: 1rem;
   }
 
+  /* Right-Aligned Button Styles */
+  .nav-right {
+    display: flex;
+    align-items: center;
+  }
+
+  .inspect-btn {
+    background-color: #1f7bd1;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 8px 18px;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.25s ease;
+    box-shadow: 0 3px 10px rgba(31, 123, 209, 0.2);
+  }
+
+  .inspect-btn:hover,
+  .inspect-btn.active {
+    background-color: #0e63b6;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(31, 123, 209, 0.3);
+  }
+
+  .inspect-btn i {
+    font-size: 1rem;
+  }
+
   @media (max-width: 600px) {
+    .nav-content {
+      flex-direction: column;
+      gap: 0.8rem;
+    }
     .nav-menu {
       flex-direction: column;
       gap: 0.8rem;
@@ -101,15 +146,20 @@
     .logo-img {
       height: 36px;
     }
+    .nav-right {
+      margin-top: 10px;
+    }
   }
 </style>
 
 <script>
-  // highlight active link
+  // Highlight active link
   const currentPath = window.location.pathname;
   if (currentPath.includes("analytics")) {
     document.getElementById("analyticsLink").classList.add("active");
   } else if (currentPath.includes("admin")) {
     document.getElementById("adminLink").classList.add("active");
+  } else if (currentPath.includes("inspect")) {
+    document.getElementById("inspectorsLink").classList.add("active");
   }
 </script>
