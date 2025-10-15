@@ -1,7 +1,12 @@
-<!-- static/sidebar.html -->
+<!-- templates/sidebar.html -->
 <nav class="inspectra-topbar">
   <div class="nav-content">
-    <!-- Left/Middle Menu -->
+    <!-- LEFT: Logo -->
+    <div class="nav-logo">
+      <img src="/static/INSPECTRA_NEW.png" alt="Inspectra Logo" class="logo-img" />
+    </div>
+
+    <!-- CENTER: Navigation -->
     <ul class="nav-menu">
       <li>
         <a href="/analytics" id="analyticsLink" class="nav-link">
@@ -9,11 +14,6 @@
           <span>Analytics</span>
         </a>
       </li>
-
-      <li class="nav-logo">
-        <img src="/static/INSPECTRA_NEW.png" alt="Inspectra Logo" class="logo-img" />
-      </li>
-
       <li>
         <a href="/admin" id="adminLink" class="nav-link">
           <i class="fas fa-tachometer-alt"></i>
@@ -22,11 +22,11 @@
       </li>
     </ul>
 
-    <!-- Right-Aligned Button, for supervisors -->
-    <div class="nav-right">
-      <a href="/inspect" id="inspectorsLink" class="inspect-btn">
-        <i class="fas fa-user-tie"></i>
-        Inspect
+    <!-- RIGHT: User Button -->
+    <div class="nav-user">
+      <a href="#" class="user-btn">
+        <i class="fas fa-user"></i>
+        <span>Inspect</span>
       </a>
     </div>
   </div>
@@ -51,9 +51,22 @@
 
   .nav-content {
     display: flex;
-    justify-content: space-between; /* Left menu and right button separated */
     align-items: center;
+    justify-content: center;
+    position: relative;
     padding: 10px 24px;
+  }
+
+  .nav-logo {
+    position: absolute;
+    left: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .logo-img {
+    height: 44px;
+    object-fit: contain;
   }
 
   .nav-menu {
@@ -64,17 +77,6 @@
     list-style: none;
     margin: 0;
     padding: 0;
-  }
-
-  .nav-logo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .logo-img {
-    height: 48px;
-    object-fit: contain;
   }
 
   .nav-link {
@@ -102,64 +104,58 @@
     font-size: 1rem;
   }
 
-  /* Right-Aligned Button Styles */
-  .nav-right {
-    display: flex;
-    align-items: center;
+  .nav-user {
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
   }
 
-  .inspect-btn {
+  .user-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     background-color: #1f7bd1;
-    color: #fff;
-    text-decoration: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 999px;
     font-weight: 600;
-    font-size: 0.95rem;
-    padding: 8px 18px;
-    border-radius: 30px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.25s ease;
-    box-shadow: 0 3px 10px rgba(31, 123, 209, 0.2);
+    text-decoration: none;
+    transition: background 0.25s ease;
   }
 
-  .inspect-btn:hover,
-  .inspect-btn.active {
-    background-color: #0e63b6;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(31, 123, 209, 0.3);
-  }
-
-  .inspect-btn i {
-    font-size: 1rem;
+  .user-btn:hover {
+    background-color: #1667b8;
   }
 
   @media (max-width: 600px) {
     .nav-content {
       flex-direction: column;
-      gap: 0.8rem;
     }
+
+    .nav-logo,
+    .nav-user {
+      position: static;
+      transform: none;
+      margin-bottom: 8px;
+    }
+
     .nav-menu {
       flex-direction: column;
       gap: 0.8rem;
     }
+
     .logo-img {
       height: 36px;
-    }
-    .nav-right {
-      margin-top: 10px;
     }
   }
 </style>
 
 <script>
-  // Highlight active link
   const currentPath = window.location.pathname;
   if (currentPath.includes("analytics")) {
-    document.getElementById("analyticsLink").classList.add("active");
+    document.getElementById("analyticsLink")?.classList.add("active");
   } else if (currentPath.includes("admin")) {
-    document.getElementById("adminLink").classList.add("active");
-  } else if (currentPath.includes("inspect")) {
-    document.getElementById("inspectorsLink").classList.add("active");
+    document.getElementById("adminLink")?.classList.add("active");
   }
 </script>

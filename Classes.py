@@ -59,7 +59,14 @@ class Inspector:
         self.name = name
         self.latitude = float(latitude)
         self.longitude = float(longitude)
-        self.available = available  # New field
+        self.available = available
+
+        # New fields for dashboard stats
+        self.total_fines_today = 0       # int
+        self.weekly_fines = 0            # int
+        self.efficiency_rating = 0.0     # float (0–10 scale)
+        self.line = None                 # str (bus line number)
+        self.response_time = None        # float (minutes)
 
     # Backwards-compatible properties
     @property
@@ -85,9 +92,14 @@ class Inspector:
             "name": self.name,
             "latitude": self.latitude,
             "longitude": self.longitude,
-            "available": self.available
+            "available": self.available,
+            "total_fines_today": self.total_fines_today,
+            "weekly_fines": self.weekly_fines,
+            "efficiency_rating": self.efficiency_rating,
+            "line": self.line,
+            "response_time": self.response_time
         }
 
     def __repr__(self):
         return (f"Inspector({self.inspector_id}, {self.name}, "
-                f"Available={self.available})")
+                f"Available={self.available}, Fines={self.total_fines_today})")
