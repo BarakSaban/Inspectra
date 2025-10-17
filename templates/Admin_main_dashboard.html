@@ -153,6 +153,7 @@
 
     tbody tr:hover {
       background: rgba(31, 123, 209, 0.04);
+      cursor: pointer;
     }
   </style>
 </head>
@@ -192,6 +193,7 @@
           </div>
         </div>
       </div>
+
       <div class="stat-card">
         <div class="stat-icon text-blue-600">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor"
@@ -206,6 +208,7 @@
           <div class="stat-label">Active Inspectors</div>
         </div>
       </div>
+
       <div class="stat-card">
         <div class="stat-icon text-purple-600">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor"
@@ -219,6 +222,7 @@
           <div class="stat-label">Weekly Total</div>
         </div>
       </div>
+
       <div class="stat-card">
         <div class="stat-icon text-yellow-600">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor"
@@ -231,6 +235,56 @@
         <div>
           <div class="stat-value" id="avgEfficiency">—</div>
           <div class="stat-label">Avg Efficiency</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW: Assigned vs Unassigned + Avg completion -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div class="stat-card">
+        <div class="stat-icon text-indigo-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor"
+            stroke-width="2" viewBox="0 0 24 24">
+            <path d="M3 7h18" />
+            <path d="M3 12h12" />
+            <path d="M3 17h6" />
+          </svg>
+        </div>
+        <div>
+          <div class="stat-value" id="assignedCount">—</div>
+          <div class="stat-label">Assigned Inspectors</div>
+          <div class="stat-sub">Inspectors with active assignments</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon text-red-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor"
+            stroke-width="2" viewBox="0 0 24 24">
+            <path d="M12 9v2" />
+            <path d="M12 15h.01" />
+            <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <div class="stat-value" id="unassignedCount">—</div>
+          <div class="stat-label">Unassigned Inspectors</div>
+          <div class="stat-sub">Inspectors without assignments</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon text-sky-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor"
+            stroke-width="2" viewBox="0 0 24 24">
+            <path d="M12 8v8" />
+            <path d="M8 12h8" />
+          </svg>
+        </div>
+        <div>
+          <div class="stat-value" id="avgCompletionMin">—</div>
+          <div class="stat-label">Avg completion (min)</div>
+          <div class="stat-sub">Avg accepted→closed (today)</div>
         </div>
       </div>
     </div>
@@ -267,97 +321,86 @@
       </div>
     </div>
 
-    <div class="mt-8 bg-white p-4 rounded-xl shadow">
-      <h3 class="font-semibold mb-2">Hourly Fines</h3>
-      <canvas id="chartHourly"></canvas>
-    </div>
   </main>
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script>
     // Fix Leaflet icons
-    (function fixLeafletIcons() {
-      delete L.Icon.Default.prototype._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png'
-      });
-    })();
+    delete L.Icon.Default.prototype._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png'
+    });
 
-    let map, markerLayer;
-
-    function initMap(inspectors) {
-      map = L.map('map').setView([32.0853, 34.7818], 13);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(map);
-
-      markerLayer = L.layerGroup().addTo(map);
-
-      inspectors.forEach(i => {
-        if (i.latitude && i.longitude) {
-          const marker = L.marker([i.latitude, i.longitude]).addTo(markerLayer);
-          marker.bindPopup(`<b>${i.name}</b><br/>Fines: ${i.total_fines}<br/>Trips: ${i.completed_trips}`);
-        }
-      });
-    }
+    let map = L.map('map').setView([32.0853, 34.7818], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+    let markerLayer = L.layerGroup().addTo(map);
+    let inspectorMarkers = {}; // inspector_id → marker
 
     async function loadAnalytics() {
       const res = await fetch('/api/analytics');
       const data = await res.json();
+
       document.getElementById('todayFines').innerText = data.totalFines || 0;
       document.getElementById('activeInspectors').innerText = data.activeInspectors || 0;
       document.getElementById('weeklyTotal').innerText = data.weeklyTotal || 0;
       document.getElementById('avgEfficiency').innerText = (data.avgEfficiency || 0) + '%';
 
+      const inspectors = data.inspectors || [];
+      let assigned = 0, unassigned = 0;
+      inspectors.forEach(i => {
+        if (i.available) unassigned++;
+        else assigned++;
+      });
+      document.getElementById('assignedCount').innerText = assigned;
+      document.getElementById('unassignedCount').innerText = unassigned;
+
+      // Inspector table + map markers
+      const staffRes = await fetch('/api/staff');
+      const staffData = await staffRes.json();
+
       const tbody = document.getElementById('inspectorTableBody');
       tbody.innerHTML = '';
-      (data.inspectors || []).forEach(i => {
+      markerLayer.clearLayers();
+      inspectorMarkers = {};
+
+      (staffData || []).forEach(i => {
+        // Table row
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${i.name}</td><td>${i.available ? 'Active' : 'Offline'}</td><td>${i.total_fines}</td><td>${i.completed_trips}</td>`;
+        tr.innerHTML = `<td>${i.name} (${i.inspector_id})</td>
+                        <td>${i.available ? '<span class="badge-available">Active</span>' : '<span class="badge-busy">Offline</span>'}</td>
+                        <td>${i.total_fines}</td><td>${i.completed_trips}</td>`;
+        tr.addEventListener('click', () => {
+          const marker = inspectorMarkers[i.inspector_id];
+          if (marker) {
+            map.setView(marker.getLatLng(), 16);
+            marker.openPopup();
+          }
+        });
         tbody.appendChild(tr);
+
+        // Map marker
+        if (i.latitude && i.longitude) {
+          const marker = L.marker([i.latitude, i.longitude]).addTo(markerLayer);
+          marker.bindPopup(`<b>${i.name}</b><br/>Fines: ${i.total_fines}<br/>Trips: ${i.completed_trips}`);
+          inspectorMarkers[i.inspector_id] = marker;
+        }
       });
 
-      const ctx = document.getElementById('chartHourly').getContext('2d');
-      const labels = (data.hourly || []).map(h => h.hour);
-      const values = (data.hourly || []).map(h => h.fines);
-      if (window.hourlyChart) window.hourlyChart.destroy();
-      window.hourlyChart = new Chart(ctx, {
-        type: 'bar',
-        data: { labels, datasets: [{ label: 'Fines by hour', data: values, backgroundColor: '#1f7bd1' }] },
-        options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-      });
-
-      return data.inspectors || [];
+      // Avg completion min fallback
+      document.getElementById('avgCompletionMin').innerText = '—';
     }
 
     document.getElementById('forceAssign').addEventListener('click', async () => {
       await fetch('/api/assign_runs', { method: 'POST' });
-      const inspectors = await loadAnalytics();
-      if (map) map.remove();
-      initMap(inspectors);
+      await loadAnalytics();
     });
 
-    async function initDashboard() {
-      const inspectors = await loadAnalytics();
-      initMap(inspectors);
-
-      // refresh periodically
-      setInterval(async () => {
-        const inspectors = await loadAnalytics();
-        markerLayer.clearLayers();
-        inspectors.forEach(i => {
-          if (i.latitude && i.longitude) {
-            const marker = L.marker([i.latitude, i.longitude]).addTo(markerLayer);
-            marker.bindPopup(`<b>${i.name}</b><br/>Fines: ${i.total_fines}<br/>Trips: ${i.completed_trips}`);
-          }
-        });
-      }, 15000);
-    }
-
-    document.addEventListener('DOMContentLoaded', initDashboard);
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadAnalytics();
+    });
   </script>
 </body>
 

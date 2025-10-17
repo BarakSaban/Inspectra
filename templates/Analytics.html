@@ -9,73 +9,190 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body{font-family:"Montserrat",sans-serif;background:#f9fafb;margin:0;padding-top:80px;color:#0f172a}
-    .container{max-width:1100px;margin:0 auto;padding:28px}
-    .card{background:#fff;border-radius:12px;padding:18px;box-shadow:0 6px 18px rgba(15,23,42,0.06)}
+    body {
+      font-family: "Montserrat", sans-serif;
+      background: #f9fafb;
+      margin: 0;
+      padding-top: 80px;
+      color: #0f172a;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 6px 18px rgba(15,23,42,0.06);
+    }
+    .gradient-btn {
+      background: linear-gradient(90deg, #1f7bd1, #0ea5e9);
+      color: white;
+      font-weight: 600;
+      border: none;
+    }
+    .stat-num { color: #1f7bd1; font-weight: 700; font-size: 1.5rem; }
   </style>
 </head>
 <body>
   <div id="sidebar-placeholder"></div>
-  <script>fetch("/static/sidebar.html").then(r=>r.text()).then(t=>document.getElementById('sidebar-placeholder').innerHTML=t);</script>
+  <script>
+    fetch("/static/sidebar.html")
+      .then(r => r.text())
+      .then(t => document.getElementById('sidebar-placeholder').innerHTML = t);
+  </script>
 
   <main class="container">
     <h1 class="text-3xl font-extrabold text-blue-900 mb-4">Analytics</h1>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-      <div class="card">
-        <h3 class="font-semibold mb-2">Total Fines Collected</h3>
-        <div id="totalFines" class="text-2xl font-bold">—</div>
+    <div class="flex flex-wrap gap-4 mb-4">
+      <div class="card flex-1 min-w-[220px]">
+        <h3 class="font-semibold mb-2">Total Fines Count</h3>
+        <div id="totalFines" class="stat-num">—</div>
       </div>
-      <div class="card">
+      <div class="card flex-1 min-w-[220px]">
+        <h3 class="font-semibold mb-2">Total Money Collected</h3>
+        <div id="totalMoney" class="stat-num">—</div>
+      </div>
+      <div class="card flex-1 min-w-[220px]">
         <h3 class="font-semibold mb-2">Active Inspectors</h3>
-        <div id="activeInspectors" class="text-2xl font-bold">—</div>
+        <div id="activeInspectors" class="stat-num">—</div>
       </div>
     </div>
 
-    <div class="card mb-4">
-      <h3 class="font-semibold mb-2">Hourly fines</h3>
-      <canvas id="chart1"></canvas>
+    <div class="card mb-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-3">
+        <div>
+          <h3 class="font-semibold">Select Time Range</h3>
+          <div class="text-sm text-gray-600">Choose dates to filter stats. Click Apply to load numbers.</div>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <input id="startDate" type="date" class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-500">
+          <input id="endDate" type="date" class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-500">
+          <select id="granularity" class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-500">
+            <option value="day">Day</option>
+            <option value="month">Month</option>
+            <option value="quarter">Quarter</option>
+            <option value="year">Year</option>
+          </select>
+          <button id="applyRange" class="py-2 px-3 rounded gradient-btn">Apply</button>
+        </div>
+      </div>
     </div>
 
-    <div class="card">
-      <h3 class="font-semibold mb-2">Inspector performance</h3>
-      <canvas id="chart2"></canvas>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div class="card">
+        <h4 class="font-semibold mb-2">Fines by Hour of Day</h4>
+        <canvas id="hourlyChart"></canvas>
+      </div>
+      <div class="card">
+        <h4 class="font-semibold mb-2">Fines by Day of Week</h4>
+        <canvas id="dailyChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card mt-4">
+      <h3 class="font-semibold mb-2">Fines Over Time</h3>
+      <canvas id="timelineChart"></canvas>
     </div>
   </main>
 
   <script>
-    async function loadAnalytics(){
-      const res = await fetch('/api/analytics');
+    function isoForDateInput(dt) {
+      if (!dt) return null;
+      const d = new Date(dt);
+      return d.toISOString();
+    }
+
+    async function loadAnalytics(opts = {}) {
+      let url = '/api/analytics';
+      const params = [];
+      if (opts.start) params.push('start=' + encodeURIComponent(opts.start));
+      if (opts.end) params.push('end=' + encodeURIComponent(opts.end));
+      if (opts.gran) params.push('granularity=' + encodeURIComponent(opts.gran));
+      if (params.length) url += '?' + params.join('&');
+
+      const res = await fetch(url);
       const data = await res.json();
-      document.getElementById('totalFines').innerText = (data.totalFines || 0);
-      document.getElementById('activeInspectors').innerText = (data.activeInspectors || 0);
 
-      const labels = (data.hourly || []).map(h => h.hour);
-      const values = (data.hourly || []).map(h => h.fines);
+      // Totals
+      document.getElementById('totalFines').innerText = (data.totalFines || 0).toLocaleString();
+      document.getElementById('activeInspectors').innerText = (data.activeInspectors || 0).toLocaleString();
+      document.getElementById('totalMoney').innerText = (data.totalMoney || 0).toLocaleString() + " ₪";
 
-      const ctx1 = document.getElementById('chart1').getContext('2d');
-      if(window.c1) window.c1.destroy();
-      window.c1 = new Chart(ctx1, {
+      // Hourly chart
+      const hLabels = (data.hourly_fines || []).map(h => h.hour);
+      const hValues = (data.hourly_fines || []).map(h => h.fines);
+      const ctx1 = document.getElementById('hourlyChart').getContext('2d');
+      if (window.hourlyChart) window.hourlyChart.destroy();
+      window.hourlyChart = new Chart(ctx1, {
         type: 'line',
-        data: { labels, datasets: [{ label: 'Fines', data: values, borderColor:'#1f7bd1', backgroundColor:'rgba(31,123,209,0.12)', fill:true }] },
-        options: { plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
+        data: {
+          labels: hLabels,
+          datasets: [{
+            label: 'Fines',
+            data: hValues,
+            borderColor: '#1f7bd1',
+            backgroundColor: 'rgba(31,123,209,0.12)',
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
       });
 
-      // inspector performance chart from inspector list
-      const inspectors = data.inspectors || [];
-      const labels2 = inspectors.map(i => i.name);
-      const values2 = inspectors.map(i => i.total_fines);
-      const ctx2 = document.getElementById('chart2').getContext('2d');
-      if(window.c2) window.c2.destroy();
-      window.c2 = new Chart(ctx2, {
+      // Daily chart
+      const dLabels = (data.daily_fines || []).map(d => d.day);
+      const dValues = (data.daily_fines || []).map(d => d.fines);
+      const ctx2 = document.getElementById('dailyChart').getContext('2d');
+      if (window.dailyChart) window.dailyChart.destroy();
+      window.dailyChart = new Chart(ctx2, {
         type: 'bar',
-        data: { labels: labels2, datasets: [{ label: 'Total fines', data: values2 }] },
-        options: { plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
+        data: {
+          labels: dLabels,
+          datasets: [{
+            label: 'Fines',
+            data: dValues,
+            backgroundColor: '#1f7bd1'
+          }]
+        },
+        options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+      });
+
+      // Timeline chart
+      const tLabels = (data.timeline || []).map(t => t.period);
+      const tValues = (data.timeline || []).map(t => t.fines);
+      const ctxT = document.getElementById('timelineChart').getContext('2d');
+      if (window.timelineChart) window.timelineChart.destroy();
+      window.timelineChart = new Chart(ctxT, {
+        type: 'bar',
+        data: {
+          labels: tLabels,
+          datasets: [{
+            label: 'Fines',
+            data: tValues,
+            backgroundColor: '#0ea5e9'
+          }]
+        },
+        options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
       });
     }
 
+    document.getElementById('applyRange').addEventListener('click', () => {
+      const s = document.getElementById('startDate').value;
+      const e = document.getElementById('endDate').value;
+      const gran = document.getElementById('granularity').value;
+      const startISO = s ? new Date(s).toISOString() : null;
+      const endISO = e ? new Date(e + "T23:59:59").toISOString() : null;
+      loadAnalytics({ start: startISO, end: endISO, gran: gran });
+    });
+
+    // initial load
     loadAnalytics();
-    setInterval(loadAnalytics, 15000);
+    // optional regular refresh
+    setInterval(() => loadAnalytics(), 20000);
   </script>
 </body>
 </html>

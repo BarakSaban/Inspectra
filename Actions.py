@@ -425,3 +425,53 @@ class Actions:
                 results.append(details)
 
         return pd.DataFrame(results)
+    
+        # --------------------------
+    # New Admin Dashboard helpers
+    # --------------------------
+    def get_staff_summary(self, inspectors):
+        summary = []
+        for i in inspectors:
+            summary.append({
+                "id": i.id,
+                "name": i.name,
+                "status": "Active" if i.active else "Offline",
+                "assigned": bool(i.current_assignment),
+                "assignments_today": len(getattr(i, "today_assignments", [])),
+                "avg_completion_time": getattr(i, "avg_completion_time", None),
+                "location": {"lat": i.lat, "lon": i.lon},
+            })
+        return summary
+
+    def get_analytics_summary(self, start_date=None, end_date=None):
+        # Mock data — replace with real DB or CSV lookup
+        import random
+        months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct"]
+        return {
+            "total_inspectors": random.randint(10, 20),
+            "monthly_fines": {m: random.randint(100, 500) for m in months},
+            "avg_violation_rate": round(random.uniform(0.1, 0.5), 2),
+            "top_inspectors": [
+                {"name": f"Inspector {i}", "fines": random.randint(50, 120)} for i in range(1, 6)
+            ],
+            "best_times": [{"hour": h, "fines": random.randint(0, 20)} for h in range(6, 24)],
+        }
+
+    def get_todays_fines(self):
+        # Placeholder: replace with actual fines dataframe later
+        import random
+        return random.randint(30, 100)
+
+    def check_unassigned_alerts(self, inspectors):
+        unassigned = [
+            {"id": i.id, "name": i.name}
+            for i in inspectors
+            if not i.current_assignment and i.active
+        ]
+        return unassigned
+
+    def get_avg_completion_time(self, inspectors):
+        times = [i.avg_completion_time for i in inspectors if getattr(i, "avg_completion_time", None)]
+        if not times:
+            return 0
+        return round(sum(times) / len(times), 2)

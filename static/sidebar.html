@@ -20,6 +20,12 @@
           <span>Admin Dashboard</span>
         </a>
       </li>
+      <li>
+        <a href="/staff" id="staffLink" class="nav-link">
+          <i class="fas fa-users"></i>
+          <span>Staff Management</span>
+        </a>
+      </li>
     </ul>
 
     <!-- RIGHT: User Button -->
@@ -157,5 +163,7 @@
     document.getElementById("analyticsLink")?.classList.add("active");
   } else if (currentPath.includes("admin")) {
     document.getElementById("adminLink")?.classList.add("active");
+  } else if (currentPath.includes("staffLink")) {
+    document.getElementById("staffLink")?.classList.add("active");
   }
 </script>
