@@ -4,40 +4,124 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Inspectra — Staff Management</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Google font -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Leaflet + Chart.js -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
-    body{font-family:"Montserrat",sans-serif;background:#f9fafb;margin:0;padding-top:80px;color:#0f172a}
-    .container{max-width:1100px;margin:0 auto;padding:28px}
-    .card{background:#fff;border-radius:12px;padding:18px;box-shadow:0 6px 18px rgba(15,23,42,0.06)}
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:8px 12px;text-align:left}
-    thead th{font-size:0.85rem;color:#64748b;border-bottom:1px solid #e6edf3}
-    .badge-available{color:#065f46;background:rgba(16,185,129,0.12);padding:4px 10px;border-radius:999px;font-weight:600;font-size:0.8rem}
-    .badge-busy{color:#b45309;background:rgba(245,158,11,0.12);padding:4px 10px;border-radius:999px;font-weight:600;font-size:0.8rem}
-    #viewMap { height: 360px; width: 100%; border-radius: 8px; }
-    .modal-backdrop { position: fixed; inset: 0; background: rgba(2,6,23,0.4); display:flex; align-items:center; justify-content:center; z-index:2000;}
-    input, select { border:1px solid #cbd5e1; border-radius:6px; padding:6px 10px; }
+    :root {
+      --inspectra-accent: #1f7bd1;
+      --inspectra-accent-2: #0ea5e9;
+    }
+
+    body {
+      font-family: "Montserrat", sans-serif;
+      background: linear-gradient(180deg, #f8fbff 0%, #eef6fb 100%);
+      margin: 0;
+      padding-top: 80px;
+      color: #0f172a;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 6px 18px rgba(15,23,42,0.06);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    thead th {
+      font-size: 0.85rem;
+      color: #64748b;
+      border-bottom: 1px solid #e6edf3;
+    }
+
+    .badge-available {
+      color: #065f46;
+      background: rgba(16,185,129,0.12);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    .badge-busy {
+      color: #b45309;
+      background: rgba(245,158,11,0.12);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    #viewMap {
+      height: 360px;
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2,6,23,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    input, select {
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 6px 10px;
+    }
+
+    .gradient-btn {
+      background: linear-gradient(90deg, var(--inspectra-accent), var(--inspectra-accent-2));
+      color: white;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+    }
   </style>
 </head>
-<body>
-  <div id="sidebar-placeholder"></div>
-  <script>fetch("/static/sidebar.html").then(r=>r.text()).then(t=>document.getElementById('sidebar-placeholder').innerHTML=t);</script>
 
-  <main class="container">
-    <div class="flex justify-between items-center mb-6">
+<body>
+  <!-- Sidebar -->
+  <div id="sidebar-placeholder"></div>
+  <script>
+    fetch("/static/sidebar.html")
+      .then(r => r.text())
+      .then(t => document.getElementById('sidebar-placeholder').innerHTML = t);
+  </script>
+
+  <main class="max-w-6xl mx-auto px-6 py-6">
+    <header class="mb-6 flex justify-between items-center">
       <div>
         <h1 class="text-3xl font-extrabold text-blue-900">Staff Management</h1>
         <p class="text-sm text-gray-600">Control and understand your inspectors</p>
       </div>
       <div>
-        <button id="addInspectorBtn" class="py-2 px-4 rounded" style="background:linear-gradient(90deg,#1f7bd1,#0ea5e9);color:white">
-          + Add Inspector
-        </button>
+        <button id="addInspectorBtn" class="gradient-btn">+ Add Inspector</button>
       </div>
-    </div>
+    </header>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
       <div class="card">
@@ -70,144 +154,199 @@
   </main>
 
   <div id="modalRoot"></div>
-
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script>
-    function showModal(contentHtml) {
-      const root = document.getElementById('modalRoot');
-      root.innerHTML = `
-        <div class="modal-backdrop" id="modalBackdrop">
-          <div class="bg-white rounded-lg shadow p-6 w-full max-w-3xl">
-            ${contentHtml}
-            <div class="mt-4 text-right"><button id="closeModal" class="py-2 px-3 rounded" style="background:#e6eef7">Close</button></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+  function showModal(contentHtml) {
+    const root = document.getElementById('modalRoot');
+    root.innerHTML = `
+      <div class="modal-backdrop" id="modalBackdrop">
+        <div class="bg-white rounded-lg shadow p-6 w-full max-w-3xl">
+          ${contentHtml}
+          <div class="mt-4 text-right">
+            <button id="closeModal" class="py-2 px-3 rounded" style="background:#e6eef7">Close</button>
           </div>
         </div>
-      `;
-      document.getElementById('closeModal').onclick = () => root.innerHTML = '';
-      document.getElementById('modalBackdrop').onclick = (e) => { if(e.target.id==='modalBackdrop') root.innerHTML=''; };
-    }
-
-    async function loadStaff() {
-      const res = await fetch('/api/staff');
-      const data = await res.json();
-      document.getElementById('totalInspectors').innerText = data.length;
-      const avg = data.reduce((acc,i)=>acc+(i.weekly_fines||0),0)/(data.length||1);
-      document.getElementById('avgFines').innerText = Math.round(avg);
-
-      const tbody = document.getElementById('staffTableBody');
-      tbody.innerHTML = '';
-      data.forEach(i=>{
-        const current = i.current_assignment ? `${i.current_assignment.status} (${i.current_assignment.potential_fines})` : '-';
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${i.name} (${i.inspector_id})</td>
-          <td>${i.available?'<span class="badge-available">Active</span>':'<span class="badge-busy">Offline</span>'}</td>
-          <td>${i.today_trips}</td>
-          <td>${i.weekly_fines}</td>
-          <td>${current}</td>
-          <td><button data-id="${i.inspector_id}" class="viewLocBtn py-1 px-2 rounded text-sm" style="background:#eef6ff">View</button></td>
-          <td><button data-id="${i.inspector_id}" class="editBtn py-1 px-2 rounded text-sm" style="background:#f3f4f6">Edit</button></td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      document.querySelectorAll('.viewLocBtn').forEach(b=>b.onclick=e=>{
-        openViewLocation(e.currentTarget.getAttribute('data-id'));
-      });
-      document.querySelectorAll('.editBtn').forEach(b=>b.onclick=e=>{
-        openEditInspector(e.currentTarget.getAttribute('data-id'));
-      });
-    }
-
-    async function openViewLocation(inspector_id){
-      const res = await fetch('/api/inspector/'+inspector_id);
-      if(res.status!==200){alert('Inspector not found'); return;}
-      const ins = await res.json();
-      showModal(`<h3 class="text-xl font-bold mb-2">Location — ${ins.name} (${ins.inspector_id})</h3><div id="viewMap"></div>`);
-      setTimeout(()=>{
-        const map = L.map('viewMap').setView([ins.latitude||32.0853, ins.longitude||34.7818], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
-        if(ins.latitude && ins.longitude){
-          L.marker([ins.latitude, ins.longitude]).addTo(map).bindPopup(`<b>${ins.name}</b>`).openPopup();
-        }
-      },100);
-    }
-
-    async function openEditInspector(inspector_id){
-      const res = await fetch('/api/inspector/'+inspector_id);
-      if(res.status!==200){alert('Inspector not found'); return;}
-      const ins = await res.json();
-      showModal(`
-        <h3 class="text-xl font-bold mb-2">Edit — ${ins.name} (${ins.inspector_id})</h3>
-        <div class="grid grid-cols-2 gap-3">
-          <div><label class="text-sm">Name</label><input id="edit_name" value="${ins.name}"></div>
-          <div><label class="text-sm">Email</label><input id="edit_email" value="${ins.email||''}"></div>
-          <div><label class="text-sm">Latitude</label><input id="edit_lat" value="${ins.latitude||''}"></div>
-          <div><label class="text-sm">Longitude</label><input id="edit_lng" value="${ins.longitude||''}"></div>
-          <div class="col-span-2"><label class="text-sm">Available</label>
-            <select id="edit_available">
-              <option value="true" ${ins.available?'selected':''}>Active</option>
-              <option value="false" ${!ins.available?'selected':''}>Offline</option>
-            </select>
-          </div>
-        </div>
-        <div class="mt-4 text-right">
-          <button id="saveInspector" class="py-2 px-3 rounded" style="background:linear-gradient(90deg,#1f7bd1,#0ea5e9);color:white">Save</button>
-        </div>
-      `);
-      document.getElementById('saveInspector').onclick = async ()=>{
-        const payload={
-          name:document.getElementById('edit_name').value,
-          email:document.getElementById('edit_email').value,
-          latitude:parseFloat(document.getElementById('edit_lat').value)||null,
-          longitude:parseFloat(document.getElementById('edit_lng').value)||null,
-          available:document.getElementById('edit_available').value==='true'
-        };
-        const putRes = await fetch('/api/inspector/'+inspector_id,{
-          method:'PUT',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify(payload)
-        });
-        if(putRes.ok){alert('Updated'); document.getElementById('modalRoot').innerHTML=''; loadStaff();}
-        else {alert('Error updating inspector');}
-      };
-    }
-
-    document.getElementById('addInspectorBtn').onclick = ()=>{
-      showModal(`
-        <h3 class="text-xl font-bold mb-2">Add Inspector</h3>
-        <div class="grid grid-cols-2 gap-3">
-          <div><label class="text-sm">Inspector ID</label><input id="new_id"></div>
-          <div><label class="text-sm">Name</label><input id="new_name"></div>
-          <div><label class="text-sm">Email</label><input id="new_email"></div>
-          <div><label class="text-sm">Latitude</label><input id="new_lat"></div>
-          <div><label class="text-sm">Longitude</label><input id="new_lng"></div>
-        </div>
-        <div class="mt-4 text-right">
-          <button id="createInspector" class="py-2 px-3 rounded" style="background:linear-gradient(90deg,#1f7bd1,#0ea5e9);color:white">Create</button>
-        </div>
-      `);
-      document.getElementById('createInspector').onclick=async()=>{
-        const payload={
-          inspector_id:document.getElementById('new_id').value,
-          name:document.getElementById('new_name').value,
-          email:document.getElementById('new_email').value,
-          latitude:parseFloat(document.getElementById('new_lat').value)||null,
-          longitude:parseFloat(document.getElementById('new_lng').value)||null,
-          available:true
-        };
-        const res = await fetch('/api/inspector',{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify(payload)
-        });
-        if(res.ok){alert('Inspector created'); document.getElementById('modalRoot').innerHTML=''; loadStaff();}
-        else {const err=await res.json(); alert('Error: '+(err.error||'unknown'));}
-      };
+      </div>
+    `;
+    document.getElementById('closeModal').onclick = () => root.innerHTML = '';
+    document.getElementById('modalBackdrop').onclick = e => {
+      if (e.target.id === 'modalBackdrop') root.innerHTML = '';
     };
+  }
 
-    loadStaff();
-    setInterval(loadStaff,15000);
-  </script>
+  async function loadStaff() {
+    const res = await fetch('/api/staff');
+    const data = await res.json();
+    document.getElementById('totalInspectors').innerText = data.length;
+    const avg = data.reduce((acc, i) => acc + (i.weekly_fines || 0), 0) / (data.length || 1);
+    document.getElementById('avgFines').innerText = Math.round(avg);
+
+    const tbody = document.getElementById('staffTableBody');
+    tbody.innerHTML = '';
+    data.forEach(i => {
+      const current = i.current_assignment
+        ? `${i.current_assignment.status} (${i.current_assignment.potential_fines})`
+        : '-';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${i.name} (${i.inspector_id})</td>
+        <td>${i.available
+          ? '<span class="badge-available">Active</span>'
+          : '<span class="badge-busy">Offline</span>'}</td>
+        <td>${i.today_trips}</td>
+        <td>${i.weekly_fines}</td>
+        <td>${current}</td>
+        <td>
+          <button data-id="${i.inspector_id}" 
+                  class="viewLocBtn py-1 px-2 rounded text-sm transition hover:bg-blue-100" 
+                  style="background:#eef6ff">View</button>
+        </td>
+        <td>
+          <button data-id="${i.inspector_id}" 
+                  class="editBtn py-1 px-2 rounded text-sm transition hover:bg-gray-200" 
+                  style="background:#f3f4f6">Edit</button>
+        </td>
+        <td>
+          <button data-id="${i.inspector_id}" 
+                  class="deleteBtn py-1 px-2 rounded text-sm text-red-600 font-bold transition hover:bg-red-100" 
+                  title="Delete Inspector">✖</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.querySelectorAll('.viewLocBtn').forEach(b =>
+      b.onclick = e => openViewLocation(e.currentTarget.getAttribute('data-id'))
+    );
+    document.querySelectorAll('.editBtn').forEach(b =>
+      b.onclick = e => openEditInspector(e.currentTarget.getAttribute('data-id'))
+    );
+    document.querySelectorAll('.deleteBtn').forEach(b =>
+      b.onclick = e => deleteInspector(e.currentTarget.getAttribute('data-id'))
+    );
+  }
+
+  async function openViewLocation(inspector_id) {
+    const res = await fetch('/api/inspector/' + inspector_id);
+    if (res.status !== 200) {
+      alert('Inspector not found');
+      return;
+    }
+    const ins = await res.json();
+    showModal(`<h3 class="text-xl font-bold mb-2">Location — ${ins.name} (${ins.inspector_id})</h3><div id="viewMap"></div>`);
+    setTimeout(() => {
+      const map = L.map('viewMap').setView([ins.latitude || 32.0853, ins.longitude || 34.7818], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+      if (ins.latitude && ins.longitude) {
+        L.marker([ins.latitude, ins.longitude]).addTo(map)
+          .bindPopup(`<b>${ins.name}</b>`).openPopup();
+      }
+    }, 100);
+  }
+
+  async function openEditInspector(inspector_id) {
+    const res = await fetch('/api/inspector/' + inspector_id);
+    if (res.status !== 200) {
+      alert('Inspector not found');
+      return;
+    }
+    const ins = await res.json();
+    showModal(`
+      <h3 class="text-xl font-bold mb-2">Edit — ${ins.name} (${ins.inspector_id})</h3>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-sm">Name</label><input id="edit_name" value="${ins.name}"></div>
+        <div><label class="text-sm">Email</label><input id="edit_email" value="${ins.email || ''}"></div>
+        <div><label class="text-sm">Latitude</label><input id="edit_lat" value="${ins.latitude || ''}"></div>
+        <div><label class="text-sm">Longitude</label><input id="edit_lng" value="${ins.longitude || ''}"></div>
+        <div class="col-span-2"><label class="text-sm">Available</label>
+          <select id="edit_available">
+            <option value="true" ${ins.available ? 'selected' : ''}>Active</option>
+            <option value="false" ${!ins.available ? 'selected' : ''}>Offline</option>
+          </select>
+        </div>
+      </div>
+      <div class="mt-4 text-right">
+        <button id="saveInspector" class="gradient-btn">Save</button>
+      </div>
+    `);
+    document.getElementById('saveInspector').onclick = async () => {
+      const payload = {
+        name: document.getElementById('edit_name').value,
+        email: document.getElementById('edit_email').value,
+        latitude: parseFloat(document.getElementById('edit_lat').value) || null,
+        longitude: parseFloat(document.getElementById('edit_lng').value) || null,
+        available: document.getElementById('edit_available').value === 'true'
+      };
+      const putRes = await fetch('/api/inspector/' + inspector_id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (putRes.ok) {
+        alert('Updated');
+        document.getElementById('modalRoot').innerHTML = '';
+        loadStaff();
+      } else {
+        alert('Error updating inspector');
+      }
+    };
+  }
+
+  async function deleteInspector(inspector_id) {
+    const confirmDel = confirm("⚠️ Are you sure you want to delete this inspector?");
+    if (!confirmDel) return;
+    const res = await fetch('/api/inspector/' + inspector_id, { method: 'DELETE' });
+    if (res.ok) {
+      alert("Inspector deleted successfully");
+      loadStaff();
+    } else {
+      alert("Failed to delete inspector");
+    }
+  }
+
+  document.getElementById('addInspectorBtn').onclick = () => {
+    showModal(`
+      <h3 class="text-xl font-bold mb-2">Add Inspector</h3>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-sm">Inspector ID</label><input id="new_id"></div>
+        <div><label class="text-sm">Name</label><input id="new_name"></div>
+        <div><label class="text-sm">Email</label><input id="new_email"></div>
+        <div><label class="text-sm">Latitude</label><input id="new_lat"></div>
+        <div><label class="text-sm">Longitude</label><input id="new_lng"></div>
+      </div>
+      <div class="mt-4 text-right">
+        <button id="createInspector" class="gradient-btn">Create</button>
+      </div>
+    `);
+    document.getElementById('createInspector').onclick = async () => {
+      const payload = {
+        inspector_id: document.getElementById('new_id').value,
+        name: document.getElementById('new_name').value,
+        email: document.getElementById('new_email').value,
+        latitude: parseFloat(document.getElementById('new_lat').value) || null,
+        longitude: parseFloat(document.getElementById('new_lng').value) || null,
+        available: true
+      };
+      const res = await fetch('/api/inspector', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        alert('Inspector created');
+        document.getElementById('modalRoot').innerHTML = '';
+        loadStaff();
+      } else {
+        const err = await res.json();
+        alert('Error: ' + (err.error || 'unknown'));
+      }
+    };
+  };
+
+  loadStaff();
+  setInterval(loadStaff, 15000);
+</script>
 </body>
 </html>

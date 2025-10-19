@@ -14,148 +14,170 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    :root {
-      --inspectra-accent: #1f7bd1;
-      --inspectra-accent-2: #0ea5e9;
-    }
+  :root {
+    --inspectra-accent: #1f7bd1;
+    --inspectra-accent-2: #0ea5e9;
+  }
 
-    body {
-      font-family: "Montserrat", system-ui, sans-serif;
-      background: linear-gradient(180deg, #f8fbff 0%, #eef6fb 100%);
-      color: #0f172a;
-      margin: 0;
-      min-height: 100vh;
-      padding-top: 80px;
-    }
+  body {
+    font-family: "Montserrat", system-ui, sans-serif;
+    background: linear-gradient(180deg, #f8fbff 0%, #eef6fb 100%);
+    color: #0f172a;
+    margin: 0;
+    min-height: 100vh;
+    padding-top: 80px;
+  }
 
-    /* Sidebar topbar */
-    #sidebar-container {
-      width: 100%;
-      position: static;
-      top: 0;
-      left: 0;
-      z-index: 1200;
-    }
+  /* Sidebar topbar */
+  #sidebar-container {
+    width: 100%;
+    position: static;
+    top: 0;
+    left: 0;
+    z-index: 1200;
+  }
 
-    header.topbar {
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.85));
-      box-shadow: 0 2px 12px rgba(16, 24, 40, 0.06);
-      backdrop-filter: blur(6px);
-      position: relative;
-      z-index: 100;
-    }
+  header.topbar {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.85));
+    box-shadow: 0 2px 12px rgba(16, 24, 40, 0.06);
+    backdrop-filter: blur(6px);
+    position: relative;
+    z-index: 100;
+  }
 
-    .stat-card {
-      background-color: #ffffff;
-      border-radius: 14px;
-      padding: 20px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
-    }
+  .stat-card {
+    background-color: #ffffff;
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+  }
 
-    .stat-icon {
-      width: 60px;
-      height: 60px;
-      border-radius: 12px;
-      background-color: #f1f5f9;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+  .stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    background-color: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-    .stat-value {
-      font-weight: 700;
-      font-size: 1.6rem;
-    }
+  .stat-value {
+    font-weight: 700;
+    font-size: 1.6rem;
+  }
 
-    .stat-label {
-      font-size: 0.85rem;
-      color: #64748b;
-    }
+  .stat-label {
+    font-size: 0.85rem;
+    color: #64748b;
+  }
 
-    .stat-sub {
-      font-size: 0.75rem;
-      color: #94a3b8;
-      margin-top: 4px;
-    }
+  .stat-sub {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-top: 4px;
+  }
 
-    .stat-trend {
-      font-size: 0.85rem;
-      color: #16a34a;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      margin-top: 6px;
-    }
+  .stat-trend {
+    font-size: 0.85rem;
+    color: #16a34a;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+  }
 
-    .map-card,
-    .table-card,
-    .opt-card {
-      border-radius: 14px;
-      background: #ffffff;
-      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
-    }
+  .map-card,
+  .table-card,
+  .opt-card {
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+  }
 
+  /* ✅ MAP FIX */
+  .map-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  #map {
+    flex: 1;
+    width: 100%;
+    border-radius: 14px;
+    min-height: 420px;
+  }
+
+  .table-card {
+    padding: 20px;
+    overflow-x: auto;
+  }
+
+  .table-row:hover {
+    background: rgba(31, 123, 209, 0.06);
+  }
+
+  .badge-available {
+    color: #065f46;
+    background: rgba(16, 185, 129, 0.12);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.8rem;
+  }
+
+  .badge-busy {
+    color: #b45309;
+    background: rgba(245, 158, 11, 0.12);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.8rem;
+  }
+
+  .opt-card {
+    padding: 18px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* ✅ prevents overflow */
+  }
+
+  th,
+  td {
+    padding: 8px 12px;
+    text-align: left;
+    word-wrap: break-word; /* ✅ allow long text to wrap */
+  }
+
+  thead th {
+    font-size: 0.85rem;
+    color: #64748b;
+    border-bottom: 1px solid #e6edf3;
+  }
+
+  tbody tr:hover {
+    background: rgba(31, 123, 209, 0.04);
+    cursor: pointer;
+  }
+
+  @media (max-width: 768px) {
     #map {
-      min-height: 420px;
-      width: 100%;
-      border-radius: 14px;
+      min-height: 300px;
     }
 
     .table-card {
-      padding: 20px;
-    }
-
-    .table-row:hover {
-      background: rgba(31, 123, 209, 0.06);
-    }
-
-    .badge-available {
-      color: #065f46;
-      background: rgba(16, 185, 129, 0.12);
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 0.8rem;
-    }
-
-    .badge-busy {
-      color: #b45309;
-      background: rgba(245, 158, 11, 0.12);
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 0.8rem;
-    }
-
-    .opt-card {
-      padding: 18px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th,
-    td {
-      padding: 8px 12px;
-      text-align: left;
-    }
-
-    thead th {
       font-size: 0.85rem;
-      color: #64748b;
-      border-bottom: 1px solid #e6edf3;
+      padding: 14px;
     }
-
-    tbody tr:hover {
-      background: rgba(31, 123, 209, 0.04);
-      cursor: pointer;
-    }
-  </style>
+  }
+</style>
 </head>
 
 <body>
@@ -167,7 +189,7 @@
 
   <main class="max-w-6xl mx-auto px-6 py-6">
     <header class="mb-6">
-      <h1 class="text-3xl font-extrabold text-blue-900">Admin Dashboard</h1>
+      <h1 class="text-3xl font-extrabold text-blue-900">Overview</h1>
       <p class="text-sm text-gray-600">Real persisted inspector activity and assignments</p>
     </header>
 

@@ -5,38 +5,56 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Inspectra — Analytics</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Google font -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
+    :root {
+      --inspectra-accent: #1f7bd1;
+      --inspectra-accent-2: #0ea5e9;
+    }
+
     body {
       font-family: "Montserrat", sans-serif;
-      background: #f9fafb;
+      background: linear-gradient(180deg, #f8fbff 0%, #eef6fb 100%);
       margin: 0;
       padding-top: 80px;
       color: #0f172a;
     }
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 28px;
-    }
+
     .card {
       background: #fff;
       border-radius: 12px;
       padding: 18px;
       box-shadow: 0 6px 18px rgba(15,23,42,0.06);
     }
+
     .gradient-btn {
-      background: linear-gradient(90deg, #1f7bd1, #0ea5e9);
+      background: linear-gradient(90deg, var(--inspectra-accent), var(--inspectra-accent-2));
       color: white;
       font-weight: 600;
       border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
     }
-    .stat-num { color: #1f7bd1; font-weight: 700; font-size: 1.5rem; }
+
+    .stat-num {
+      color: var(--inspectra-accent);
+      font-weight: 700;
+      font-size: 1.5rem;
+    }
   </style>
 </head>
+
 <body>
+  <!-- Sidebar -->
   <div id="sidebar-placeholder"></div>
   <script>
     fetch("/static/sidebar.html")
@@ -44,8 +62,12 @@
       .then(t => document.getElementById('sidebar-placeholder').innerHTML = t);
   </script>
 
-  <main class="container">
-    <h1 class="text-3xl font-extrabold text-blue-900 mb-4">Analytics</h1>
+  <main class="max-w-6xl mx-auto px-6 py-6">
+    <header class="mb-6">
+      <h1 class="text-3xl font-extrabold text-blue-900">Analytics</h1>
+      <p class="text-sm text-gray-600">Monitor fines, routes, and inspector performance</p>
+    </header>
+
 
     <div class="flex flex-wrap gap-4 mb-4">
       <div class="card flex-1 min-w-[220px]">

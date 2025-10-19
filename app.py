@@ -146,6 +146,27 @@ def update_inspector(inspector_id):
     db.session.commit()
     return jsonify({"message":"Inspector updated"})
 
+
+# ✅ NEW: Delete Inspector Route
+@app.route('/api/inspector/<inspector_id>', methods=['DELETE'])
+def delete_inspector(inspector_id):
+    inspector = Inspector.query.filter_by(inspector_id=inspector_id).first()
+    if not inspector:
+        return jsonify({"error": "Inspector not found"}), 404
+
+    try:
+        # Delete related runs and fines first
+        InspectorRun.query.filter_by(inspector_id=inspector_id).delete()
+        Fine.query.filter_by(inspector_id=inspector_id).delete()
+
+        db.session.delete(inspector)
+        db.session.commit()
+        return jsonify({"message": f"Inspector {inspector_id} deleted successfully"})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/api/inspector', methods=['POST'])
 def create_inspector():
     data = request.get_json()
