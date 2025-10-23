@@ -3,11 +3,11 @@ from datetime import datetime, date
 from flask import Flask, render_template, jsonify, request, redirect
 import pandas as pd
 from sqlalchemy import func
-
+import numpy as np
 from Classes import Inspector as InspectorClass
 from Actions import Actions
 from my_models_final import Inspector, InspectorRun, DB as db
-
+import random
 # ---------------- Setup ----------------
 app = Flask(__name__, static_folder='static', template_folder='templates')
 DB_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "inspectra.db")
@@ -56,6 +56,55 @@ def seed_inspectors():
                     available=True
                 ))
             db.session.commit()
+def seed_fake_data():
+    """Seeds fake runs and fines for analytics visualization."""
+    with app.app_context():
+        if InspectorRun.query.count() > 0 or Fine.query.count() > 0:
+            print("✅ Fake data already exists — skipping seeding.")
+            return
+
+        inspectors = Inspector.query.all()
+        if not inspectors:
+            print("⚠️ No inspectors found, seeding inspectors first...")
+            seed_inspectors()
+            inspectors = Inspector.query.all()
+
+        # Generate fake runs (past week)
+        print("🌱 Seeding fake runs and fines...")
+        for ins in inspectors:
+            for i in range(random.randint(5, 10)):  # 5–10 runs per inspector
+                days_ago = random.randint(0, 6)
+                assigned_at = datetime.utcnow() - pd.Timedelta(days=days_ago, hours=random.randint(0, 23))
+                trip_id = f"T{random.randint(1000,9999)}"
+                stop_id = f"S{random.randint(100,999)}"
+                potential_fines = random.randint(10, 30)
+                actual_fines = random.randint(0, potential_fines)
+
+                run = InspectorRun(
+                    inspector_id=ins.inspector_id,
+                    trip_id=trip_id,
+                    stop_id=stop_id,
+                    potential_fines=potential_fines,
+                    actual_fines=actual_fines,
+                    assigned_at=assigned_at,
+                    finished_at=assigned_at + pd.Timedelta(hours=1),
+                    status="completed"
+                )
+                db.session.add(run)
+
+                # Add actual fine records
+                for _ in range(actual_fines):
+                    fine = Fine(
+                        inspector_id=ins.inspector_id,
+                        trip_id=trip_id,
+                        stop_id=stop_id,
+                        amount=100,
+                        timestamp=assigned_at + pd.Timedelta(minutes=random.randint(5, 55))
+                    )
+                    db.session.add(fine)
+
+        db.session.commit()
+        print("✅ Fake data seeded successfully.")
 
 # ---------------- Pages ----------------
 @app.route('/')
@@ -290,6 +339,65 @@ def api_analytics():
         "daily": daily_list
     })
 
+
+@app.route('/api/fake_analytics')
+def fake_analytics():
+    from datetime import datetime, timedelta
+
+    # Static totals (consistent fake data)
+    totals = {
+        "total_fines": 1840,
+        "active_inspectors": Inspector.query.filter_by(available=True).count()
+    }
+
+    # Static fines per hour
+    hourly = [
+        {"hour": "6:00", "fines": 5},
+        {"hour": "7:00", "fines": 8},
+        {"hour": "8:00", "fines": 15},
+        {"hour": "9:00", "fines": 22},
+        {"hour": "10:00", "fines": 28},
+        {"hour": "11:00", "fines": 31},
+        {"hour": "12:00", "fines": 25},
+        {"hour": "13:00", "fines": 20},
+        {"hour": "14:00", "fines": 18},
+        {"hour": "15:00", "fines": 27},
+        {"hour": "16:00", "fines": 35},
+        {"hour": "17:00", "fines": 38},
+        {"hour": "18:00", "fines": 40},
+        {"hour": "19:00", "fines": 36},
+        {"hour": "20:00", "fines": 30},
+        {"hour": "21:00", "fines": 18},
+        {"hour": "22:00", "fines": 10},
+        {"hour": "23:00", "fines": 6}
+    ]
+
+    # Static fines per weekday
+    daily = [
+        {"day": "Sun", "fines": 180},
+        {"day": "Mon", "fines": 220},
+        {"day": "Tue", "fines": 240},
+        {"day": "Wed", "fines": 260},
+        {"day": "Thu", "fines": 210},
+        {"day": "Fri", "fines": 160},
+        {"day": "Sat", "fines": 110}
+    ]
+
+    # Static timeline of fines over weeks
+    today = datetime.now()
+    timeline = []
+    for i, fines in enumerate([350, 420, 480, 500, 560, 620, 700, 720]):
+        period = (today - timedelta(days=(7 * (7 - i)))).strftime("%d/%m")
+        timeline.append({"period": period, "fines": fines})
+
+    return jsonify({
+        "totals": totals,
+        "hourly": hourly,
+        "daily": daily,
+        "timeline": timeline
+    })
+
+
 # ---------------- Core assignment using Actions ----------------
 def assign_and_persist_runs(buffer_minutes=3, radius_m=666, max_walk_minutes=8):
     results = []
@@ -326,6 +434,7 @@ def assign_and_persist_runs(buffer_minutes=3, radius_m=666, max_walk_minutes=8):
 with app.app_context():
     db.create_all()
     seed_inspectors()
+    seed_fake_data()
 
 # ---------------- Run ----------------
 if __name__ == '__main__':
