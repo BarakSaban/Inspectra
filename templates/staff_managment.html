@@ -8,7 +8,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
     body {
@@ -48,11 +49,6 @@
       font-weight: 600;
       font-size: 0.8rem;
     }
-    input, select {
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      padding: 6px 10px;
-    }
     .gradient-btn {
       background: linear-gradient(90deg, #1f7bd1, #0ea5e9);
       color: white;
@@ -60,6 +56,19 @@
       border: none;
       border-radius: 8px;
       padding: 10px 16px;
+    }
+    .icon-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .modal-box {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
   </style>
 </head>
@@ -83,34 +92,41 @@
       </div>
     </header>
 
-    <!-- Date & stats cards -->
+    <!-- Stat Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-      <div class="card">
-        <h4 class="font-semibold text-gray-600">Total Inspectors</h4>
-        <div id="totalInspectors" class="text-2xl font-bold mt-2">—</div>
+      <div class="card icon-card">
+        <i data-lucide="users" class="text-blue-600 w-6 h-6"></i>
+        <div>
+          <h4 class="font-semibold text-gray-600">Total Inspectors</h4>
+          <div id="totalInspectors" class="text-2xl font-bold mt-1">—</div>
+        </div>
       </div>
-      <div class="card">
-        <h4 class="font-semibold text-gray-600">Avg Fines / 7 days</h4>
-        <div id="avgFines" class="text-2xl font-bold mt-2">—</div>
+      <div class="card icon-card">
+        <i data-lucide="file-check" class="text-green-600 w-6 h-6"></i>
+        <div>
+          <h4 class="font-semibold text-gray-600">Avg Fines / 7 days</h4>
+          <div id="avgFines" class="text-2xl font-bold mt-1">—</div>
+        </div>
       </div>
-      <div class="card">
-        <h4 class="font-semibold text-gray-600">Today's Inspections</h4>
-        <div id="todayTrips" class="text-2xl font-bold mt-2">—</div>
+      <div class="card icon-card">
+        <i data-lucide="calendar-check" class="text-indigo-600 w-6 h-6"></i>
+        <div>
+          <h4 class="font-semibold text-gray-600">Today's Inspections</h4>
+          <div id="todayTrips" class="text-2xl font-bold mt-1">—</div>
+        </div>
       </div>
-      <div class="card">
-        <h4 class="font-semibold text-gray-600">Active Inspectors</h4>
-        <div id="activeInspectors" class="text-2xl font-bold mt-2">—</div>
+      <div class="card icon-card">
+        <i data-lucide="activity" class="text-amber-600 w-6 h-6"></i>
+        <div>
+          <h4 class="font-semibold text-gray-600">Active Inspectors</h4>
+          <div id="activeInspectors" class="text-2xl font-bold mt-1">—</div>
+        </div>
       </div>
     </div>
 
+    <!-- Search + Table -->
     <div class="flex flex-col md:flex-row justify-between items-center gap-3 mb-4">
       <input id="searchInput" type="text" placeholder="Search inspector by name..." class="w-full md:w-1/2 border p-2 rounded-lg" />
-      <div class="flex items-center gap-2">
-        <label class="text-gray-700">From:</label>
-        <input type="date" id="fromDate" class="border p-2 rounded-lg" />
-        <label class="text-gray-700">To:</label>
-        <input type="date" id="toDate" class="border p-2 rounded-lg" />
-      </div>
     </div>
 
     <div class="card">
@@ -134,9 +150,10 @@
   </main>
 
   <div id="modalRoot"></div>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
   <script>
+    lucide.createIcons();
+
     let staffData = [];
     let currentSort = { key: null, asc: true };
 
@@ -163,7 +180,6 @@
       const searchTerm = document.getElementById('searchInput').value.toLowerCase();
       let filtered = staffData.filter(i => i.name.toLowerCase().includes(searchTerm));
 
-      // Sort if applied
       if (currentSort.key) {
         filtered.sort((a, b) => {
           let valA = a[currentSort.key];
@@ -197,40 +213,19 @@
       document.querySelectorAll('.deleteBtn').forEach(b => b.onclick = e => deleteInspector(e.target.dataset.id));
     }
 
-    // Double-click sorting on headers
-    document.addEventListener("DOMContentLoaded", () => {
-      document.querySelectorAll("#staffTable th[data-sort]").forEach(th => {
-        th.addEventListener("dblclick", () => {
-          const key = th.getAttribute("data-sort");
-          if (currentSort.key === key) currentSort.asc = !currentSort.asc;
-          else currentSort = { key, asc: true };
-          renderTable();
-        });
-      });
-    });
-
-    document.getElementById('searchInput').addEventListener('input', renderTable);
-
     function showModal(html) {
       const root = document.getElementById('modalRoot');
       root.innerHTML = `
         <div class="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50" id="modalBackdrop">
-          <div class="bg-white p-6 rounded-xl max-w-3xl w-full">
-            ${html}
-            <div class="mt-4 text-right">
-              <button id="closeModal" class="py-2 px-3 rounded bg-gray-100 hover:bg-gray-200">Close</button>
-            </div>
-          </div>
+          <div class="modal-box">${html}</div>
         </div>`;
-      document.getElementById('closeModal').onclick = () => root.innerHTML = '';
       document.getElementById('modalBackdrop').onclick = e => { if (e.target.id === 'modalBackdrop') root.innerHTML = ''; };
     }
 
     async function openViewLocation(id) {
       const res = await fetch('/api/inspector/' + id);
-      if (res.status !== 200) return alert('Inspector not found');
       const ins = await res.json();
-      showModal(`<h3 class="text-xl font-bold mb-2">Location — ${ins.name} (${ins.inspector_id})</h3><div id="viewMap" style="height:360px"></div>`);
+      showModal(`<h3 class="text-xl font-bold mb-2">Location — ${ins.name}</h3><div id="viewMap" style="height:300px"></div>`);
       setTimeout(() => {
         const map = L.map('viewMap').setView([ins.latitude || 32.0853, ins.longitude || 34.7818], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
@@ -241,79 +236,106 @@
 
     async function openEditInspector(id) {
       const res = await fetch('/api/inspector/' + id);
-      if (res.status !== 200) return alert('Inspector not found');
       const ins = await res.json();
       showModal(`
-        <h3 class="text-xl font-bold mb-2">Edit — ${ins.name}</h3>
+        <h3 class="text-xl font-bold mb-3">Edit Inspector</h3>
         <div class="grid grid-cols-2 gap-3">
           <div><label>Name</label><input id="edit_name" value="${ins.name}" class="border p-2 rounded w-full"></div>
           <div><label>Email</label><input id="edit_email" value="${ins.email || ''}" class="border p-2 rounded w-full"></div>
-          <div><label>Latitude</label><input id="edit_lat" value="${ins.latitude || ''}" class="border p-2 rounded w-full"></div>
-          <div><label>Longitude</label><input id="edit_lng" value="${ins.longitude || ''}" class="border p-2 rounded w-full"></div>
-          <div class="col-span-2">
-            <label>Available</label>
-            <select id="edit_available" class="border p-2 rounded w-full">
-              <option value="true" ${ins.available ? 'selected' : ''}>Active</option>
-              <option value="false" ${!ins.available ? 'selected' : ''}>Offline</option>
-            </select>
-          </div>
         </div>
+        <div id="mapPicker" class="mt-3" style="height:250px;border-radius:8px;"></div>
         <div class="mt-4 text-right">
           <button id="saveInspector" class="gradient-btn">Save</button>
-        </div>`);
+        </div>
+      `);
+
+      const map = L.map('mapPicker').setView([ins.latitude || 32.0853, ins.longitude || 34.7818], 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+      let marker = ins.latitude ? L.marker([ins.latitude, ins.longitude]).addTo(map) : null;
+      map.on('click', e => {
+        if (marker) marker.remove();
+        marker = L.marker(e.latlng).addTo(map);
+        ins.latitude = e.latlng.lat;
+        ins.longitude = e.latlng.lng;
+      });
+
       document.getElementById('saveInspector').onclick = async () => {
         const payload = {
           name: document.getElementById('edit_name').value,
           email: document.getElementById('edit_email').value,
-          latitude: parseFloat(document.getElementById('edit_lat').value) || null,
-          longitude: parseFloat(document.getElementById('edit_lng').value) || null,
-          available: document.getElementById('edit_available').value === 'true'
+          latitude: ins.latitude,
+          longitude: ins.longitude,
+          available: ins.available
         };
-        const putRes = await fetch('/api/inspector/' + id, {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+        await fetch('/api/inspector/' + id, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
         });
-        if (putRes.ok) {
-          alert('Updated'); document.getElementById('modalRoot').innerHTML = ''; loadStaff();
-        } else alert('Error updating inspector');
+        document.getElementById('modalRoot').innerHTML = '';
+        loadStaff();
       };
     }
 
     async function deleteInspector(id) {
-      if (!confirm("⚠️ Delete this inspector?")) return;
+      if (!confirm("Delete this inspector?")) return;
       const res = await fetch('/api/inspector/' + id, { method: 'DELETE' });
-      if (res.ok) { alert("Deleted"); loadStaff(); } else alert("Delete failed");
+      if (res.ok) loadStaff();
     }
 
-    document.getElementById('addInspectorBtn').onclick = () => {
+    document.getElementById("addInspectorBtn").onclick = () => {
       showModal(`
-        <h3 class="text-xl font-bold mb-2">Add Inspector</h3>
+        <h3 class="text-xl font-bold mb-3">Add Inspector</h3>
         <div class="grid grid-cols-2 gap-3">
           <div><label>ID</label><input id="new_id" class="border p-2 rounded w-full"></div>
           <div><label>Name</label><input id="new_name" class="border p-2 rounded w-full"></div>
           <div><label>Email</label><input id="new_email" class="border p-2 rounded w-full"></div>
-          <div><label>Latitude</label><input id="new_lat" class="border p-2 rounded w-full"></div>
-          <div><label>Longitude</label><input id="new_lng" class="border p-2 rounded w-full"></div>
         </div>
-        <div class="mt-4 text-right"><button id="createInspector" class="gradient-btn">Create</button></div>`);
+        <div id="mapPickerNew" class="mt-3" style="height:250px;border-radius:8px;"></div>
+        <div class="mt-4 text-right"><button id="createInspector" class="gradient-btn">Create</button></div>
+      `);
+
+      const map = L.map('mapPickerNew').setView([32.0853, 34.7818], 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+      let selectedCoords = null;
+      let marker = null;
+      map.on('click', e => {
+        if (marker) marker.remove();
+        marker = L.marker(e.latlng).addTo(map);
+        selectedCoords = e.latlng;
+      });
+
       document.getElementById('createInspector').onclick = async () => {
         const payload = {
           inspector_id: document.getElementById('new_id').value,
           name: document.getElementById('new_name').value,
           email: document.getElementById('new_email').value,
-          latitude: parseFloat(document.getElementById('new_lat').value) || null,
-          longitude: parseFloat(document.getElementById('new_lng').value) || null,
+          latitude: selectedCoords ? selectedCoords.lat : null,
+          longitude: selectedCoords ? selectedCoords.lng : null,
           available: true
         };
-        const res = await fetch('/api/inspector', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+        await fetch('/api/inspector', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
         });
-        if (res.ok) { alert('Created'); document.getElementById('modalRoot').innerHTML = ''; loadStaff(); }
-        else alert('Error creating inspector');
+        document.getElementById('modalRoot').innerHTML = '';
+        loadStaff();
       };
     };
 
+    document.querySelectorAll("th[data-sort]").forEach(th => {
+      th.addEventListener("dblclick", () => {
+        const key = th.getAttribute("data-sort");
+        if (currentSort.key === key) currentSort.asc = !currentSort.asc;
+        else currentSort = { key, asc: true };
+        renderTable();
+      });
+    });
+
+    document.getElementById("searchInput").addEventListener("input", renderTable);
+
     loadStaff();
-    setInterval(loadStaff, 15000);
   </script>
 </body>
 </html>
