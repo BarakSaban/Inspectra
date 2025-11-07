@@ -314,15 +314,39 @@ class Actions:
             avg_dont_pay = self.get_dontpay_value(self.get_route_id_from_trip_id(trip_id))
             print(f"count of average non paying users for trip {trip_id} is {avg_dont_pay}")
 
-            # #HOTFIX, IMPORTANT TO REMOVE!!! VVV
-            # import random
-            # avg_dont_pay = random.randrange(0, 18)
-            # print(f"Randomized count of average non paying users for trip {trip_id}, now {avg_dont_pay}")
-            # #HOTFIX, IMPORTANT TO REMOVE!!! ^^^
-
             potential_fines = min(fines_possible, int(avg_dont_pay))
             if potential_fines > max_fines:
                 max_fines = potential_fines
+                
+                # Assign route name and Human ID number
+                route_id = self.get_route_id_from_trip_id(trip_id)
+                route_row = self.routes_df[self.routes_df['route_id'] == route_id]
+
+                route_num = None
+                route_long_name = None
+                destination = None
+
+                if not route_row.empty:
+                    route_num = route_row.iloc[0].get("route_short_name")
+                    route_long_name = route_row.iloc[0].get("route_long_name", "")
+
+                    if route_long_name and "<->" in route_long_name:
+                        try:
+                            # Split into parts: ["מסוף כרמלית-תל אביב יפו", "מסוף עתידים-תל אביב יפו-10"]
+                            parts = route_long_name.split("<->")
+
+                            # Take the second part (the destination side)
+                            right_side = parts[-1]
+
+                            # Then cut at the first dash (if exists)
+                            destination = right_side.split("-")[0].strip()
+                        except Exception as e:
+                            print(f"Destination parse failed: {e}")
+                            destination = route_long_name
+                    else:
+                        destination = route_long_name
+
+
                 best_option = {
                     'trip_id': trip_id,
                     'stop_id': row['stop_id'],
@@ -332,8 +356,12 @@ class Actions:
                     'minutes_until_arrival': row['minutes_until_arrival'],
                     'time_on_board_min': round(time_on_board, 1),
                     'AvgDontPay': avg_dont_pay,
-                    'potential_fines': potential_fines
+                    'potential_fines': potential_fines,
+                    'route_id': route_id,
+                    'route_num': route_num,
+                    'destination': destination
                 }
+
             else:
                 print(f"Potential fines {potential_fines} isnt bigger than max fines {max_fines}")
 

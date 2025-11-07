@@ -445,6 +445,7 @@
 
     let startY, currentY, dragging = false;
     let currentState = "idle"; // possible: idle, assigned, onride, completed
+    let currentTripData = null;
 
     // slide toggle on click
     grabBar.addEventListener("click", () => {
@@ -456,6 +457,7 @@
       startY = e.touches[0].clientY;
       dragging = true;
     });
+    
     window.addEventListener("touchmove", (e) => {
       if (!dragging) return;
       currentY = e.touches[0].clientY;
@@ -464,6 +466,7 @@
         ridePanel.style.transform = `translateY(${Math.min(70, delta / 4)}%)`;
       }
     });
+
     window.addEventListener("touchend", (e) => {
       if (!dragging) return;
       dragging = false;
@@ -477,69 +480,149 @@
       }
     });
 
-  // state transitions
-  actionBtn.addEventListener("click", () => {
-    switch (currentState) {
-      case "idle":
-        assignRide();
-        break;
-      case "assigned":
-        confirmOnRide();
-        break;
-      case "onride":
-        completeRide();
-        break;
-      case "completed":
-        resetToIdle();
-        break;
+    // state transitions
+    actionBtn.addEventListener("click", async () => {
+      switch (currentState) {
+        case "idle":
+          await assignRide();
+          break;
+        case "assigned":
+          goEnRoute();
+          break;
+        case "enroute":
+          goWaiting();
+          break;
+        case "waiting":
+          confirmOnRide();
+          break;
+        case "onride":
+          completeRide();
+          break;
+        case "completed":
+          resetToIdle();
+          break;
+      }
+    });
+
+    // ---------- State Handlers ----------
+    async function assignRide() {
+      try {
+        // call your fetch function
+        const btn = actionBtn;
+        btn.disabled = true;
+        btn.textContent = "Finding...";
+
+        const [lat, lon] = userLatLng;
+        const json = await safeJsonFetch("/api/find_best_trip", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lat, lon, buffer: 3, radius: 666 }),
+        });
+
+        clearDisplayed();
+        if (!json.best_option) {
+          alert("No reachable trip found.");
+          btn.disabled = false;
+          btn.textContent = "Get Ride";
+          return;
+        }
+
+        // display map layers
+        if (json.best_option.route_geometry) {
+          currentDisplayed.walkLayer = L.geoJSON(json.best_option.route_geometry, {
+            style: { color: "black", weight: 4, dashArray: "8,6" },
+          }).addTo(map);
+        }
+        if (json.stop_feature) {
+          currentDisplayed.stopLayer = L.geoJSON(json.stop_feature, {
+            pointToLayer: (f, latlng) => L.marker(latlng, { icon: busIcon }),
+          })
+            .addTo(map)
+            .bindPopup(json.stop_feature.properties?.stop_name || "")
+            .openPopup();
+        }
+        if (json.shape_feature) {
+          currentDisplayed.shapeLayer = L.geoJSON(json.shape_feature, {
+            style: { color: "green", weight: 4 },
+          }).addTo(map);
+        }
+
+        // store ride data
+        console.log("🚍 best_option data:", json.best_option);
+
+        currentTripData = {
+          line: json.best_option.route_num || "Unknown",
+          stop_id: json.stop_feature?.properties?.stop_id || "?",
+          stop_name: json.stop_feature?.properties?.stop_name || "Unknown Stop",
+          destination: json.best_option.destination || "Destination Unknown",
+        };
+
+        // update UI
+        currentState = "assigned";
+        statusTitle.textContent = "Ride Assigned!";
+        rideDesc.innerHTML = `
+          <b>Line:</b> ${currentTripData.line} → ${currentTripData.destination}.</b><br>
+          <b>Stop:</b> ${currentTripData.stop_name} (${currentTripData.stop_id})<br>
+          <small>Confirm to view route to stop.</small>
+        `;
+        actionBtn.textContent = "View Route to Stop";
+      } catch (err) {
+        alert("Error: " + err.message);
+      } finally {
+        actionBtn.disabled = false;
+      }
     }
-  });
 
-  async function assignRide() {
-    currentState = "assigned";
-    statusTitle.textContent = "Ride Assigned!";
-    rideDesc.textContent = "Finding your best trip...";
-    actionBtn.textContent = "Confirm Ride";
-    ridePanel.classList.remove("completed");
-
-    try {
-      // Automatically find and display the best trip on the map
-      await fetchBestTripAndShow();
-      rideDesc.textContent = "Your trip has been assigned. Confirm to start your route.";
-    } catch (err) {
-      console.error("Error fetching best trip:", err);
-      rideDesc.textContent = "Could not find a trip. Please try again.";
+    function goEnRoute() {
+      currentState = "enroute";
+      statusTitle.textContent = "En Route to Stop";
+      rideDesc.innerHTML = `
+        Head to <b>${currentTripData.stop_name}</b> (Stop ID: ${currentTripData.stop_id})<br>
+        Follow the black dashed route on the map.
+      `;
+      actionBtn.textContent = "I’ve Arrived at Stop";
     }
-  }
 
-  function confirmOnRide() {
-    currentState = "onride";
-    statusTitle.textContent = "On Ride";
-    rideDesc.textContent = "Please confirm once your ride is complete.";
-    actionBtn.textContent = "Complete Ride";
-  }
-
-  async function completeRide() {
-    currentState = "completed";
-    statusTitle.textContent = "Ride Completed 🎉";
-    rideDesc.textContent = "Well done! You’ve finished your ride.";
-    actionBtn.textContent = "Get New Ride";
-    ridePanel.classList.add("completed");
-    try {
-      await clearDisplayed();
-    } catch (err) {
-      console.error("Error fetching best trip:", err);
-      rideDesc.textContent = "Could not find a trip. Please try again.";
+    function goWaiting() {
+      currentState = "waiting";
+      statusTitle.textContent = "Waiting for Bus";
+      rideDesc.innerHTML = `
+        Wait for <b>Line ${currentTripData.line}</b> → ${currentTripData.destination}.<br>
+        Confirm once you're on the bus.
+      `;
+      actionBtn.textContent = "On Bus";
     }
-  }
 
-  function resetToIdle() {
-    currentState = "idle";
-    statusTitle.textContent = "No Ride Assigned";
-    rideDesc.textContent = "Press below to get your next assignment.";
-    actionBtn.textContent = "Get Ride";
-    ridePanel.classList.remove("completed");
-  }
+    async function confirmOnRide() {
+      currentState = "onride";
+      statusTitle.textContent = "On Ride";
+      rideDesc.textContent =
+        "Ride ongoing. Confirm once your inspection is complete.";
+      actionBtn.textContent = "Complete Ride";
+      try {
+        await clearDisplayed();
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    }
+
+    function completeRide() {
+      currentState = "completed";
+      statusTitle.textContent = "Ride Completed 🎉";
+      rideDesc.textContent =
+        "Good job! Ride report saved. Press below for next assignment.";
+      actionBtn.textContent = "Get New Ride";
+      ridePanel.classList.add("completed");
+    }
+
+    function resetToIdle() {
+      currentState = "idle";
+      currentTripData = null;
+      statusTitle.textContent = "No Ride Assigned";
+      rideDesc.textContent = "Press below to get your next assignment.";
+      actionBtn.textContent = "Get Ride";
+      ridePanel.classList.remove("completed");
+    }
 
     // Initialize
     showPanel();
