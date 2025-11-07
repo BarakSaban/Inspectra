@@ -231,16 +231,6 @@
 </head>
 
 <body>
-  <!-- Floating Control Buttons -->
-  <div class="map-controls">
-    <button id="find-nearest-btn" class="map-btn">
-      <i class="fas fa-map-marker-alt"></i> Nearest Stop
-    </button>
-    <button id="find-best-btn" class="map-btn">
-      <i class="fas fa-route"></i> Best Trip
-    </button>
-  </div>
-
   <!-- Map -->
   <div id="map"></div>
 
@@ -273,7 +263,7 @@
     const BUS_ICON_URL = '/static/bus-stop.png';
     // ---------------- END CONFIG ----------------
 
-    let map, inspectorMarker = null, inspectorCircle = null, userLatLng = null;
+    let map, inspectorMarker = null, userLatLng = null;
     let stops = [], shapes = [], stopShapeMap = [];
     let currentDisplayed = { stopLayer: null, shapeLayer: null, walkLayer: null };
 
@@ -336,10 +326,6 @@
           inspectorMarker = L.marker(userLatLng, { icon: inspectorIcon }).addTo(map);
           inspectorMarker.bindPopup('You (Inspector)').openPopup();
         } else inspectorMarker.setLatLng(userLatLng);
-
-        if (!inspectorCircle) {
-          inspectorCircle = L.circle(userLatLng, { radius: 666, color: '#1f7bd1', fillOpacity: 0.05 }).addTo(map);
-        } else inspectorCircle.setLatLng(userLatLng);
       }, err => console.error(err), { enableHighAccuracy: true });
     }
 
@@ -356,61 +342,6 @@
       const resp = await fetch(url, options);
       if (!resp.ok) throw new Error(`Network error ${resp.status}`);
       return resp.json();
-    }
-
-    async function fetchNearestAndShow() {
-      if (!userLatLng) return alert('Waiting for location...');
-      const [lat, lon] = userLatLng;
-      try {
-        const json = await safeJsonFetch('/api/nearest_stop', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lat, lon, radius: SEARCH_RADIUS_METERS })
-        });
-        clearDisplayed();
-        const stopFeature = json.stop;
-        if (!stopFeature?.geometry) return alert('No valid stop returned.');
-        const stopMarker = L.geoJSON(stopFeature, {
-          pointToLayer: (f, latlng) => L.marker(latlng, { icon: busIcon })
-        }).addTo(map).bindPopup(stopFeature.properties?.stop_name || '').openPopup();
-        currentDisplayed.stopLayer = stopMarker;
-      } catch (err) { alert('Error: ' + err.message); }
-    }
-
-    async function fetchBestTripAndShow() {
-      if (!userLatLng) return alert('Waiting for location...');
-      const btn = document.getElementById('find-best-btn');
-      btn.disabled = true; btn.textContent = 'Finding...';
-      try {
-        const [lat, lon] = userLatLng;
-        const json = await safeJsonFetch('/api/find_best_trip', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lat, lon, buffer: 3, radius: 666 })
-        });
-        clearDisplayed();
-        if (json.best_option) {
-          if (json.best_option.route_geometry) {
-            currentDisplayed.walkLayer = L.geoJSON(json.best_option.route_geometry, {
-              style: { color: 'black', weight: 4, dashArray: '8,6' }
-            }).addTo(map);
-          }
-          if (json.stop_feature) {
-            currentDisplayed.stopLayer = L.geoJSON(json.stop_feature, {
-              pointToLayer: (f, latlng) => L.marker(latlng, { icon: busIcon })
-            }).addTo(map).bindPopup(json.stop_feature.properties?.stop_name || '').openPopup();
-          }
-          if (json.shape_feature) {
-            currentDisplayed.shapeLayer = L.geoJSON(json.shape_feature, {
-              style: { color: 'green', weight: 4 }
-            }).addTo(map);
-          }
-        } else alert('No reachable trip found.');
-      } catch (err) { alert('Error: ' + err.message); }
-      finally { btn.disabled = false; btn.textContent = 'Best Trip'; }
-    }
-
-    function setupUI() {
-      document.getElementById('find-nearest-btn').addEventListener('click', fetchNearestAndShow);
-      document.getElementById('find-best-btn').addEventListener('click', fetchBestTripAndShow);
     }
 
     // ------------------- AVAILABILITY TOGGLE -------------------
