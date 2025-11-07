@@ -345,11 +345,19 @@ class Actions:
                             destination = route_long_name
                     else:
                         destination = route_long_name
+                    
+                    stop_id = row['stop_id']
 
+                    # Try to find the stop_code in stops_df
+                    stop_row = self.stops_df[self.stops_df['stop_id'] == stop_id]
+                    stop_code = None
+                    if not stop_row.empty:
+                        stop_code = stop_row.iloc[0].get("stop_code")
 
                 best_option = {
                     'trip_id': trip_id,
                     'stop_id': row['stop_id'],
+                    'stop_code': stop_code,
                     'arrival_time': row['arrival_time'],
                     'walk_time': row['walk_time'],
                     'route_geometry': row['route_geometry'],

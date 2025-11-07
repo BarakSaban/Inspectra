@@ -480,10 +480,12 @@
 
         // store ride data
         console.log("🚍 best_option data:", json.best_option);
+        console.log("🛑 stop_feature:", json.stop_feature);
+        console.log("// shape_feature:", json.stop_feature);
 
         currentTripData = {
           line: json.best_option.route_num || "Unknown",
-          stop_id: json.stop_feature?.properties?.stop_id || "?",
+          stop_id: json.stop_feature?.properties?.stop_code || "?",
           stop_name: json.stop_feature?.properties?.stop_name || "Unknown Stop",
           destination: json.best_option.destination || "Destination Unknown",
         };
