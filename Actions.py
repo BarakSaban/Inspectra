@@ -1,13 +1,14 @@
 import osmnx as ox
 import networkx as nx
-from shapely.geometry import LineString
 import pandas as pd
-from datetime import datetime
-from scipy.spatial import KDTree
 import numpy as np
 import math
-from shapely.geometry import mapping
 
+from shapely.geometry import mapping
+from math import sqrt
+from shapely.geometry import LineString
+from datetime import datetime
+from scipy.spatial import KDTree
 
 class Actions:
     def __init__(self, stops_df, stop_times_df, trips_df, routes_df):
@@ -224,6 +225,47 @@ class Actions:
         h, m, s = map(int, arrival_time_str.split(":"))
         arrival_minutes = h * 60 + m + s / 60.0
         return arrival_minutes - now_minutes
+    
+    # --------------------------
+    # Trim the LineString shape_feature to start in the stop relevant to said inspector.
+    # --------------------------
+    def trim_shape_to_stop(self, shape_feature, stop_feature):
+        """
+        Given a LineString shape_feature and a Point stop_feature,
+        trims the shape to start at the coordinate closest to the stop.
+        Returns the modified shape_feature.
+        """
+        try:
+            if not shape_feature or not stop_feature:
+                print("Missing shape_feature or stop_feature; cannot trim.")
+                return shape_feature
+
+            coords = shape_feature.get('geometry', {}).get('coordinates', [])
+            if not coords or len(coords) < 2:
+                print("Invalid or too few coordinates in shape_feature.")
+                return shape_feature
+
+            stop_coords = stop_feature.get('geometry', {}).get('coordinates')
+            if not stop_coords or len(stop_coords) != 2:
+                print("Invalid stop_feature coordinates.")
+                return shape_feature
+
+            stop_lon, stop_lat = stop_coords
+
+            def distance(a, b):
+                return sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
+
+            closest_index = min(range(len(coords)), key=lambda i: distance(coords[i], (stop_lon, stop_lat)))
+
+            trimmed_coords = coords[closest_index:]
+            print(f"Trimmed shape_feature from {len(coords)} to {len(trimmed_coords)} points (starting at index {closest_index})")
+
+            shape_feature['geometry']['coordinates'] = trimmed_coords
+            return shape_feature
+
+        except Exception as e:
+            print(f"Error trimming shape to stop: {e}")
+            return shape_feature
 
     # --------------------------
     # Find all reachable trips (uses stop_times_map for speed)
@@ -257,7 +299,7 @@ class Actions:
         if not reachable:
             return pd.DataFrame()
         return pd.DataFrame(reachable).sort_values(by='minutes_until_arrival')
-
+    
     # --------------------------
     # Find best trip for fines potential (uses avg_dont_pay_map)
     # --------------------------

@@ -112,6 +112,9 @@ def api_find_best_trip():
     except:
         shape_id = None
     shape_feature = shape_lookup.get(shape_id) if shape_id else None
+    if shape_feature and stop_feature:
+        shape_feature = actions.trim_shape_to_stop(shape_feature, stop_feature)
+
     return jsonify({
         "best_option": to_serializable(best),
         "stop_feature": to_serializable(stop_feature),

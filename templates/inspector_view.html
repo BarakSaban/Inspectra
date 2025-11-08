@@ -364,7 +364,6 @@
       initMap();
       await loadData();
       startGeolocation();
-      setupUI();
     })();
 
     // ------------------- INSPECTOR RIDE FLOW -------------------
@@ -464,6 +463,8 @@
             style: { color: "black", weight: 4, dashArray: "8,6" },
           }).addTo(map);
         }
+        
+        // Relevant stop to take line
         if (json.stop_feature) {
           currentDisplayed.stopLayer = L.geoJSON(json.stop_feature, {
             pointToLayer: (f, latlng) => L.marker(latlng, { icon: busIcon }),
@@ -472,6 +473,8 @@
             .bindPopup(json.stop_feature.properties?.stop_name || "")
             .openPopup();
         }
+
+        // Bus line shape
         if (json.shape_feature) {
           currentDisplayed.shapeLayer = L.geoJSON(json.shape_feature, {
             style: { color: "green", weight: 4 },
@@ -556,10 +559,6 @@
       actionBtn.textContent = "Get Ride";
       ridePanel.classList.remove("completed");
     }
-
-    // Initialize
-    showPanel();
-    updatePanel();
   </script>
 </body>
 </html>
