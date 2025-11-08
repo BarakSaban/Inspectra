@@ -437,7 +437,6 @@
     // ---------- State Handlers ----------
     async function assignRide() {
       try {
-        // call your fetch function
         const btn = actionBtn;
         btn.disabled = true;
         btn.textContent = "Finding...";
@@ -457,13 +456,13 @@
           return;
         }
 
-        // display map layers
+        // display walking path to stop
         if (json.best_option.route_geometry) {
           currentDisplayed.walkLayer = L.geoJSON(json.best_option.route_geometry, {
             style: { color: "black", weight: 4, dashArray: "8,6" },
           }).addTo(map);
         }
-        
+
         // Relevant stop to take line
         if (json.stop_feature) {
           currentDisplayed.stopLayer = L.geoJSON(json.stop_feature, {
@@ -472,13 +471,6 @@
             .addTo(map)
             .bindPopup(json.stop_feature.properties?.stop_name || "")
             .openPopup();
-        }
-
-        // Bus line shape
-        if (json.shape_feature) {
-          currentDisplayed.shapeLayer = L.geoJSON(json.shape_feature, {
-            style: { color: "green", weight: 4 },
-          }).addTo(map);
         }
 
         // store ride data
@@ -491,6 +483,7 @@
           stop_id: json.stop_feature?.properties?.stop_code || "?",
           stop_name: json.stop_feature?.properties?.stop_name || "Unknown Stop",
           destination: json.best_option.destination || "Destination Unknown",
+          shape_feature: json.shape_feature
         };
 
         // update UI
@@ -527,28 +520,40 @@
         Confirm once you're on the bus.
       `;
       actionBtn.textContent = "On Bus";
+
+      if (currentDisplayed.walkLayer) {
+        map.removeLayer(currentDisplayed.walkLayer);
+        currentDisplayed.walkLayer = null;
+      }
+
+      // Add bus line
+      if (currentTripData.shape_feature) {
+        currentDisplayed.busLayer = L.geoJSON(currentTripData.shape_feature, {
+          style: { color: "green", weight: 4 },
+        }).addTo(map);
+      }
     }
 
-    async function confirmOnRide() {
+    function confirmOnRide() {
       currentState = "onride";
       statusTitle.textContent = "On Ride";
       rideDesc.textContent =
         "Ride ongoing. Confirm once your inspection is complete.";
       actionBtn.textContent = "Complete Ride";
-      try {
-        await clearDisplayed();
-      } catch (err) {
-        alert("Error: " + err.message);
-      }
     }
 
-    function completeRide() {
+    async function completeRide() {
       currentState = "completed";
       statusTitle.textContent = "Ride Completed 🎉";
       rideDesc.textContent =
         "Good job! Ride report saved. Press below for next assignment.";
       actionBtn.textContent = "Get New Ride";
       ridePanel.classList.add("completed");
+      try {
+        await clearDisplayed();
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
     }
 
     function resetToIdle() {
