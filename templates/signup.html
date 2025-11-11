@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inspectra — Register</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root { --inspectra-accent: #1f7bd1; --inspectra-accent-2: #0ea5e9; }
+    body { font-family: "Montserrat", sans-serif; background: linear-gradient(180deg, #f7faff, #ecf4fb); }
+    .fade-in { animation: fadeIn 0.6s ease forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    input:focus { outline: none; border-color: var(--inspectra-accent); box-shadow: 0 0 0 2px rgba(31, 123, 209, 0.2); }
+  </style>
+</head>
+<body class="min-h-screen p-6 flex items-center justify-center">
+
+  <div class="w-full max-w-md bg-white shadow-xl rounded-2xl p-8 fade-in border border-gray-100 relative">
+    <div class="text-center mb-6">
+      <div class="flex justify-center mb-3"><i data-lucide="user-plus" class="text-[40px] text-blue-600"></i></div>
+      <h1 class="text-2xl font-extrabold text-blue-900">Create Your Account</h1>
+      <p class="text-gray-500 text-sm mt-1">Join the Inspectra platform</p>
+    </div>
+
+    <div class="flex justify-center gap-4 mb-4">
+      <button id="role-inspector" class="role-btn flex items-center gap-2 px-4 py-2 rounded-lg font-semibold bg-blue-600 text-white transition"><i data-lucide="search"></i> Inspector</button>
+      <button id="role-admin" class="role-btn flex items-center gap-2 px-4 py-2 rounded-lg font-semibold bg-gray-200 text-gray-700 transition"><i data-lucide="shield"></i> Admin</button>
+    </div>
+
+    <form id="registerForm" class="space-y-4">
+      <input type="hidden" id="role" name="role" value="inspector" />
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+        <div class="flex items-center border rounded-md p-2">
+          <i data-lucide="user" class="w-4 h-4 text-gray-400 mr-2"></i>
+          <input type="text" id="name" class="w-full" placeholder="John Doe" required />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <div class="flex items-center border rounded-md p-2">
+          <i data-lucide="mail" class="w-4 h-4 text-gray-400 mr-2"></i>
+          <input type="email" id="email" class="w-full" placeholder="example@mail.com" required />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+        <div class="flex items-center border rounded-md p-2">
+          <i data-lucide="phone" class="w-4 h-4 text-gray-400 mr-2"></i>
+          <input type="tel" id="phone" class="w-full" placeholder="05X-XXXXXXX" required />
+        </div>
+      </div>
+
+      <div id="managerCodeField">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Manager Code (Given by Admin)</label>
+        <div class="flex items-center border rounded-md p-2">
+          <i data-lucide="key-round" class="w-4 h-4 text-gray-400 mr-2"></i>
+          <input type="text" id="managerCode" class="w-full" placeholder="MG-XXXX" />
+        </div>
+      </div>
+
+      <div id="teamNameField" class="hidden">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Team Name</label>
+        <div class="flex items-center border rounded-md p-2">
+          <i data-lucide="users" class="w-4 h-4 text-gray-400 mr-2"></i>
+          <input type="text" id="teamName" class="w-full" placeholder="Rosh HaAyin Unit" />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+        <div class="flex items-center border rounded-md p-2">
+          <i data-lucide="lock" class="w-4 h-4 text-gray-400 mr-2"></i>
+          <input type="password" id="password" class="w-full" placeholder="••••••••" required />
+          <i id="togglePassword" data-lucide="eye" class="w-5 h-5 text-gray-500 cursor-pointer"></i>
+        </div>
+        <div id="strengthBar" class="h-1 mt-1 rounded bg-gray-200"><div class="h-1 w-0 rounded" id="strengthFill"></div></div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+        <div class="flex items-center border rounded-md p-2">
+          <i data-lucide="lock-check" class="w-4 h-4 text-gray-400 mr-2"></i>
+          <input type="password" id="confirmPassword" class="w-full" placeholder="••••••••" required />
+        </div>
+      </div>
+
+      <button type="submit" class="w-full py-2.5 rounded-md text-white font-semibold text-base shadow-md hover:opacity-90" style="background:linear-gradient(90deg,var(--inspectra-accent),var(--inspectra-accent-2));">
+        <i data-lucide="check-circle-2" class="inline-block w-5 h-5 mr-1"></i> Register
+      </button>
+    </form>
+
+    <p class="text-center text-sm text-gray-600 mt-5">Already registered? <a href="/login" class="text-blue-600 font-semibold hover:underline">Log in</a></p>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    function toggleRoleButtons(active) {
+      document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('bg-blue-600','text-white'));
+      document.querySelectorAll('.role-btn').forEach(b => b.classList.add('bg-gray-200','text-gray-700'));
+      const el = document.getElementById(active);
+      el.classList.add('bg-blue-600','text-white');
+      el.classList.remove('bg-gray-200','text-gray-700');
+    }
+
+    const managerField = document.getElementById('managerCodeField');
+    const teamField = document.getElementById('teamNameField');
+
+    document.getElementById('role-inspector').onclick = () => {
+      document.getElementById('role').value = 'inspector';
+      toggleRoleButtons('role-inspector');
+      managerField.classList.remove('hidden');
+      teamField.classList.add('hidden');
+    };
+
+    document.getElementById('role-admin').onclick = () => {
+      document.getElementById('role').value = 'admin';
+      toggleRoleButtons('role-admin');
+      managerField.classList.add('hidden');
+      teamField.classList.remove('hidden');
+    };
+
+    document.getElementById('togglePassword').onclick = () => {
+      const p = document.getElementById('password');
+      p.type = p.type === 'password' ? 'text' : 'password';
+    };
+
+    const strengthFill = document.getElementById('strengthFill');
+    document.getElementById('password').oninput = e => {
+      const v = e.target.value;
+      let score = 0;
+      if (v.length > 5) score++;
+      if (/[A-Z]/.test(v)) score++;
+      if (/[0-9]/.test(v)) score++;
+      if (/[^A-Za-z0-9]/.test(v)) score++;
+      strengthFill.style.width = (score * 25) + '%';
+      strengthFill.style.background = score < 2 ? '#ef4444' : score < 3 ? '#f59e0b' : '#22c55e';
+    };
+
+    document.getElementById('registerForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const password = document.getElementById('password').value;
+      const confirm = document.getElementById('confirmPassword').value;
+      if (password !== confirm) return alert('Passwords do not match');
+
+      const payload = {
+        name: document.getElementById('name').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        role: document.getElementById('role').value,
+        manager_code: document.getElementById('managerCode').value.trim(),
+        team_name: document.getElementById('teamName').value?.trim(),
+        password
+      };
+
+      const res = await fetch('/api/register', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.success) window.location.href = '/login'; else alert(data.message || 'Error');
+    });
+  </script>
+</body>
+</html>

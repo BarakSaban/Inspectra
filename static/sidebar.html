@@ -26,6 +26,12 @@
           <span>Staff Management</span>
         </a>
       </li>
+      <li>
+        <a href="/signup" id="signupLink" class="nav-link">
+          <i class="fas fa-user-plus"></i>
+          <span>Signup</span>
+        </a>
+      </li>
     </ul>
 
     <!-- RIGHT: User Button -->
@@ -158,12 +164,22 @@
 </style>
 
 <script>
+  // Automatically highlight the current page
   const currentPath = window.location.pathname;
-  if (currentPath.includes("analytics")) {
-    document.getElementById("analyticsLink")?.classList.add("active");
-  } else if (currentPath.includes("admin")) {
-    document.getElementById("adminLink")?.classList.add("active");
-  } else if (currentPath.includes("staffLink")) {
-    document.getElementById("staffLink")?.classList.add("active");
+
+  // Map of paths → link IDs
+  const linkMap = {
+    "/analytics": "analyticsLink",
+    "/admin": "adminLink",
+    "/staff": "staffLink",
+    "/signup": "signupLink"
+  };
+
+  for (const path in linkMap) {
+    if (currentPath.startsWith(path)) {
+      const el = document.getElementById(linkMap[path]);
+      if (el) el.classList.add("active");
+      break;
+    }
   }
 </script>

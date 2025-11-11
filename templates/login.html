@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inspectra — Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root { --inspectra-accent: #1f7bd1; --inspectra-accent-2: #0ea5e9; }
+    body { font-family: "Montserrat", sans-serif; background: linear-gradient(180deg, #f7faff, #ecf4fb); }
+    .fade-in { animation: fadeIn 0.6s ease forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    input:focus { outline: none; border-color: var(--inspectra-accent); box-shadow: 0 0 0 2px rgba(31, 123, 209, 0.2); }
+  </style>
+</head>
+<body class="min-h-screen p-6 flex items-center justify-center">
+
+  <!-- LOGIN BOX -->
+  <div class="w-full max-w-md bg-white shadow-xl rounded-2xl p-8 fade-in border border-gray-100 relative">
+
+    <div class="text-center mb-6">
+      <div class="flex justify-center mb-3">
+        <i data-lucide="log-in" class="text-[40px] text-blue-600"></i>
+      </div>
+      <h1 class="text-2xl font-extrabold text-blue-900">Welcome Back</h1>
+      <p class="text-gray-500 text-sm mt-1">Log in to your Inspectra account</p>
+    </div>
+
+    <!-- ROLE BUTTONS -->
+    <div class="flex justify-center gap-4 mb-4">
+      <button id="role-inspector" class="role-btn flex items-center gap-2 px-4 py-2 rounded-lg font-semibold bg-blue-600 text-white transition">
+        <i data-lucide="search"></i> Inspector
+      </button>
+      <button id="role-admin" class="role-btn flex items-center gap-2 px-4 py-2 rounded-lg font-semibold bg-gray-200 text-gray-700 transition">
+        <i data-lucide="shield"></i> Admin
+      </button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <form id="loginForm" class="space-y-4">
+      <input type="hidden" id="role" name="role" value="inspector" />
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Phone or Email</label>
+        <div class="flex items-center border rounded-md p-2">
+          <i data-lucide="mail" class="w-4 h-4 text-gray-400 mr-2"></i>
+          <input type="text" id="contact" class="w-full" placeholder="+972 50 123 4567 / john@mail.com" required />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+        <div class="flex items-center border rounded-md p-2">
+          <i data-lucide="lock" class="w-4 h-4 text-gray-400 mr-2"></i>
+          <input type="password" id="password" class="w-full" placeholder="••••••••" required />
+          <i id="togglePassword" data-lucide="eye" class="w-5 h-5 text-gray-500 cursor-pointer"></i>
+        </div>
+      </div>
+
+      <p class="text-right text-xs text-blue-600 mt-1 cursor-pointer hover:underline" id="forgotPassword">Forgot password?</p>
+
+      <button type="submit" class="w-full py-2.5 rounded-md text-white font-semibold text-base shadow-md hover:opacity-90"
+        style="background:linear-gradient(90deg,var(--inspectra-accent),var(--inspectra-accent-2));">
+        <i data-lucide="check-circle-2" class="inline-block w-5 h-5 mr-1"></i> Log In
+      </button>
+    </form>
+
+    <p class="text-center text-sm text-gray-600 mt-5">
+      Don't have an account? <a href="/signup" class="text-blue-600 font-semibold hover:underline">Sign up</a>
+    </p>
+
+    <div id="toast" class="hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white shadow-lg rounded-xl px-4 py-3 text-sm font-medium border border-gray-200 flex items-center gap-2">
+      <i data-lucide="info" class="w-4 h-4"></i>
+      <span id="toast-msg">Processing...</span>
+    </div>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    const toast = document.getElementById("toast");
+    const toastMsg = document.getElementById("toast-msg");
+    function showToast(message, icon = "info", color = "text-blue-600") {
+      toast.classList.remove("hidden");
+      toastMsg.textContent = message;
+      toast.querySelector("i").setAttribute("data-lucide", icon);
+      toast.querySelector("i").className = `w-4 h-4 ${color}`;
+      lucide.createIcons();
+      setTimeout(() => toast.classList.add("hidden"), 3000);
+    }
+
+    function toggleRoleButtons(activeId) {
+      document.querySelectorAll('.role-btn').forEach(b => {
+        b.classList.remove('bg-blue-600','text-white');
+        b.classList.add('bg-gray-200','text-gray-700');
+      });
+      const el = document.getElementById(activeId);
+      el.classList.add('bg-blue-600','text-white');
+      el.classList.remove('bg-gray-200','text-gray-700');
+    }
+
+    document.getElementById('role-inspector').onclick = () => {
+      document.getElementById('role').value = 'inspector';
+      toggleRoleButtons('role-inspector');
+    };
+    document.getElementById('role-admin').onclick = () => {
+      document.getElementById('role').value = 'admin';
+      toggleRoleButtons('role-admin');
+    };
+
+    document.getElementById('togglePassword').onclick = () => {
+      const p = document.getElementById('password');
+      p.type = p.type === 'password' ? 'text' : 'password';
+    };
+
+    document.getElementById('forgotPassword').onclick = () => {
+      const contact = document.getElementById('contact').value.trim();
+      if (!contact) return alert('Please enter your phone or email to reset password.');
+      showToast('Password reset link sent if account exists', 'mail', 'text-blue-600');
+    };
+
+    document.getElementById('loginForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      showToast("Logging in...", "loader-2", "text-gray-500");
+
+      const payload = {
+        contact: document.getElementById('contact').value.trim(),
+        password: document.getElementById('password').value,
+        role: document.getElementById('role').value
+      };
+
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          showToast("Logged in successfully!", "check-circle", "text-green-600");
+          setTimeout(() => {
+            window.location.href = data.redirect || '/';
+          }, 1000);
+        } else {
+          showToast(data.message || "Invalid credentials", "alert-circle", "text-red-600");
+        }
+      } catch (err) {
+        showToast("Network error", "wifi-off", "text-red-600");
+      }
+    });
+  </script>
+</body>
+</html>
