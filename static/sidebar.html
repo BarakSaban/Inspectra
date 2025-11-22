@@ -36,7 +36,7 @@
 
     <!-- RIGHT: User Button -->
     <div class="nav-user">
-      <a href="#" class="user-btn">
+      <a href="#" class="user-btn" id="userBtn">
         <i class="fas fa-user"></i>
         <span>Inspect</span>
       </a>
@@ -125,8 +125,9 @@
 
   .user-btn {
     display: flex;
-    align-items: center;
-    gap: 6px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
     background-color: #1f7bd1;
     color: white;
     padding: 8px 16px;
@@ -138,6 +139,15 @@
 
   .user-btn:hover {
     background-color: #1667b8;
+  }
+
+  .user-btn small {
+    font-weight: 400;
+    font-size: 0.75rem;
+    color: #D0E6FF;
+    line-height: 1.1;
+    display: block;
+    transition: opacity 0.2s ease;
   }
 
   @media (max-width: 600px) {
@@ -164,22 +174,34 @@
 </style>
 
 <script>
-  // Automatically highlight the current page
+  // Highlight current page
   const currentPath = window.location.pathname;
-
-  // Map of paths → link IDs
   const linkMap = {
     "/analytics": "analyticsLink",
     "/admin": "adminLink",
     "/staff": "staffLink",
     "/signup": "signupLink"
   };
-
   for (const path in linkMap) {
     if (currentPath.startsWith(path)) {
       const el = document.getElementById(linkMap[path]);
       if (el) el.classList.add("active");
       break;
+    }
+  }
+
+  // ===== Dynamic user info from Flask session =====
+  const user = {
+    full_name: "{{ session.get('full_name', '') }}",
+    role: "{{ session.get('role', '') }}",
+    manager_code: "{{ session.get('manager_code', '') }}"
+  };
+
+  const userBtnSpan = document.querySelector("#userBtn span");
+  if (user.full_name) {
+    userBtnSpan.innerHTML = `Hi, ${user.full_name}`;
+    if (user.role === "admin" && user.manager_code) {
+      userBtnSpan.innerHTML += `<br><small>Manager Code: ${user.manager_code}</small>`;
     }
   }
 </script>
