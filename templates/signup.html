@@ -1,168 +1,290 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Inspectra — Register</title>
+
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+
   <style>
-    :root { --inspectra-accent: #1f7bd1; --inspectra-accent-2: #0ea5e9; }
-    body { font-family: "Montserrat", sans-serif; background: linear-gradient(180deg, #f7faff, #ecf4fb); }
-    .fade-in { animation: fadeIn 0.6s ease forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    input:focus { outline: none; border-color: var(--inspectra-accent); box-shadow: 0 0 0 2px rgba(31, 123, 209, 0.12); }
+    :root{
+      --accent:#1f7bd1;
+      --accent-2:#0ea5e9;
+      --bg-start:#f7faff;
+      --bg-end:#ecf4fb;
+    }
+    html,body{height:100%}
+    body{
+      font-family:"Montserrat",sans-serif;
+      background: linear-gradient(180deg,var(--bg-start),var(--bg-end));
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    .card{
+      background:white;
+      border:1px solid #eef2f7;
+      border-radius:18px;
+      box-shadow:0 10px 30px rgba(20,30,60,0.06);
+    }
+    .fade-in{animation:fadeIn .5s ease both}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none}}
+    input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(31,123,209,0.06)}
+    /* slim bottom progress */
+    .progress-wrap{position:fixed;left:0;right:0;bottom:0;height:3px;background:transparent;z-index:9998}
+    .progress-bar{height:3px;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .25s linear}
+    .progress-success{background:#16a34a!important} /* green */
+    .progress-error{background:#ef4444!important} /* red */
+
+    /* toast */
+    #toast{
+      position:fixed;
+      bottom:68px;
+      left:50%;
+      transform:translateX(-50%);
+      background:white;
+      border:1px solid #e6edf7;
+      padding:10px 14px;
+      border-radius:12px;
+      box-shadow:0 8px 20px rgba(20,30,60,0.07);
+      display:flex;
+      gap:10px;
+      align-items:center;
+      z-index:9999;
+      min-width:180px;
+      max-width:90%;
+      font-weight:600;
+      color:#0f172a;
+      visibility:hidden;
+      opacity:0;
+      transition:opacity .25s, visibility .25s, transform .25s;
+    }
+    #toast.show{visibility:visible;opacity:1;transform:translateY(0)}
+    #toast .msg{font-weight:600}
+    .btn-loading{opacity:.9;transform:translateY(0);}
+
+    /* small micro spinner inside button (tailwind util tolerated) */
+    .btn-spinner{display:inline-block;vertical-align:middle;margin-right:8px}
   </style>
 </head>
-<body class="min-h-screen p-6 flex items-center justify-center">
+<body class="min-h-screen flex items-center justify-center p-6">
 
-  <div class="w-full max-w-md bg-white shadow-xl rounded-2xl p-8 fade-in border border-gray-100 relative">
+  <main class="w-full max-w-md card p-8 fade-in">
     <div class="text-center mb-6">
-      <div class="flex justify-center mb-3"><i data-lucide="user-plus" class="text-[40px] text-blue-600"></i></div>
-      <h1 class="text-2xl font-extrabold text-blue-900">Create Your Account</h1>
+      <div class="flex items-center justify-center mb-3">
+        <i data-lucide="user-plus" class="text-[36px] text-[#1f7bd1]"></i>
+      </div>
+      <h1 class="text-2xl font-extrabold text-[#0b3b63]">Create Your Account</h1>
       <p class="text-gray-500 text-sm mt-1">Join the Inspectra platform</p>
     </div>
 
-    <div class="flex justify-center gap-4 mb-4">
-      <button id="role-inspector" class="role-btn flex items-center gap-2 px-4 py-2 rounded-lg font-semibold bg-blue-600 text-white transition"><i data-lucide="search"></i> Inspector</button>
-      <button id="role-admin" class="role-btn flex items-center gap-2 px-4 py-2 rounded-lg font-semibold bg-gray-200 text-gray-700 transition"><i data-lucide="shield"></i> Admin</button>
+    <div class="flex justify-center gap-3 mb-4">
+      <button id="role-inspector" class="role-btn flex items-center gap-2 px-4 py-2 rounded-lg font-semibold bg-[#1f7bd1] text-white transition">
+        <i data-lucide="search"></i> Inspector
+      </button>
+      <button id="role-admin" class="role-btn flex items-center gap-2 px-4 py-2 rounded-lg font-semibold bg-gray-100 text-gray-700 transition">
+        <i data-lucide="shield"></i> Admin
+      </button>
     </div>
 
     <form id="registerForm" class="space-y-4">
-      <input type="hidden" id="role" name="role" value="inspector" />
+      <input type="hidden" id="role" value="inspector">
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+        <label class="block text-sm text-gray-700 mb-1">Full Name</label>
         <div class="flex items-center border rounded-md p-2">
           <i data-lucide="user" class="w-4 h-4 text-gray-400 mr-2"></i>
-          <input type="text" id="name" class="w-full" placeholder="John Doe" required />
+          <input id="name" type="text" class="w-full" placeholder="John Doe" required>
         </div>
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <label class="block text-sm text-gray-700 mb-1">Email</label>
         <div class="flex items-center border rounded-md p-2">
           <i data-lucide="mail" class="w-4 h-4 text-gray-400 mr-2"></i>
-          <input type="email" id="email" class="w-full" placeholder="example@mail.com" required />
+          <input id="email" type="email" class="w-full" placeholder="example@mail.com" required>
         </div>
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+        <label class="block text-sm text-gray-700 mb-1">Phone Number</label>
         <div class="flex items-center border rounded-md p-2">
           <i data-lucide="phone" class="w-4 h-4 text-gray-400 mr-2"></i>
-          <input type="tel" id="phone" class="w-full" placeholder="05X-XXXXXXX" required />
+          <input id="phone" type="tel" class="w-full" placeholder="05X-XXXXXXX" required>
         </div>
       </div>
 
       <div id="managerCodeField">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Manager Code (Given by Admin)</label>
+        <label class="block text-sm text-gray-700 mb-1">Manager Code (Given by Admin)</label>
         <div class="flex items-center border rounded-md p-2">
-          <i data-lucide="key-round" class="w-4 h-4 text-gray-400 mr-2"></i>
-          <input type="text" id="managerCode" class="w-full" placeholder="admin_username (ask your admin)" />
+          <i data-lucide="key" class="w-4 h-4 text-gray-400 mr-2"></i>
+          <input id="managerCode" type="text" class="w-full" placeholder="admin_username">
         </div>
       </div>
 
       <div id="teamNameField" class="hidden">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Team Name</label>
+        <label class="block text-sm text-gray-700 mb-1">Team Name</label>
         <div class="flex items-center border rounded-md p-2">
           <i data-lucide="users" class="w-4 h-4 text-gray-400 mr-2"></i>
-          <input type="text" id="teamName" class="w-full" placeholder="Rosh HaAyin Unit" />
+          <input id="teamName" type="text" class="w-full" placeholder="Rosh HaAyin Unit">
         </div>
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+        <label class="block text-sm text-gray-700 mb-1">Password</label>
         <div class="flex items-center border rounded-md p-2">
           <i data-lucide="lock" class="w-4 h-4 text-gray-400 mr-2"></i>
-          <input type="password" id="password" class="w-full" placeholder="••••••••" required />
+          <input id="password" type="password" class="w-full" required>
           <i id="togglePassword" data-lucide="eye" class="w-5 h-5 text-gray-500 cursor-pointer"></i>
         </div>
-        <div id="strengthBar" class="h-1 mt-1 rounded bg-gray-200"><div class="h-1 w-0 rounded" id="strengthFill"></div></div>
+        <div class="h-1 mt-2 rounded bg-gray-100 overflow-hidden">
+          <div id="strengthFill" class="h-1 w-0 rounded"></div>
+        </div>
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+        <label class="block text-sm text-gray-700 mb-1">Confirm Password</label>
         <div class="flex items-center border rounded-md p-2">
-          <i data-lucide="lock-check" class="w-4 h-4 text-gray-400 mr-2"></i>
-          <input type="password" id="confirmPassword" class="w-full" placeholder="••••••••" required />
+          <i data-lucide="lock" class="w-4 h-4 text-gray-400 mr-2"></i>
+          <input id="confirmPassword" type="password" class="w-full" required>
         </div>
       </div>
 
-      <button type="submit" class="w-full py-2.5 rounded-md text-white font-semibold text-base shadow-md hover:opacity-90" style="background:linear-gradient(90deg,var(--inspectra-accent),var(--inspectra-accent-2));">
-        <i data-lucide="check-circle-2" class="inline-block w-5 h-5 mr-1"></i> Register
+      <button id="registerBtn" type="submit"
+        class="w-full py-2.5 rounded-md text-white font-semibold text-base shadow-md"
+        style="background:linear-gradient(90deg,var(--accent),var(--accent-2));">
+        <span class="btn-content"><i data-lucide="check-circle" class="inline-block w-5 h-5 mr-1"></i> Register</span>
       </button>
     </form>
 
-    <p class="text-center text-sm text-gray-600 mt-5">Already registered? <a href="/login" class="text-blue-600 font-semibold hover:underline">Log in</a></p>
+    <p class="text-center text-sm text-gray-600 mt-5">Already registered? <a href="/login" class="text-[#1f7bd1] font-semibold hover:underline">Log in</a></p>
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" aria-live="polite">
+    <i data-lucide="info" class="w-4 h-4"></i>
+    <span class="msg" id="toast-msg">Processing...</span>
   </div>
 
-  <div id="toast" class="hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white shadow-lg rounded-xl px-4 py-3 text-sm font-medium border border-gray-200 flex items-center gap-2">
-    <i data-lucide="info" class="w-4 h-4"></i>
-    <span id="toast-msg">Processing...</span>
+  <!-- Bottom progress -->
+  <div class="progress-wrap" aria-hidden="true">
+    <div id="progressBar" class="progress-bar"></div>
   </div>
 
   <script>
     lucide.createIcons();
-    const toast = document.getElementById("toast");
-    const toastMsg = document.getElementById("toast-msg");
-    function showToast(message, icon = "info", color = "text-blue-600") {
-      toast.classList.remove("hidden");
+
+    // cached elements
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toast-msg');
+    const progressBar = document.getElementById('progressBar');
+    const registerForm = document.getElementById('registerForm');
+    const registerBtn = document.getElementById('registerBtn');
+
+    // safe showToast (lucide-safe)
+    function showToast(message, icon='info', color='text-blue-600'){
+      if(!toast) return;
+      // ensure SVG icon exists
+      let svg = toast.querySelector('svg');
+      if(!svg){
+        // place <i> to be converted by lucide
+        toast.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4 ${color}"></i><span class="msg" id="toast-msg"></span>`;
+        lucide.createIcons();
+      }
       toastMsg.textContent = message;
-      toast.querySelector("i").setAttribute("data-lucide", icon);
-      toast.querySelector("i").className = `w-4 h-4 ${color}`;
-      lucide.createIcons();
-      setTimeout(() => toast.classList.add("hidden"), 3000);
+      // update svg
+      svg = toast.querySelector('svg');
+      if(svg){
+        svg.setAttribute('data-lucide', icon);
+        svg.setAttribute('class', `w-4 h-4 ${color}`);
+        lucide.createIcons();
+      }
+      toast.classList.add('show');
+      // hide eventually
+      clearTimeout(toast._hideTimer);
+      toast._hideTimer = setTimeout(()=> toast.classList.remove('show'), 2800);
     }
 
-    function toggleRoleButtons(active) {
-      document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('bg-blue-600','text-white'));
-      document.querySelectorAll('.role-btn').forEach(b => b.classList.add('bg-gray-200','text-gray-700'));
+    // progress helpers
+    function startProgress(){
+      progressBar.style.transition = 'none';
+      progressBar.style.width = '2%';
+      // allow a frame then begin
+      requestAnimationFrame(()=> {
+        progressBar.style.transition = 'width 900ms linear';
+        progressBar.style.width = '60%';
+      });
+    }
+    function finishProgress(success=true){
+      progressBar.style.transition = 'width 300ms ease';
+      progressBar.style.width = '100%';
+      if(success){
+        progressBar.classList.remove('progress-error');
+        progressBar.classList.add('progress-success');
+      } else {
+        progressBar.classList.remove('progress-success');
+        progressBar.classList.add('progress-error');
+      }
+      // hide after a short delay
+      setTimeout(()=> {
+        progressBar.style.width = '0%';
+        progressBar.classList.remove('progress-success','progress-error');
+      }, 700);
+    }
+
+    // role toggles
+    function toggleRoleButtons(active){
+      document.querySelectorAll('.role-btn').forEach(b=>{
+        b.classList.remove('bg-[#1f7bd1]','text-white');
+        b.classList.add('bg-gray-100','text-gray-700');
+      });
       const el = document.getElementById(active);
-      el.classList.add('bg-blue-600','text-white');
-      el.classList.remove('bg-gray-200','text-gray-700');
+      if(el){ el.classList.add('bg-[#1f7bd1]','text-white'); el.classList.remove('bg-gray-100','text-gray-700'); }
     }
 
-    const managerField = document.getElementById('managerCodeField');
-    const teamField = document.getElementById('teamNameField');
-
-    document.getElementById('role-inspector').onclick = () => {
-      document.getElementById('role').value = 'inspector';
+    document.getElementById('role-inspector').addEventListener('click', ()=>{
+      document.getElementById('role').value='inspector';
       toggleRoleButtons('role-inspector');
-      managerField.classList.remove('hidden');
-      teamField.classList.add('hidden');
-    };
-
-    document.getElementById('role-admin').onclick = () => {
-      document.getElementById('role').value = 'admin';
+      document.getElementById('managerCodeField').classList.remove('hidden');
+      document.getElementById('teamNameField').classList.add('hidden');
+    });
+    document.getElementById('role-admin').addEventListener('click', ()=>{
+      document.getElementById('role').value='admin';
       toggleRoleButtons('role-admin');
-      managerField.classList.add('hidden');
-      teamField.classList.remove('hidden');
-    };
+      document.getElementById('managerCodeField').classList.add('hidden');
+      document.getElementById('teamNameField').classList.remove('hidden');
+    });
 
-    document.getElementById('togglePassword').onclick = () => {
+    // password toggle + strength
+    document.getElementById('togglePassword').addEventListener('click', ()=>{
       const p = document.getElementById('password');
       p.type = p.type === 'password' ? 'text' : 'password';
-    };
-
+    });
     const strengthFill = document.getElementById('strengthFill');
-    document.getElementById('password').oninput = e => {
+    document.getElementById('password').addEventListener('input', e=>{
       const v = e.target.value;
       let score = 0;
-      if (v.length > 5) score++;
-      if (/[A-Z]/.test(v)) score++;
-      if (/[0-9]/.test(v)) score++;
-      if (/[^A-Za-z0-9]/.test(v)) score++;
-      strengthFill.style.width = (score * 25) + '%';
-      strengthFill.style.background = score < 2 ? '#ef4444' : score < 3 ? '#f59e0b' : '#22c55e';
-    };
+      if(v.length>5) score++;
+      if(/[A-Z]/.test(v)) score++;
+      if(/[0-9]/.test(v)) score++;
+      if(/[^A-Za-z0-9]/.test(v)) score++;
+      strengthFill.style.width = (score*25)+'%';
+      strengthFill.style.background = score<2? '#ef4444' : score<3? '#f59e0b' : '#16a34a';
+    });
 
-    document.getElementById('registerForm').addEventListener('submit', async e => {
+    // submit
+    registerForm.addEventListener('submit', async e=>{
       e.preventDefault();
+
       const password = document.getElementById('password').value;
       const confirm = document.getElementById('confirmPassword').value;
-      if (password !== confirm) return alert('Passwords do not match');
+      if(password !== confirm){
+        showToast('Passwords do not match','alert-circle','text-red-600');
+        finishProgress(false);
+        return;
+      }
 
       const payload = {
         name: document.getElementById('name').value.trim(),
@@ -170,24 +292,39 @@
         phone: document.getElementById('phone').value.trim(),
         role: document.getElementById('role').value,
         manager_code: document.getElementById('managerCode').value.trim(),
-        team_name: document.getElementById('teamName').value?.trim(),
+        team_name: document.getElementById('teamName').value.trim(),
         password
       };
 
+      // UI pre
+      registerBtn.disabled = true;
+      registerBtn.classList.add('btn-loading');
+      registerBtn.querySelector('.btn-content')?.classList.add('opacity-80');
+      startProgress();
+      showToast('Registering...','loader','text-gray-500');
+
       try {
-        showToast("Registering...", "loader-2", "text-gray-500");
-        const res = await fetch('/api/register', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+        const res = await fetch('/api/register',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(payload)
         });
         const data = await res.json();
-        if (res.ok && data.success) {
-          showToast("Registered! Redirecting...", "check-circle", "text-green-600");
-          setTimeout(() => window.location.href = data.redirect || '/login', 700);
+
+        if(res.ok && data.success){
+          showToast('Registered! Redirecting...','check-circle','text-green-600');
+          finishProgress(true);
+          setTimeout(()=> window.location.href = data.redirect || '/login', 700);
         } else {
-          showToast(data.message || 'Error', 'alert-circle', 'text-red-600');
+          showToast(data.message || 'Registration error','alert-circle','text-red-600');
+          finishProgress(false);
         }
-      } catch (err) {
-        showToast("Network error", "wifi-off", "text-red-600");
+      } catch(err){
+        showToast('Network error','wifi-off','text-red-600');
+        finishProgress(false);
+      } finally {
+        registerBtn.disabled = false;
+        registerBtn.classList.remove('btn-loading');
       }
     });
   </script>

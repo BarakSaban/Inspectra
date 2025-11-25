@@ -1,9 +1,10 @@
-<!-- templates/sidebar.html -->
+<!-- /sidebar.html -->
 <nav class="inspectra-topbar">
   <div class="nav-content">
-    <!-- LEFT: Logo -->
-    <div class="nav-logo">
+    <!-- LEFT: Logo + Greeting -->
+    <div class="nav-logo" style="display:flex; align-items:center; gap:12px;">
       <img src="/static/INSPECTRA_NEW.png" alt="Inspectra Logo" class="logo-img" />
+      <span id="userGreeting" style="font-weight:600; color:#334155; font-size:0.95rem;">Hi!</span>
     </div>
 
     <!-- CENTER: Navigation -->
@@ -27,16 +28,22 @@
         </a>
       </li>
       <li>
+        <a href="/profile" id="profileLink" class="nav-link">
+          <i class="fas fa-user-circle"></i>
+          <span>Profile</span>
+        </a>
+      </li>
+      <li>
         <a href="/signup" id="signupLink" class="nav-link">
-          <i class="fas fa-user-plus"></i>
-          <span>Signup</span>
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Log Out</span>
         </a>
       </li>
     </ul>
 
     <!-- RIGHT: User Button -->
     <div class="nav-user">
-      <a href="#" class="user-btn" id="userBtn">
+      <a href="/logout" class="user-btn" id="userBtn">
         <i class="fas fa-user"></i>
         <span>Inspect</span>
       </a>
@@ -180,6 +187,7 @@
     "/analytics": "analyticsLink",
     "/admin": "adminLink",
     "/staff": "staffLink",
+    "/profile": "profileLink",
     "/signup": "signupLink"
   };
   for (const path in linkMap) {
@@ -190,18 +198,20 @@
     }
   }
 
-  // ===== Dynamic user info from Flask session =====
-  const user = {
-    full_name: "{{ session.get('full_name', '') }}",
-    role: "{{ session.get('role', '') }}",
-    manager_code: "{{ session.get('manager_code', '') }}"
-  };
+  // Dynamic greeting (data must come from parent page)
+  function setSidebarUser(fullName, role) {
+    const greetingEl = document.getElementById("userGreeting");
+    if (!greetingEl) return;
 
-  const userBtnSpan = document.querySelector("#userBtn span");
-  if (user.full_name) {
-    userBtnSpan.innerHTML = `Hi, ${user.full_name}`;
-    if (user.role === "admin" && user.manager_code) {
-      userBtnSpan.innerHTML += `<br><small>Manager Code: ${user.manager_code}</small>`;
+    const firstName = fullName?.trim().split(" ")[0] || "";
+    const niceRole = role ? role.toLowerCase() : "";
+
+    if (firstName && niceRole) {
+      greetingEl.textContent = `Hi, ${niceRole} ${firstName}`;
+    } else if (firstName) {
+      greetingEl.textContent = `Hi, ${firstName}`;
+    } else {
+      greetingEl.textContent = "Hi!";
     }
   }
 </script>

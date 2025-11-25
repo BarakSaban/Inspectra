@@ -244,18 +244,19 @@
   </script>
 
   <main class="max-w-6xl mx-auto px-6 py-6">
-    <header class="mb-6">
+<header class="mb-6">
   <h1 class="text-3xl font-extrabold text-blue-900">Overview</h1>
   <p class="text-sm text-gray-600 mb-3">Real persisted inspector activity and assignments</p>
+<!-- Admin Code Box -->
+<div id="adminCodeBox" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg shadow-sm bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200">
+  <i class="fas fa-id-card text-blue-600"></i>
+  <span class="text-sm font-semibold text-blue-800">
+    Admin Code: <span id="adminCodeValue" class="font-bold text-blue-900">{{ session.get('admin_code', '—') }}</span>
+  </span>
+</div>
 
-  <!-- ✅ Manager Code Box -->
-  <div id="managerCodeBox" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg shadow-sm bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200">
-    <i class="fas fa-id-card text-blue-600"></i>
-    <span class="text-sm font-semibold text-blue-800">
-      Manager Code: <span id="managerCodeValue" class="font-bold text-blue-900">—</span>
-    </span>
-  </div>
 </header>
+
 
 
     <!-- STAT CARDS -->
