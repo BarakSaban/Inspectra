@@ -1,0 +1,1 @@
+# Makes auth accessible as a packacge

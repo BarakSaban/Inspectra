@@ -1,151 +1,98 @@
-from flask import Flask, render_template, jsonify, request, redirect
+import os
+from datetime import datetime, date
+from flask import Flask, render_template, jsonify, request, redirect, session, url_for, make_response
 import pandas as pd
-import json
-import math
+import numpy as np
+from sqlalchemy import func
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_cors import CORS
+
+# Inspectra core modules
 from Classes import Inspector
 from Actions import Actions
-import numpy as np
-import sklearn
 
-print(f"Version of sklearn is {sklearn.__version__}. sklearn is critical for osmnx to work.")
+from app import create_app
 
+from app.extensions import db
+
+from app.models import Inspector as InspectorModel 
+from app.models import InspectorRun, User, Fine
+
+from app.views.pages import views_bp
+
+from app.api.profile import profile_api
+from app.api.staff import staff_api
+from app.api.analytics import analytics_api
+from app.api.assign_runs import assignments_api
+
+from seeds import seed_fake_data, seed_inspectors
+
+from utils.auth_helpers import logged_in, current_role, current_inspector_id, get_request_data, is_api_request, generate_manager_code
+
+from auth.authentication import auth_bp
+
+# ---------------- Flask Setup ----------------
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
-# ---------- Load CSV and JSON data ----------
-stops_df = pd.read_csv("./gtfs/gtfs_filtered/stops.txt")
-stop_times_df = pd.read_csv("./gtfs/gtfs_filtered/stop_times.txt")
-trips_df = pd.read_csv("./gtfs/gtfs_filtered/trips.txt")
-routes_df = pd.read_csv("./static/routes_with_avgs.csv")
+CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
 
-actions = Actions(stops_df, stop_times_df, trips_df, routes_df)
+app.secret_key = os.environ.get("INSPECTRA_SECRET", "inspectra_dev_secret_please_change")
 
-stops_gj = json.load(open('static/stops.geojson', 'r', encoding='utf-8'))
-stop_shape_map = json.load(open('static/stop_shape_map.json', 'r', encoding='utf-8'))
-shapes_gj = json.load(open('static/shapes.geojson', 'r', encoding='utf-8'))
+app.config.update(
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SECURE=True,
+)
 
-stop_lookup = {str(f['properties']['stop_id']): f for f in stops_gj.get('features', [])}
-shape_lookup = {str(f['properties'].get('shape_id')): f for f in shapes_gj.get('features', [])}
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+DB_PATH = os.path.join(BASE_DIR, "inspectra.db")
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{DB_PATH}"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# ---------- Helper functions ----------
-def haversine_meters(lat1, lon1, lat2, lon2):
-    R = 6371000.0
-    phi1 = math.radians(lat1)
-    phi2 = math.radians(lat2)
-    dphi = math.radians(lat2 - lat1)
-    dlambda = math.radians(lon2 - lon1)
-    a = math.sin(dphi/2.0)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2.0)**2
-    return 2 * R * math.asin(math.sqrt(a))
+app.register_blueprint(auth_bp)
+app.register_blueprint(views_bp)
+app.register_blueprint(profile_api)
+app.register_blueprint(staff_api)
+app.register_blueprint(analytics_api)
+app.register_blueprint(assignments_api)
 
-def to_serializable(obj):
-    if isinstance(obj, (np.integer,)):
-        return int(obj)
-    elif isinstance(obj, (np.floating,)):
-        return float(obj)
-    elif isinstance(obj, (np.ndarray,)):
-        return obj.tolist()
-    elif isinstance(obj, (pd.Series, pd.DataFrame)):
-        return obj.to_dict(orient="records")
-    elif isinstance(obj, dict):
-        return {k: to_serializable(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [to_serializable(v) for v in obj]
-    else:
-        return obj
+db.init_app(app)
 
-# ---------- Routes ----------
-@app.route('/')
-def root():
-    return redirect('/admin')
+# ---------------- Load GTFS + Actions ----------------
+GTFS_PATH = os.path.join(BASE_DIR, "gtfs", "gtfs_filtered")
+try:
+    stops_df = pd.read_csv(os.path.join(GTFS_PATH, "stops.txt"))
+    stop_times_df = pd.read_csv(os.path.join(GTFS_PATH, "stop_times.txt"))
+    trips_df = pd.read_csv(os.path.join(GTFS_PATH, "trips.txt"))
+    routes_df = pd.read_csv(os.path.join(BASE_DIR, "static", "routes_with_avgs.csv"))
+    actions = Actions(stops_df, stop_times_df, trips_df, routes_df)
+    print("✓ GTFS and Actions loaded")
+except Exception as e:
+    print("⚠️ GTFS or routes load failed:", e)
+    stops_df = pd.DataFrame()
+    stop_times_df = pd.DataFrame()
+    trips_df = pd.DataFrame()
+    routes_df = pd.DataFrame()
+    actions = None
 
-@app.route('/admin')
-def admin_dashboard():
-    return render_template('Admin_main_dashboard.html')
-
-@app.route('/analytics')
-def analytics_page():
-    return render_template('Analytics.html')
-
-@app.route('/inspect')
-def inspect_page():
-    return render_template('inspector_view.html')
-
-@app.route('/api/nearest_stop', methods=['POST'])
-def nearest_stop():
-    data = request.get_json()
-    lat = float(data['lat'])
-    lon = float(data['lon'])
-    best = None
-    best_d = float('inf')
-    for f in stops_gj.get('features', []):
-        coords = f['geometry']['coordinates']
-        d = haversine_meters(lat, lon, coords[1], coords[0])
-        if d < best_d:
-            best_d = d
-            best = f
-    if best is None:
-        return jsonify({"error": "no stops"}), 404
-    stop_id = str(best['properties']['stop_id'])
-    mappings = [m for m in stop_shape_map if str(m['stop_id']) == stop_id]
-    return jsonify({
-        "stop": to_serializable(best),
-        "distance_m": to_serializable(best_d),
-        "mappings": to_serializable(mappings)
-    })
-
-@app.route('/api/find_best_trip', methods=['POST'])
-def api_find_best_trip():
-    req = request.get_json()
-    lat = float(req.get('lat', 32.0880))
-    lon = float(req.get('lon', 34.7898))
-    buffer_minutes = float(req.get('buffer', 3))
-    radius_m = float(req.get('radius', 666))
-    inspector = Inspector(inspector_id='local', name='Local', latitude=lat, longitude=lon, available=True)
-    best = actions.find_best_fine_trip(inspector, buffer_minutes=buffer_minutes, radius_m=radius_m)
-    if not best:
-        return jsonify({"fallback": "No suitable trip found"})
-    stop_id = str(best['stop_id'])
-    trip_id = str(best['trip_id'])
-    stop_feature = stop_lookup.get(stop_id)
-    shape_id = None
+# ---------------- DB Init ----------------
+with app.app_context():
     try:
-        shape_id = str(trips_df.loc[trips_df['trip_id'] == trip_id, 'shape_id'].values[0]).replace(".0", "")
-    except:
-        shape_id = None
-    shape_feature = shape_lookup.get(shape_id) if shape_id else None
-    if shape_feature and stop_feature:
-        shape_feature = actions.trim_shape_to_stop(shape_feature, stop_feature)
+        db.create_all()
+        if not User.query.filter_by(username='admin').first():
+            admin_user = User(username='admin', role='admin', manager_code=generate_manager_code(), full_name='Admin')
+            admin_user.set_password(os.environ.get("INSPECTRA_ADMIN_PW", "admin"))
+            db.session.add(admin_user)
+            db.session.commit()
+            print("✅ Default admin user created (username=admin).")
+    except Exception as e:
+        print("⚠️ DB init/create_all failed:", e)
+        db.session.rollback()
 
-    return jsonify({
-        "best_option": to_serializable(best),
-        "stop_feature": to_serializable(stop_feature),
-        "shape_feature": to_serializable(shape_feature)
-    })
+    seed_inspectors()
+    seed_fake_data()
 
-@app.route('/api/analytics')
-def api_analytics():
-    data = {
-        "totalFines": 1432,
-        "avgEfficiency": 82,
-        "completedAssignments": 10,
-        "inspectors": [
-            {"name": "John Doe", "totalFines": 1200},
-            {"name": "Jane Smith", "totalFines": 400},
-            {"name": "Lior Ben", "totalFines": 300},
-            {"name": "Dana Levi", "totalFines": 150}
-        ],
-        "hourly": [
-            {"hour": "07:00", "fines": 250},
-            {"hour": "09:00", "fines": 800},
-            {"hour": "15:00", "fines": 900},
-            {"hour": "19:00", "fines": 850}
-        ],
-        "assignmentStatus": [
-            {"name": "Completed", "value": 30},
-            {"name": "Pending", "value": 50},
-            {"name": "Inspecting", "value": 10}
-        ]
-    }
-    return jsonify(data)
 
+# ---------------- Run App ----------------
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))

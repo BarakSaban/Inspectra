@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Inspectra — Staff Management</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: "Montserrat", sans-serif;
+      background: linear-gradient(180deg, #f8fbff 0%, #eef6fb 100%);
+      margin: 0;
+      padding-top: 80px;
+      color: #0f172a;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 6px 18px rgba(15,23,42,0.06);
+    }
+    th, td { padding: 8px 12px; text-align: left; }
+    thead th {
+      font-size: 0.85rem;
+      color: #64748b;
+      border-bottom: 1px solid #e6edf3;
+      cursor: pointer;
+      user-select: none;
+    }
+    .badge-available {
+      color: #065f46;
+      background: rgba(16,185,129,0.12);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+    .badge-busy {
+      color: #b45309;
+      background: rgba(245,158,11,0.12);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+    .gradient-btn {
+      background: linear-gradient(90deg, #1f7bd1, #0ea5e9);
+      color: white;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+    }
+    .icon-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .modal-box {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="sidebar-placeholder"></div>
+  <script>
+    fetch("/static/sidebar.html")
+      .then(r => r.text())
+      .then(t => document.getElementById('sidebar-placeholder').innerHTML = t);
+  </script>
+
+  <main class="max-w-6xl mx-auto px-6 py-6">
+    <header class="mb-6 flex justify-between items-center">
+      <div>
+        <h1 class="text-3xl font-extrabold text-blue-900">Staff Management</h1>
+        <p class="text-sm text-gray-600">Control and understand your inspectors</p>
+      </div>
+      <div>
+        <button id="addInspectorBtn" class="gradient-btn">+ Add Inspector</button>
+      </div>
+    </header>
+
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+      <div class="card icon-card">
+        <i data-lucide="users" class="text-blue-600 w-6 h-6"></i>
+        <div>
+          <h4 class="font-semibold text-gray-600">Total Inspectors</h4>
+          <div id="totalInspectors" class="text-2xl font-bold mt-1">—</div>
+        </div>
+      </div>
+      <div class="card icon-card">
+        <i data-lucide="file-check" class="text-green-600 w-6 h-6"></i>
+        <div>
+          <h4 class="font-semibold text-gray-600">Avg Fines / 7 days</h4>
+          <div id="avgFines" class="text-2xl font-bold mt-1">—</div>
+        </div>
+      </div>
+      <div class="card icon-card">
+        <i data-lucide="calendar-check" class="text-indigo-600 w-6 h-6"></i>
+        <div>
+          <h4 class="font-semibold text-gray-600">Today's Inspections</h4>
+          <div id="todayTrips" class="text-2xl font-bold mt-1">—</div>
+        </div>
+      </div>
+      <div class="card icon-card">
+        <i data-lucide="activity" class="text-amber-600 w-6 h-6"></i>
+        <div>
+          <h4 class="font-semibold text-gray-600">Active Inspectors</h4>
+          <div id="activeInspectors" class="text-2xl font-bold mt-1">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search + Table -->
+    <div class="flex flex-col md:flex-row justify-between items-center gap-3 mb-4">
+      <input id="searchInput" type="text" placeholder="Search inspector by name..." class="w-full md:w-1/2 border p-2 rounded-lg" />
+    </div>
+
+    <div class="card">
+      <h3 class="font-semibold mb-3">Inspector Overview</h3>
+      <table id="staffTable">
+        <thead>
+          <tr>
+            <th data-sort="name">Inspector</th>
+            <th data-sort="available">Status</th>
+            <th data-sort="today_trips">Today's Trips</th>
+            <th data-sort="weekly_fines">Weekly Fines</th>
+            <th data-sort="current_assignment">Current Assignment</th>
+            <th>View Location</th>
+            <th>Edit</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody id="staffTableBody"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <div id="modalRoot"></div>
+
+  <script>
+    lucide.createIcons();
+
+    let staffData = [];
+    let currentSort = { key: null, asc: true };
+
+    async function loadStaff() {
+      const res = await fetch('/api/staff');
+      staffData = await res.json();
+      renderTable();
+      updateStats();
+    }
+
+    function updateStats() {
+      const total = staffData.length;
+      const active = staffData.filter(i => i.available).length;
+      const avg = staffData.reduce((a, i) => a + (i.weekly_fines || 0), 0) / (total || 1);
+      const today = staffData.reduce((a, i) => a + (i.today_trips || 0), 0);
+      document.getElementById('totalInspectors').innerText = total;
+      document.getElementById('activeInspectors').innerText = active;
+      document.getElementById('avgFines').innerText = Math.round(avg);
+      document.getElementById('todayTrips').innerText = today;
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('staffTableBody');
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      let filtered = staffData.filter(i => i.name.toLowerCase().includes(searchTerm));
+
+      if (currentSort.key) {
+        filtered.sort((a, b) => {
+          let valA = a[currentSort.key];
+          let valB = b[currentSort.key];
+          if (typeof valA === "string") valA = valA.toLowerCase();
+          if (typeof valB === "string") valB = valB.toLowerCase();
+          if (valA > valB) return currentSort.asc ? 1 : -1;
+          if (valA < valB) return currentSort.asc ? -1 : 1;
+          return 0;
+        });
+      }
+
+      tbody.innerHTML = '';
+      filtered.forEach(i => {
+        const assignment = i.current_assignment ? `${i.current_assignment.status} (${i.current_assignment.potential_fines})` : '-';
+        tbody.innerHTML += `
+          <tr>
+            <td>${i.name} (${i.inspector_id})</td>
+            <td>${i.available ? '<span class="badge-available">Active</span>' : '<span class="badge-busy">Offline</span>'}</td>
+            <td>${i.today_trips}</td>
+            <td>${i.weekly_fines}</td>
+            <td>${assignment}</td>
+            <td><button class="viewLocBtn bg-blue-50 hover:bg-blue-100 text-sm px-2 py-1 rounded" data-id="${i.inspector_id}">View</button></td>
+            <td><button class="editBtn bg-gray-100 hover:bg-gray-200 text-sm px-2 py-1 rounded" data-id="${i.inspector_id}">Edit</button></td>
+            <td><button class="deleteBtn text-red-600 hover:bg-red-100 text-sm px-2 py-1 rounded" data-id="${i.inspector_id}">✖</button></td>
+          </tr>`;
+      });
+
+      document.querySelectorAll('.viewLocBtn').forEach(b => b.onclick = e => openViewLocation(e.target.dataset.id));
+      document.querySelectorAll('.editBtn').forEach(b => b.onclick = e => openEditInspector(e.target.dataset.id));
+      document.querySelectorAll('.deleteBtn').forEach(b => b.onclick = e => deleteInspector(e.target.dataset.id));
+    }
+
+    function showModal(html) {
+      const root = document.getElementById('modalRoot');
+      root.innerHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50" id="modalBackdrop">
+          <div class="modal-box">${html}</div>
+        </div>`;
+      document.getElementById('modalBackdrop').onclick = e => { if (e.target.id === 'modalBackdrop') root.innerHTML = ''; };
+    }
+
+    async function openViewLocation(id) {
+      const res = await fetch('/api/inspector/' + id);
+      const ins = await res.json();
+      showModal(`<h3 class="text-xl font-bold mb-2">Location — ${ins.name}</h3><div id="viewMap" style="height:300px"></div>`);
+      setTimeout(() => {
+        const map = L.map('viewMap').setView([ins.latitude || 32.0853, ins.longitude || 34.7818], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        if (ins.latitude && ins.longitude)
+          L.marker([ins.latitude, ins.longitude]).addTo(map).bindPopup(`<b>${ins.name}</b>`).openPopup();
+      }, 100);
+    }
+
+    async function openEditInspector(id) {
+      const res = await fetch('/api/inspector/' + id);
+      const ins = await res.json();
+      showModal(`
+        <h3 class="text-xl font-bold mb-3">Edit Inspector</h3>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label>Name</label><input id="edit_name" value="${ins.name}" class="border p-2 rounded w-full"></div>
+          <div><label>Email</label><input id="edit_email" value="${ins.email || ''}" class="border p-2 rounded w-full"></div>
+        </div>
+        <div id="mapPicker" class="mt-3" style="height:250px;border-radius:8px;"></div>
+        <div class="mt-4 text-right">
+          <button id="saveInspector" class="gradient-btn">Save</button>
+        </div>
+      `);
+
+      const map = L.map('mapPicker').setView([ins.latitude || 32.0853, ins.longitude || 34.7818], 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+      let marker = ins.latitude ? L.marker([ins.latitude, ins.longitude]).addTo(map) : null;
+      map.on('click', e => {
+        if (marker) marker.remove();
+        marker = L.marker(e.latlng).addTo(map);
+        ins.latitude = e.latlng.lat;
+        ins.longitude = e.latlng.lng;
+      });
+
+      document.getElementById('saveInspector').onclick = async () => {
+        const payload = {
+          name: document.getElementById('edit_name').value,
+          email: document.getElementById('edit_email').value,
+          latitude: ins.latitude,
+          longitude: ins.longitude,
+          available: ins.available
+        };
+        await fetch('/api/inspector/' + id, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        document.getElementById('modalRoot').innerHTML = '';
+        loadStaff();
+      };
+    }
+
+    async function deleteInspector(id) {
+      if (!confirm("Delete this inspector?")) return;
+      const res = await fetch('/api/inspector/' + id, { method: 'DELETE' });
+      if (res.ok) loadStaff();
+    }
+
+    document.getElementById("addInspectorBtn").onclick = () => {
+      showModal(`
+        <h3 class="text-xl font-bold mb-3">Add Inspector</h3>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label>ID</label><input id="new_id" class="border p-2 rounded w-full"></div>
+          <div><label>Name</label><input id="new_name" class="border p-2 rounded w-full"></div>
+          <div><label>Email</label><input id="new_email" class="border p-2 rounded w-full"></div>
+        </div>
+        <div id="mapPickerNew" class="mt-3" style="height:250px;border-radius:8px;"></div>
+        <div class="mt-4 text-right"><button id="createInspector" class="gradient-btn">Create</button></div>
+      `);
+
+      const map = L.map('mapPickerNew').setView([32.0853, 34.7818], 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+      let selectedCoords = null;
+      let marker = null;
+      map.on('click', e => {
+        if (marker) marker.remove();
+        marker = L.marker(e.latlng).addTo(map);
+        selectedCoords = e.latlng;
+      });
+
+      document.getElementById('createInspector').onclick = async () => {
+        const payload = {
+          inspector_id: document.getElementById('new_id').value,
+          name: document.getElementById('new_name').value,
+          email: document.getElementById('new_email').value,
+          latitude: selectedCoords ? selectedCoords.lat : null,
+          longitude: selectedCoords ? selectedCoords.lng : null,
+          available: true
+        };
+        await fetch('/api/inspector', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        document.getElementById('modalRoot').innerHTML = '';
+        loadStaff();
+      };
+    };
+
+    document.querySelectorAll("th[data-sort]").forEach(th => {
+      th.addEventListener("dblclick", () => {
+        const key = th.getAttribute("data-sort");
+        if (currentSort.key === key) currentSort.asc = !currentSort.asc;
+        else currentSort = { key, asc: true };
+        renderTable();
+      });
+    });
+
+    document.getElementById("searchInput").addEventListener("input", renderTable);
+
+    loadStaff();
+  </script>
+</body>
+</html>
