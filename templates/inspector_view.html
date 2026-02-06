@@ -88,22 +88,170 @@
         font-size: 1rem;
       }
     }
+
+    .ride-panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #ffffff;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      padding: 16px;
+      transform: translateY(70%);
+      transition: transform 0.3s ease-in-out;
+      z-index: 1200;
+      touch-action: none;
+    }
+
+    .ride-panel.open {
+      transform: translateY(0%);
+    }
+
+    .grab-bar {
+      width: 40px;
+      height: 5px;
+      background: #cbd5e1;
+      border-radius: 3px;
+      margin: 0 auto 10px;
+      cursor: grab;
+    }
+
+    #ride-content {
+      text-align: center;
+      font-family: "Inter", "Montserrat", system-ui, sans-serif;
+      padding: 0 8px;
+    }
+
+    #ride-status-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
+    }
+
+    #ride-desc {
+      color: #475569;
+      font-size: 1rem;
+      line-height: 1.4;
+      margin-bottom: 18px;
+      max-width: 320px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .ride-btn {
+      background: #1f7bd1;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 1rem;
+      width: 100%;
+      transition: all 0.2s ease;
+    }
+
+    .ride-btn:hover {
+      background: #0ea5e9;
+    }
+
+    /* Completed state flash */
+    .ride-panel.completed {
+      background: #ecfdf5;
+      transition: background 0.3s ease;
+    }
+
+
+    /* Availability Toggle */
+    .availability-toggle {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 8px 14px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+      z-index: 1002;
+      font-family: "Montserrat", system-ui, sans-serif;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 26px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #94a3b8;
+      transition: 0.3s;
+      border-radius: 26px;
+    }
+
+    .slider::before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #1f7bd1;
+    }
+
+    input:checked + .slider::before {
+      transform: translateX(20px);
+    }
+
   </style>
 </head>
 
 <body>
-  <!-- Floating Control Buttons -->
-  <div class="map-controls">
-    <button id="find-nearest-btn" class="map-btn">
-      <i class="fas fa-map-marker-alt"></i> Nearest Stop
-    </button>
-    <button id="find-best-btn" class="map-btn">
-      <i class="fas fa-route"></i> Best Trip
-    </button>
-  </div>
-
   <!-- Map -->
   <div id="map"></div>
+
+  <!-- Ride Control Panel -->
+  <div id="ride-panel" class="ride-panel">
+    <div class="grab-bar"></div>
+    <div id="ride-content">
+      <h3 id="ride-status-title">No Ride Assigned</h3>
+      <p id="ride-desc">Press below to get your next assignment.</p>
+      <button id="ride-action-btn" class="ride-btn">Get Ride</button>
+    </div>
+  </div>
+
+  <!-- Availability Toggle -->
+  <div class="availability-toggle">
+    <label class="switch">
+      <input type="checkbox" id="availabilitySwitch" checked>
+      <span class="slider"></span>
+    </label>
+    <span id="availabilityLabel">Available</span>
+  </div>
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -115,7 +263,7 @@
     const BUS_ICON_URL = '/static/bus-stop.png';
     // ---------------- END CONFIG ----------------
 
-    let map, inspectorMarker = null, inspectorCircle = null, userLatLng = null;
+    let map, inspectorMarker = null, userLatLng = null;
     let stops = [], shapes = [], stopShapeMap = [];
     let currentDisplayed = { stopLayer: null, shapeLayer: null, walkLayer: null };
 
@@ -124,6 +272,7 @@
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
       }).addTo(map);
+      map.zoomControl.remove();
     }
 
     async function loadData() {
@@ -178,10 +327,6 @@
           inspectorMarker = L.marker(userLatLng, { icon: inspectorIcon }).addTo(map);
           inspectorMarker.bindPopup('You (Inspector)').openPopup();
         } else inspectorMarker.setLatLng(userLatLng);
-
-        if (!inspectorCircle) {
-          inspectorCircle = L.circle(userLatLng, { radius: 666, color: '#1f7bd1', fillOpacity: 0.05 }).addTo(map);
-        } else inspectorCircle.setLatLng(userLatLng);
       }, err => console.error(err), { enableHighAccuracy: true });
     }
 
@@ -200,67 +345,226 @@
       return resp.json();
     }
 
-    async function fetchNearestAndShow() {
-      if (!userLatLng) return alert('Waiting for location...');
-      const [lat, lon] = userLatLng;
-      try {
-        const json = await safeJsonFetch('/api/nearest_stop', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lat, lon, radius: SEARCH_RADIUS_METERS })
-        });
-        clearDisplayed();
-        const stopFeature = json.stop;
-        if (!stopFeature?.geometry) return alert('No valid stop returned.');
-        const stopMarker = L.geoJSON(stopFeature, {
-          pointToLayer: (f, latlng) => L.marker(latlng, { icon: busIcon })
-        }).addTo(map).bindPopup(stopFeature.properties?.stop_name || '').openPopup();
-        currentDisplayed.stopLayer = stopMarker;
-      } catch (err) { alert('Error: ' + err.message); }
-    }
+    // ------------------- AVAILABILITY TOGGLE -------------------
+    const availabilitySwitch = document.getElementById("availabilitySwitch");
+    const availabilityLabel = document.getElementById("availabilityLabel");
 
-    async function fetchBestTripAndShow() {
-      if (!userLatLng) return alert('Waiting for location...');
-      const btn = document.getElementById('find-best-btn');
-      btn.disabled = true; btn.textContent = 'Finding...';
-      try {
-        const [lat, lon] = userLatLng;
-        const json = await safeJsonFetch('/api/find_best_trip', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lat, lon, buffer: 3, radius: 666 })
-        });
-        clearDisplayed();
-        if (json.best_option) {
-          if (json.best_option.route_geometry) {
-            currentDisplayed.walkLayer = L.geoJSON(json.best_option.route_geometry, {
-              style: { color: 'black', weight: 4, dashArray: '8,6' }
-            }).addTo(map);
-          }
-          if (json.stop_feature) {
-            currentDisplayed.stopLayer = L.geoJSON(json.stop_feature, {
-              pointToLayer: (f, latlng) => L.marker(latlng, { icon: busIcon })
-            }).addTo(map).bindPopup(json.stop_feature.properties?.stop_name || '').openPopup();
-          }
-          if (json.shape_feature) {
-            currentDisplayed.shapeLayer = L.geoJSON(json.shape_feature, {
-              style: { color: 'green', weight: 4 }
-            }).addTo(map);
-          }
-        } else alert('No reachable trip found.');
-      } catch (err) { alert('Error: ' + err.message); }
-      finally { btn.disabled = false; btn.textContent = 'Best Trip'; }
-    }
-
-    function setupUI() {
-      document.getElementById('find-nearest-btn').addEventListener('click', fetchNearestAndShow);
-      document.getElementById('find-best-btn').addEventListener('click', fetchBestTripAndShow);
-    }
+    availabilitySwitch.addEventListener("change", () => {
+      if (availabilitySwitch.checked) {
+        availabilityLabel.textContent = "Available";
+        availabilityLabel.style.color = "#16a34a"; // green
+        // TODO: send status to backend
+      } else {
+        availabilityLabel.textContent = "Unavailable";
+        availabilityLabel.style.color = "#dc2626"; // red
+        // TODO: send status to backend
+      }
+    });
 
     (async function main() {
       initMap();
       await loadData();
       startGeolocation();
-      setupUI();
     })();
+
+    // ------------------- INSPECTOR RIDE FLOW -------------------
+    const ridePanel = document.getElementById("ride-panel");
+    const grabBar = document.querySelector(".grab-bar");
+    const actionBtn = document.getElementById("ride-action-btn");
+    const statusTitle = document.getElementById("ride-status-title");
+    const rideDesc = document.getElementById("ride-desc");
+
+    let startY, currentY, dragging = false;
+    let currentState = "idle"; // possible: idle, assigned, onride, completed
+    let currentTripData = null;
+
+    // slide toggle on click
+    grabBar.addEventListener("click", () => {
+      ridePanel.classList.toggle("open");
+    });
+
+    // swipe gesture
+    grabBar.addEventListener("touchstart", (e) => {
+      startY = e.touches[0].clientY;
+      dragging = true;
+    });
+    
+    window.addEventListener("touchmove", (e) => {
+      if (!dragging) return;
+      currentY = e.touches[0].clientY;
+      const delta = currentY - startY;
+      if (delta > 0) {
+        ridePanel.style.transform = `translateY(${Math.min(70, delta / 4)}%)`;
+      }
+    });
+
+    window.addEventListener("touchend", (e) => {
+      if (!dragging) return;
+      dragging = false;
+      const delta = currentY - startY;
+      if (delta > 50) {
+        ridePanel.classList.remove("open");
+        ridePanel.style.transform = "translateY(70%)";
+      } else {
+        ridePanel.classList.add("open");
+        ridePanel.style.transform = "translateY(0%)";
+      }
+    });
+
+    // state transitions
+    actionBtn.addEventListener("click", async () => {
+      switch (currentState) {
+        case "idle":
+          await assignRide();
+          break;
+        case "assigned":
+          goEnRoute();
+          break;
+        case "enroute":
+          goWaiting();
+          break;
+        case "waiting":
+          confirmOnRide();
+          break;
+        case "onride":
+          completeRide();
+          break;
+        case "completed":
+          resetToIdle();
+          break;
+      }
+    });
+
+    // ---------- State Handlers ----------
+    async function assignRide() {
+      try {
+        const btn = actionBtn;
+        btn.disabled = true;
+        btn.textContent = "Finding...";
+
+        const [lat, lon] = userLatLng;
+        const json = await safeJsonFetch("/api/find_best_trip", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lat, lon, buffer: 3, radius: 666 }),
+        });
+
+        clearDisplayed();
+        if (!json.best_option) {
+          alert("No reachable trip found.");
+          btn.disabled = false;
+          btn.textContent = "Get Ride";
+          return;
+        }
+
+        // display walking path to stop
+        if (json.best_option.route_geometry) {
+          currentDisplayed.walkLayer = L.geoJSON(json.best_option.route_geometry, {
+            style: { color: "black", weight: 4, dashArray: "8,6" },
+          }).addTo(map);
+        }
+
+        // Relevant stop to take line
+        if (json.stop_feature) {
+          currentDisplayed.stopLayer = L.geoJSON(json.stop_feature, {
+            pointToLayer: (f, latlng) => L.marker(latlng, { icon: busIcon }),
+          })
+            .addTo(map)
+            .bindPopup(json.stop_feature.properties?.stop_name || "")
+            .openPopup();
+        }
+
+        // store ride data
+        console.log("🚍 best_option data:", json.best_option);
+        console.log("🛑 stop_feature:", json.stop_feature);
+        console.log("// shape_feature:", json.stop_feature);
+
+        currentTripData = {
+          line: json.best_option.route_num || "Unknown",
+          stop_id: json.stop_feature?.properties?.stop_code || "?",
+          stop_name: json.stop_feature?.properties?.stop_name || "Unknown Stop",
+          destination: json.best_option.destination || "Destination Unknown",
+          shape_feature: json.shape_feature
+        };
+
+        // update UI
+        currentState = "assigned";
+        statusTitle.textContent = "Ride Assigned!";
+        rideDesc.innerHTML = `
+          <b>Line:</b> ${currentTripData.line} → ${currentTripData.destination}.</b><br>
+          <b>Stop:</b> ${currentTripData.stop_name} (${currentTripData.stop_id})<br>
+          <small>Confirm to view route to stop.</small>
+        `;
+        actionBtn.textContent = "View Route to Stop";
+      } catch (err) {
+        alert("Error: " + err.message);
+      } finally {
+        actionBtn.disabled = false;
+      }
+    }
+
+    function goEnRoute() {
+      currentState = "enroute";
+      statusTitle.textContent = "En Route to Stop";
+      rideDesc.innerHTML = `
+        Head to <b>${currentTripData.stop_name}</b> (Stop ID: ${currentTripData.stop_id})<br>
+        Follow the black dashed route on the map.
+      `;
+      actionBtn.textContent = "I’ve Arrived at Stop";
+    }
+
+    function goWaiting() {
+      currentState = "waiting";
+      statusTitle.textContent = "Waiting for Bus";
+      rideDesc.innerHTML = `
+        Wait for <b>Line ${currentTripData.line}</b> → ${currentTripData.destination}.<br>
+        Confirm once you're on the bus.
+      `;
+      actionBtn.textContent = "On Bus";
+
+      if (currentDisplayed.walkLayer) {
+        map.removeLayer(currentDisplayed.walkLayer);
+        currentDisplayed.walkLayer = null;
+      }
+
+      // Add bus line
+      if (currentTripData.shape_feature) {
+        currentDisplayed.busLayer = L.geoJSON(currentTripData.shape_feature, {
+          style: { color: "green", weight: 4 },
+        }).addTo(map);
+      }
+    }
+
+    function confirmOnRide() {
+      currentState = "onride";
+      statusTitle.textContent = "On Ride";
+      rideDesc.textContent =
+        "Ride ongoing. Confirm once your inspection is complete.";
+      actionBtn.textContent = "Complete Ride";
+    }
+
+    async function completeRide() {
+      currentState = "completed";
+      statusTitle.textContent = "Ride Completed 🎉";
+      rideDesc.textContent =
+        "Good job! Ride report saved. Press below for next assignment.";
+      actionBtn.textContent = "Get New Ride";
+      ridePanel.classList.add("completed");
+      try {
+        await clearDisplayed();
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    }
+
+    function resetToIdle() {
+      currentState = "idle";
+      currentTripData = null;
+      statusTitle.textContent = "No Ride Assigned";
+      rideDesc.textContent = "Press below to get your next assignment.";
+      actionBtn.textContent = "Get Ride";
+      ridePanel.classList.remove("completed");
+    }
   </script>
 </body>
 </html>
