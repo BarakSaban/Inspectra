@@ -1,30 +1,10 @@
 from flask import Blueprint, jsonify, session
 from datetime import datetime
-import os
-import pandas as pd
 from app.extensions import db
 from app.models import User, InspectorRun
 from Classes import Inspector
 from utils.auth_helpers import logged_in, current_role
-
-from Actions import Actions
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-GTFS_PATH = os.path.join(BASE_DIR, "gtfs", "gtfs_filtered")
-try:
-    stops_df = pd.read_csv(os.path.join(GTFS_PATH, "stops.txt"))
-    stop_times_df = pd.read_csv(os.path.join(GTFS_PATH, "stop_times.txt"))
-    trips_df = pd.read_csv(os.path.join(GTFS_PATH, "trips.txt"))
-    routes_df = pd.read_csv(os.path.join(BASE_DIR, "static", "routes_with_avgs.csv"))
-    actions = Actions(stops_df, stop_times_df, trips_df, routes_df)
-    print("✓ GTFS and Actions loaded")
-except Exception as e:
-    print("⚠️ GTFS or routes load failed:", e)
-    stops_df = pd.DataFrame()
-    stop_times_df = pd.DataFrame()
-    trips_df = pd.DataFrame()
-    routes_df = pd.DataFrame()
-    actions = None
-
+from app.services.actions_service import get_actions
 #NOTE: This is to be removed in the future in favour of automatic assignment of inspectors based on the algorithm. TODO!
 
 assignments_api = Blueprint("assignments_api", __name__)
@@ -34,6 +14,7 @@ def assign_and_persist_runs(buffer_minutes=3, radius_m=666, max_walk_minutes=8, 
     Assign runs only to inspectors that belong to admin_code (if provided).
     If admin_code is None, will assign globally (but this function is only used by admin endpoints).
     """
+    actions = get_actions
     if actions is None:
         print("⚠️ Actions module not initialized — cannot assign runs.")
         return []
