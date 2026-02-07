@@ -100,7 +100,13 @@ class Actions:
         print(f"Value of dontpay_value() for route {route_id} is {val}")
         return val.values[0] if not val.empty else None
 
-    
+    def get_route_id_from_trip_id(self, trip_id):
+        row = self.trips_df.loc[self.trips_df["trip_id"] == trip_id, "route_id"]
+        if not row.empty:
+            return int(row.values[0])  # convert from numpy.int64 to Python int
+        print("Row is empty, returning None...")
+        return None
+
     # --------------------------
     # (3) Build walking network with dynamic radius + cache
     # --------------------------
