@@ -12,8 +12,8 @@ def find_best_trip(lat: float, lon: float, buffer_minutes: float = 3, radius_m: 
     inspector = Inspector(
         inspector_id="local",
         name="Local",
-        latitude=lat,
-        longitude=lon,
+        lat=lat,
+        lon=lon,
         available=True
     )
 
