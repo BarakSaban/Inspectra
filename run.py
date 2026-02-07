@@ -31,6 +31,12 @@ from utils.auth_helpers import logged_in, current_role, current_inspector_id, ge
 
 from auth.authentication import auth_bp
 
+from app.services.geo_service import get_stop_lookup
+
+from utils.geo_utils import haversine_meters
+
+from app.api.trips import trips_api
+
 # ---------------- Flask Setup ----------------
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
@@ -55,6 +61,7 @@ app.register_blueprint(profile_api)
 app.register_blueprint(staff_api)
 app.register_blueprint(analytics_api)
 app.register_blueprint(assignments_api)
+app.register_blueprint(trips_api, url_prefix="/api")
 
 db.init_app(app)
 
