@@ -68,7 +68,7 @@ def get_shape_lookup():
     load_geo_data()
     return _shape_lookup
 
-def find_nearest_stop(lat: float, lon: float):
+def find_nearest_stop(lat: float, lon: float): # Isn't in use for now, potentially deprecated. Might only prove useful if we end up having an offline mode for inspectra.
     stops_gj = get_stops_geojson()
 
     best = None
