@@ -73,26 +73,34 @@ class Actions:
         now = datetime.now().time()
         hour = now.hour
 
-        if 6 <= hour <= 8:
-            col = "DontPay - 06:00-08:59"
-        elif 9 <= hour <= 11:
-            col = "DontPay - 09:00-11:59"
-        elif 12 <= hour <= 14:
-            col = "DontPay - 12:00-14:59"
-        else:
+        # Define the time ranges and corresponding columns
+        time_slots = [
+            ((6, 8), "DontPay - 06:00-08:59"),
+            ((9, 11), "DontPay - 09:00-11:59"),
+            ((12, 14), "DontPay - 12:00-14:59"),
+            ((15, 17), "DontPay - 15:00-17:59"),
+            ((18, 20), "DontPay - 18:00-20:59"),
+            ((21, 23), "DontPay - 21:00-23:59"),
+            ((0, 2), "DontPay - 00:00-02:59"),
+            ((3, 5), "DontPay - 03:00-05:59"),
+        ]
+
+        # Find the appropriate column
+        col = None
+        for (start, end), column_name in time_slots:
+            if start <= hour <= end or (start > end and (hour >= start or hour <= end)):
+                col = column_name
+                break
+
+        if col is None:
             print("Couldn't find DontPay column that fits current time, returning None...")
-            return None  # outside defined windows
+            return None
 
         val = self.routes_df.loc[self.routes_df["route_id"] == route_id, col]
-        print(f"Value of dontpay_value() to found route {route_id} is {val}")
+        print(f"Value of dontpay_value() for route {route_id} is {val}")
         return val.values[0] if not val.empty else None
-    
-    def get_route_id_from_trip_id(self, trip_id):
-        row = self.trips_df.loc[self.trips_df["trip_id"] == trip_id, "route_id"]
-        if not row.empty:
-            return int(row.values[0])  # convert from numpy.int64 to Python int
-        return None
 
+    
     # --------------------------
     # (3) Build walking network with dynamic radius + cache
     # --------------------------
