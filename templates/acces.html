@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Inspectra — Access Portal</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<style>
+:root{
+  --accent:#1f7bd1;
+  --accent-2:#0ea5e9;
+  --bg-start:#f7faff;
+  --bg-end:#ecf4fb;
+}
+body{
+  font-family:"Montserrat",sans-serif;
+  background:linear-gradient(180deg,var(--bg-start),var(--bg-end));
+}
+.card{
+  background:white;
+  border:1px solid #eef2f7;
+  border-radius:18px;
+  box-shadow:0 10px 30px rgba(20,30,60,0.06);
+}
+input:focus{
+  outline:none;
+  border-color:var(--accent);
+  box-shadow:0 0 0 4px rgba(31,123,209,0.06);
+}
+</style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center p-6">
+
+<main class="w-full max-w-md card p-8">
+
+<div class="text-center mb-6">
+<i data-lucide="shield" class="text-[36px] text-[#1f7bd1] mx-auto mb-3"></i>
+<h1 class="text-2xl font-extrabold text-[#0b3b63]">Access Inspectra</h1>
+<p class="text-gray-500 text-sm mt-1">Login or Join Your Organization</p>
+</div>
+
+<!-- MODE BUTTONS -->
+<div class="flex flex-col gap-2 mb-4">
+<button id="mode-login" class="mode-btn py-2 rounded-lg font-semibold bg-[#1f7bd1] text-white">Log In</button>
+<button id="mode-create" class="mode-btn py-2 rounded-lg font-semibold bg-gray-100 text-gray-700">Create Organization</button>
+<button id="mode-join" class="mode-btn py-2 rounded-lg font-semibold bg-gray-100 text-gray-700">Join Organization</button>
+</div>
+
+<!-- ROLE BUTTONS -->
+<div id="roleButtons" class="hidden flex justify-center gap-3 mb-4">
+<button id="role-team"
+class="role-btn flex items-center gap-2 px-4 py-2 rounded-lg font-semibold bg-gray-100 text-gray-700 transition">
+<i data-lucide="users"></i> Team Admin
+</button>
+
+<button id="role-inspector"
+class="role-btn flex items-center gap-2 px-4 py-2 rounded-lg font-semibold bg-gray-100 text-gray-700 transition">
+<i data-lucide="search"></i> Inspector
+</button>
+</div>
+
+<form id="form" class="space-y-4">
+
+<input type="hidden" id="mode" value="login">
+<input type="hidden" id="role" value="inspector">
+
+<!-- FULL NAME -->
+<div id="nameField" class="hidden">
+<label class="block text-sm mb-1">Full Name</label>
+<div class="flex items-center border rounded-md p-2">
+<i data-lucide="user" class="w-4 h-4 text-gray-400 mr-2"></i>
+<input id="name" type="text" class="w-full" placeholder="John Doe">
+</div>
+</div>
+
+<!-- EMAIL OR PHONE -->
+<div>
+<label class="block text-sm mb-1">Email or Phone</label>
+<div class="flex items-center border rounded-md p-2">
+<i data-lucide="mail" class="w-4 h-4 text-gray-400 mr-2"></i>
+<input id="contact" type="text" class="w-full" placeholder="example@gmail.com | 0501234567" required>
+</div>
+</div>
+
+<!-- ORG NAME -->
+<div id="orgNameField" class="hidden">
+<label class="block text-sm mb-1">Organization Name</label>
+<div class="flex items-center border rounded-md p-2">
+<i data-lucide="building" class="w-4 h-4 text-gray-400 mr-2"></i>
+<input id="orgName" type="text" class="w-full" placeholder="Eged">
+</div>
+</div>
+
+<!-- ORG CODE -->
+<div id="orgCodeField" class="hidden">
+<label class="block text-sm mb-1">Organization Code</label>
+<div class="flex items-center border rounded-md p-2">
+<i data-lucide="key" class="w-4 h-4 text-gray-400 mr-2"></i>
+<input id="orgCode" type="text" class="w-full" placeholder="egedOrg">
+</div>
+</div>
+
+<!-- TEAM CODE (INSPECTOR JOIN) -->
+<div id="teamCodeField" class="hidden">
+<label class="block text-sm mb-1">Team Code</label>
+<div class="flex items-center border rounded-md p-2">
+<i data-lucide="key" class="w-4 h-4 text-gray-400 mr-2"></i>
+<input id="teamCode" type="text" class="w-full" placeholder="EgedtlvTeam">
+</div>
+</div>
+
+<!-- TEAM NAME -->
+<div id="teamNameField" class="hidden">
+<label class="block text-sm mb-1">Team Name</label>
+<div class="flex items-center border rounded-md p-2">
+<i data-lucide="users" class="w-4 h-4 text-gray-400 mr-2"></i>
+<input id="teamName" type="text" class="w-full" placeholder="Eged Tel Aviv Team">
+</div>
+</div>
+
+<!-- PASSWORD -->
+<div>
+<label class="block text-sm mb-1">Password</label>
+<div class="relative">
+<div class="flex items-center border rounded-md p-2">
+<i data-lucide="lock" class="w-4 h-4 text-gray-400 mr-2"></i>
+<input id="password" type="password" class="w-full pr-8" placeholder="Minimum 6 characters" required minlength="6">
+</div>
+<i id="togglePassword" data-lucide="eye" class="w-5 h-5 text-gray-500 cursor-pointer absolute right-3 top-3"></i>
+</div>
+</div>
+
+<!-- CONFIRM PASSWORD -->
+<div id="confirmField">
+<label class="block text-sm mb-1">Confirm Password</label>
+<div class="relative">
+<div class="flex items-center border rounded-md p-2">
+<i data-lucide="lock" class="w-4 h-4 text-gray-400 mr-2"></i>
+<input id="confirmPassword" type="password" class="w-full pr-8" placeholder="Re-enter password">
+</div>
+<i id="toggleConfirm" data-lucide="eye" class="w-5 h-5 text-gray-500 cursor-pointer absolute right-3 top-3"></i>
+</div>
+</div>
+
+<button class="w-full py-2.5 rounded-md text-white font-semibold shadow-md"
+style="background:linear-gradient(90deg,var(--accent),var(--accent-2));">
+Continue
+</button>
+
+</form>
+
+</main>
+
+<script>
+lucide.createIcons();
+
+const modeButtons=document.querySelectorAll(".mode-btn");
+const roleButtons=document.querySelectorAll(".role-btn");
+
+function activateButton(group,clicked){
+group.forEach(b=>{
+b.classList.remove("bg-[#1f7bd1]","text-white");
+b.classList.add("bg-gray-100","text-gray-700");
+});
+clicked.classList.add("bg-[#1f7bd1]","text-white");
+clicked.classList.remove("bg-gray-100","text-gray-700");
+}
+
+document.getElementById("mode-login").onclick=function(){
+activateButton(modeButtons,this);
+document.getElementById("mode").value="login";
+document.getElementById("confirmField").style.display="none";
+hideAll();
+};
+
+document.getElementById("mode-create").onclick=function(){
+activateButton(modeButtons,this);
+document.getElementById("mode").value="create";
+document.getElementById("confirmField").style.display="block";
+showCreate();
+};
+
+document.getElementById("mode-join").onclick=function(){
+activateButton(modeButtons,this);
+document.getElementById("mode").value="join";
+document.getElementById("confirmField").style.display="block";
+showJoin();
+};
+
+function hideAll(){
+document.getElementById("nameField").classList.add("hidden");
+document.getElementById("orgNameField").classList.add("hidden");
+document.getElementById("orgCodeField").classList.add("hidden");
+document.getElementById("teamNameField").classList.add("hidden");
+document.getElementById("teamCodeField").classList.add("hidden");
+document.getElementById("roleButtons").classList.add("hidden");
+}
+
+function showCreate(){
+hideAll();
+document.getElementById("nameField").classList.remove("hidden");
+document.getElementById("orgNameField").classList.remove("hidden");
+}
+
+function showJoin(){
+hideAll();
+document.getElementById("nameField").classList.remove("hidden");
+document.getElementById("roleButtons").classList.remove("hidden");
+}
+
+document.getElementById("role-team").onclick=function(){
+activateButton(roleButtons,this);
+document.getElementById("role").value="team_admin";
+document.getElementById("orgCodeField").classList.remove("hidden");
+document.getElementById("teamNameField").classList.remove("hidden");
+document.getElementById("teamCodeField").classList.add("hidden");
+};
+
+document.getElementById("role-inspector").onclick=function(){
+activateButton(roleButtons,this);
+document.getElementById("role").value="inspector";
+document.getElementById("orgCodeField").classList.add("hidden");
+document.getElementById("teamNameField").classList.add("hidden");
+document.getElementById("teamCodeField").classList.remove("hidden");
+};
+
+document.getElementById("togglePassword").onclick=function(){
+const p=document.getElementById("password");
+p.type=p.type==="password"?"text":"password";
+};
+
+document.getElementById("toggleConfirm").onclick=function(){
+const p=document.getElementById("confirmPassword");
+p.type=p.type==="password"?"text":"password";
+};
+</script>
+
+</body>
+</html>
