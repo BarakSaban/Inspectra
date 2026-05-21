@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: inspectra-db-init
+  namespace: inspectra
+  labels:
+    app.kubernetes.io/name: inspectra
+    app.kubernetes.io/component: database-init
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: inspectra
+        app.kubernetes.io/component: database-init
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: db-init
+          image: inspectra-backend:latest
+          command: ["python", "db_init.py"]
+          envFrom:
+            - configMapRef:
+                name: inspectra-config
+            - secretRef:
+                name: inspectra-secrets
+
+# This job performs one-time database initialization and seeding.
+# Run it once after the database is available.

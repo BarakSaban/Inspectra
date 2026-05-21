@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inspectra-config
+  namespace: inspectra
+  labels:
+    app.kubernetes.io/name: inspectra
+    app.kubernetes.io/component: config
+
+# Configuration values that are safe to store in plain text.
+data:
+  APP_ENV: "production"
+  DATABASE_HOST: "postgres"
+  DATABASE_PORT: "5432"
+  DATABASE_NAME: "inspectra"
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  FLASK_DEBUG: "False"
+  SESSION_COOKIE_SAMESITE: "Lax"
+  SESSION_COOKIE_HTTPONLY: "True"
+  SESSION_COOKIE_SECURE: "True"

@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inspectra-backend
+  namespace: inspectra
+  labels:
+    app.kubernetes.io/name: inspectra
+    app.kubernetes.io/component: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: inspectra-backend
+  template:
+    metadata:
+      labels:
+        app: inspectra-backend
+    spec:
+      containers:
+        - name: inspectra-backend
+          image: inspectra-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+          envFrom:
+            - configMapRef:
+                name: inspectra-config
+            - secretRef:
+                name: inspectra-secrets
+          env:
+            - name: PORT
+              value: "5000"
+            - name: FLASK_DEBUG
+              valueFrom:
+                configMapKeyRef:
+                  name: inspectra-config
+                  key: FLASK_DEBUG
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 5000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "1"
+              memory: "512Mi"
+      restartPolicy: Always
+
+# This deployment uses an internal ClusterIP service to keep backend traffic inside the cluster.

@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
 
 from app.extensions import db
@@ -11,10 +11,7 @@ from app.api.analytics import analytics_api
 from app.api.assign_runs import assignments_api
 from app.api.trips import trips_api
 
-from seeds import seed_fake_data, seed_inspectors
-from utils.auth_helpers import generate_manager_code
 from auth.authentication import auth_bp
-from app.models import User
 
 # ---------------- Flask Setup ----------------
 app = Flask(__name__, static_folder='static', template_folder='templates')
@@ -24,15 +21,27 @@ CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
 app.secret_key = os.environ.get("INSPECTRA_SECRET", "inspectra_dev_secret_please_change")
 
 app.config.update(
-    SESSION_COOKIE_SAMESITE="Lax",
-    SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_SAMESITE=os.environ.get("SESSION_COOKIE_SAMESITE", "Lax"),
+    SESSION_COOKIE_HTTPONLY=os.environ.get("SESSION_COOKIE_HTTPONLY", "True") == "True",
+    SESSION_COOKIE_SECURE=os.environ.get("SESSION_COOKIE_SECURE", "True") == "True",
 )
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DB_PATH = os.path.join(BASE_DIR, "inspectra.db")
 
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{DB_PATH}"
+database_url = os.environ.get("DATABASE_URL")
+if not database_url:
+    pg_user = os.environ.get("POSTGRES_USER")
+    pg_password = os.environ.get("POSTGRES_PASSWORD")
+    pg_host = os.environ.get("DATABASE_HOST", "postgres")
+    pg_port = os.environ.get("DATABASE_PORT", "5432")
+    pg_name = os.environ.get("POSTGRES_DB")
+    if pg_user and pg_password and pg_name:
+        database_url = f"postgresql+psycopg2://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_name}"
+    else:
+        database_url = f"sqlite:///{DB_PATH}"
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 app.register_blueprint(auth_bp)
@@ -45,23 +54,15 @@ app.register_blueprint(trips_api, url_prefix="/api")
 
 db.init_app(app)
 
-# ---------------- DB Init ----------------
-with app.app_context():
-    try:
-        db.create_all()
-        if not User.query.filter_by(username='admin').first():
-            admin_user = User(username='admin', role='admin', manager_code=generate_manager_code(), full_name='Admin')
-            admin_user.set_password(os.environ.get("INSPECTRA_ADMIN_PW", "admin"))
-            db.session.add(admin_user)
-            db.session.commit()
-            print("✅ Default admin user created (username=admin).")
-    except Exception as e:
-        print("⚠️ DB init/create_all failed:", e)
-        db.session.rollback()
+# ---------------- Health and Readiness ----------------
+@app.route('/healthz', methods=['GET'])
+def healthz():
+    return jsonify(status='ok'), 200
 
-    seed_inspectors()
-    seed_fake_data()
+@app.route('/readyz', methods=['GET'])
+def readyz():
+    return jsonify(status='ready'), 200
 
 # ---------------- Run App ----------------
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+    app.run(debug=os.environ.get("FLASK_DEBUG", "False") == "True", host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))

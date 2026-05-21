@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: inspectra
+  labels:
+    app.kubernetes.io/name: inspectra
+    app.kubernetes.io/part-of: inspectra-platform
+
+# Namespace isolates Inspectra resources from other clusters apps.

@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inspectra-redis
+  namespace: inspectra
+  labels:
+    app.kubernetes.io/name: inspectra
+    app.kubernetes.io/component: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inspectra-redis
+  template:
+    metadata:
+      labels:
+        app: inspectra-redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+
+# Optional Redis deployment for worker queues and caching.

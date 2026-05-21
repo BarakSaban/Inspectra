@@ -1,3 +1,26 @@
 {
-    "livePreview.defaultPreviewPath": "/templates/signup.html"
+    "livePreview.defaultPreviewPath": "/templates/signup.html",
+    "sqltools.connections": [
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "InspectraDB",
+            "database": "inspectra_db",
+            "username": "postgres"
+        },
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "Inspectra_new_DB",
+            "database": "inspectra_new_db",
+            "username": "postgres",
+            "password": ""
+        }
+    ]
 }

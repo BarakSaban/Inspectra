@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: inspectra-ingress
+  namespace: inspectra
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+  labels:
+    app.kubernetes.io/name: inspectra
+    app.kubernetes.io/component: ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: inspectra.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: inspectra-backend
+                port:
+                  number: 5000
+  tls:
+    - hosts:
+        - inspectra.local
+      secretName: inspectra-tls
+
+# Public ingress routes inspectra.local to the frontend service.
+# For local dev, add inspectra.local to /etc/hosts pointing to your ingress IP.
