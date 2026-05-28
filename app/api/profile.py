@@ -3,6 +3,8 @@ from app.extensions import db
 from app.models import User
 from Classes import Inspector
 from utils.auth_helpers import logged_in, get_request_data
+from app.db_status import DB_AVAILABLE
+from app.fallback import sample_profile
 
 profile_api = Blueprint("profile_api", __name__)
 
@@ -12,6 +14,8 @@ def api_profile():
         return jsonify({"error": "unauthorized"}), 401
 
     username = session.get('user')
+    if not DB_AVAILABLE:
+        return jsonify(sample_profile(username))
     user = User.query.filter_by(username=username).first()
     if not user:
         return jsonify({"error": "user not found"}), 404

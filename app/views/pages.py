@@ -3,6 +3,7 @@ from flask import Blueprint, render_template, redirect, url_for, session
 from app.models.user import User
 from app.models.inspector import Inspector
 from utils.auth_helpers import logged_in, current_role
+from app.db_status import DB_AVAILABLE
 
 views_bp = Blueprint("views", __name__)
 
@@ -15,6 +16,12 @@ def root():
 @views_bp.route('/admin')
 def admin_dashboard():
     if not logged_in() or current_role() != 'admin':
+        return redirect(url_for('auth.login_get'))
+    # If DB is unavailable, clear session and redirect to login (prevents 500s)
+    if not DB_AVAILABLE:
+        session.pop('user', None)
+        session.pop('role', None)
+        session.pop('admin_code', None)
         return redirect(url_for('auth.login_get'))
 
     user = User.query.filter_by(username=session.get('user')).first()
@@ -30,6 +37,11 @@ def admin_dashboard():
 @views_bp.route('/analytics')
 def analytics_page():
     if not logged_in() or current_role() != 'admin':
+        return redirect(url_for('auth.login_get'))
+    if not DB_AVAILABLE:
+        session.pop('user', None)
+        session.pop('role', None)
+        session.pop('admin_code', None)
         return redirect(url_for('auth.login_get'))
 
     user = User.query.filter_by(username=session.get('user')).first()
@@ -52,6 +64,11 @@ def sidebar():
 def staff_page():
     if not logged_in() or current_role() != 'admin':
         return redirect(url_for('auth.login_get'))
+    if not DB_AVAILABLE:
+        session.pop('user', None)
+        session.pop('role', None)
+        session.pop('admin_code', None)
+        return redirect(url_for('auth.login_get'))
 
     user = User.query.filter_by(username=session.get('user')).first()
 
@@ -66,6 +83,11 @@ def staff_page():
 @views_bp.route('/profile')
 def profile_page():
     if not logged_in():
+        return redirect(url_for('auth.login_get'))
+    if not DB_AVAILABLE:
+        session.pop('user', None)
+        session.pop('role', None)
+        session.pop('admin_code', None)
         return redirect(url_for('auth.login_get'))
 
     user = User.query.filter_by(username=session.get('user')).first()
@@ -89,6 +111,11 @@ def profile_page():
 @views_bp.route('/inspect')
 def inspect_page():
     if not logged_in() or current_role() != 'inspector':
+        return redirect(url_for('auth.login_get'))
+    if not DB_AVAILABLE:
+        session.pop('user', None)
+        session.pop('role', None)
+        session.pop('inspector_id', None)
         return redirect(url_for('auth.login_get'))
 
     user = User.query.filter_by(username=session.get('user')).first()

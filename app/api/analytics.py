@@ -7,6 +7,8 @@ from app.extensions import db
 from app.models import User, InspectorRun, Fine
 from Classes import Inspector
 from utils.auth_helpers import logged_in, current_role
+from app.fallback import sample_analytics
+from app.db_status import DB_AVAILABLE
 
 analytics_api = Blueprint("analytics_api", __name__)
 
@@ -19,6 +21,9 @@ def api_analytics():
         return jsonify({"error": "unauthorized"}), 401
 
     try:
+        if not DB_AVAILABLE:
+            # return lightweight fallback analytics to keep UI functional
+            return jsonify(sample_analytics())
         admin_code = session.get('admin_code')
         if not admin_code:
             return jsonify({"error": "no admin code in session"}), 400

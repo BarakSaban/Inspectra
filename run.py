@@ -54,6 +54,23 @@ app.register_blueprint(trips_api, url_prefix="/api")
 
 db.init_app(app)
 
+# ---------------- DB Availability Check ----------------
+# At startup, test whether the configured database is reachable and publish
+# the result into `app.db_status.DB_AVAILABLE` to avoid circular imports.
+from app import db_status
+
+try:
+    with app.app_context():
+        # try a lightweight connection check using driver-level SQL
+        engine = db.get_engine()
+        with engine.connect() as conn:
+            conn.exec_driver_sql("SELECT 1")
+    db_status.DB_AVAILABLE = True
+    print("Database reachable at startup.")
+except Exception as e:
+    db_status.DB_AVAILABLE = False
+    print("Database not reachable at startup; running in fallback mode:", e)
+
 # ---------------- Health and Readiness ----------------
 @app.route('/healthz', methods=['GET'])
 def healthz():
@@ -62,6 +79,15 @@ def healthz():
 @app.route('/readyz', methods=['GET'])
 def readyz():
     return jsonify(status='ready'), 200
+
+
+# Generic 500 handler so templates/API don't leak tracebacks to users
+@app.errorhandler(500)
+def handle_500(e):
+    import traceback
+    tb = traceback.format_exc()
+    print('Unhandled exception:', tb)
+    return jsonify({"error": "internal server error"}), 500
 
 # ---------------- Run App ----------------
 if __name__ == '__main__':

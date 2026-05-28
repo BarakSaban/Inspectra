@@ -13,11 +13,11 @@ auth_bp = Blueprint("auth", __name__)
 # ---------------- Auth routes ----------------
 @auth_bp.route('/login', methods=['GET'])
 def login_get():
-    return render_template('login.html', show_sidebar=False, show_signout=False, error=None)
+    return render_template('acces.html', show_sidebar=False, show_signout=False, error=None)
 
 @auth_bp.route('/signup', methods=['GET'])
 def signup_get():
-    return render_template('signup.html', show_sidebar=False, show_signout=False, error=None)
+    return render_template('acces.html', show_sidebar=False, show_signout=False, error=None)
 
 # JSON API login
 @auth_bp.route('/api/login', methods=['POST'])

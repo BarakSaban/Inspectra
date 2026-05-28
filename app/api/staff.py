@@ -7,6 +7,8 @@ from app.models import User, InspectorRun, Fine
 from Classes import Inspector
 from utils.auth_helpers import logged_in, current_role
 import pandas as pd
+from app.db_status import DB_AVAILABLE
+from app.fallback import sample_inspectors
 
 staff_api = Blueprint("staff_api", __name__)
 
@@ -21,6 +23,8 @@ def api_staff():
         return jsonify({"error": "unauthorized"}), 401
 
     try:
+        if not DB_AVAILABLE:
+            return jsonify(sample_inspectors())
         admin_code = session.get('admin_code')
         if not admin_code:
             return jsonify([])
