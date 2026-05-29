@@ -20,7 +20,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt ./
 
 # Install application dependencies and Gunicorn for production.
-RUN pip install --no-cache-dir -r requirements.txt gunicorn psycopg2-binary
+RUN pip install --upgrade pip setuptools && \
+    pip install --no-cache-dir -r requirements.txt gunicorn psycopg2-binary
 
 # Copy the Python application code into the image.
 COPY . ${APP_HOME}
