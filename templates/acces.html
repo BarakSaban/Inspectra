@@ -42,6 +42,7 @@ input:focus{
 <i data-lucide="shield" class="text-[36px] text-[#1f7bd1] mx-auto mb-3"></i>
 <h1 class="text-2xl font-extrabold text-[#0b3b63]">Access Inspectra</h1>
 <p class="text-gray-500 text-sm mt-1">Login or Join Your Organization</p>
+<div id="resultMessage" class="hidden mt-4 p-3 rounded-md bg-green-50 text-green-800 border border-green-200"></div>
 </div>
 
 <!-- MODE BUTTONS -->
@@ -64,17 +65,17 @@ class="role-btn flex items-center gap-2 px-4 py-2 rounded-lg font-semibold bg-gr
 </button>
 </div>
 
-<form id="form" class="space-y-4">
+<form id="form" class="space-y-4" action="/api/login" method="POST">
 
-<input type="hidden" id="mode" value="login">
-<input type="hidden" id="role" value="inspector">
+<input type="hidden" id="mode" name="mode" value="login">
+<input type="hidden" id="role" name="role" value="inspector">
 
 <!-- FULL NAME -->
 <div id="nameField" class="hidden">
 <label class="block text-sm mb-1">Full Name</label>
 <div class="flex items-center border rounded-md p-2">
 <i data-lucide="user" class="w-4 h-4 text-gray-400 mr-2"></i>
-<input id="name" type="text" class="w-full" placeholder="John Doe">
+<input id="name" name="name" type="text" class="w-full" placeholder="John Doe">
 </div>
 </div>
 
@@ -83,7 +84,7 @@ class="role-btn flex items-center gap-2 px-4 py-2 rounded-lg font-semibold bg-gr
 <label class="block text-sm mb-1">Email or Phone</label>
 <div class="flex items-center border rounded-md p-2">
 <i data-lucide="mail" class="w-4 h-4 text-gray-400 mr-2"></i>
-<input id="contact" type="text" class="w-full" placeholder="example@gmail.com | 0501234567" required>
+<input id="contact" name="contact" type="text" class="w-full" placeholder="example@gmail.com | 0501234567" required>
 </div>
 </div>
 
@@ -92,7 +93,7 @@ class="role-btn flex items-center gap-2 px-4 py-2 rounded-lg font-semibold bg-gr
 <label class="block text-sm mb-1">Organization Name</label>
 <div class="flex items-center border rounded-md p-2">
 <i data-lucide="building" class="w-4 h-4 text-gray-400 mr-2"></i>
-<input id="orgName" type="text" class="w-full" placeholder="Eged">
+<input id="orgName" name="org_name" type="text" class="w-full" placeholder="Eged">
 </div>
 </div>
 
@@ -101,7 +102,7 @@ class="role-btn flex items-center gap-2 px-4 py-2 rounded-lg font-semibold bg-gr
 <label class="block text-sm mb-1">Organization Code</label>
 <div class="flex items-center border rounded-md p-2">
 <i data-lucide="key" class="w-4 h-4 text-gray-400 mr-2"></i>
-<input id="orgCode" type="text" class="w-full" placeholder="egedOrg">
+<input id="orgCode" name="org_code" type="text" class="w-full" placeholder="EGGED">
 </div>
 </div>
 
@@ -110,7 +111,7 @@ class="role-btn flex items-center gap-2 px-4 py-2 rounded-lg font-semibold bg-gr
 <label class="block text-sm mb-1">Team Code</label>
 <div class="flex items-center border rounded-md p-2">
 <i data-lucide="key" class="w-4 h-4 text-gray-400 mr-2"></i>
-<input id="teamCode" type="text" class="w-full" placeholder="EgedtlvTeam">
+<input id="teamCode" name="team_code" type="text" class="w-full" placeholder="1">
 </div>
 </div>
 
@@ -119,7 +120,7 @@ class="role-btn flex items-center gap-2 px-4 py-2 rounded-lg font-semibold bg-gr
 <label class="block text-sm mb-1">Team Name</label>
 <div class="flex items-center border rounded-md p-2">
 <i data-lucide="users" class="w-4 h-4 text-gray-400 mr-2"></i>
-<input id="teamName" type="text" class="w-full" placeholder="Eged Tel Aviv Team">
+<input id="teamName" name="team_name" type="text" class="w-full" placeholder="Eged Tel Aviv Team">
 </div>
 </div>
 
@@ -129,7 +130,7 @@ class="role-btn flex items-center gap-2 px-4 py-2 rounded-lg font-semibold bg-gr
 <div class="relative">
 <div class="flex items-center border rounded-md p-2">
 <i data-lucide="lock" class="w-4 h-4 text-gray-400 mr-2"></i>
-<input id="password" type="password" class="w-full pr-8" placeholder="Minimum 6 characters" required minlength="6">
+<input id="password" name="password" type="password" class="w-full pr-8" placeholder="Minimum 6 characters" required minlength="6">
 </div>
 <i id="togglePassword" data-lucide="eye" class="w-5 h-5 text-gray-500 cursor-pointer absolute right-3 top-3"></i>
 </div>
@@ -141,7 +142,7 @@ class="role-btn flex items-center gap-2 px-4 py-2 rounded-lg font-semibold bg-gr
 <div class="relative">
 <div class="flex items-center border rounded-md p-2">
 <i data-lucide="lock" class="w-4 h-4 text-gray-400 mr-2"></i>
-<input id="confirmPassword" type="password" class="w-full pr-8" placeholder="Re-enter password">
+<input id="confirmPassword" name="confirmPassword" type="password" class="w-full pr-8" placeholder="Re-enter password">
 </div>
 <i id="toggleConfirm" data-lucide="eye" class="w-5 h-5 text-gray-500 cursor-pointer absolute right-3 top-3"></i>
 </div>
@@ -174,6 +175,7 @@ clicked.classList.remove("bg-gray-100","text-gray-700");
 document.getElementById("mode-login").onclick=function(){
 activateButton(modeButtons,this);
 document.getElementById("mode").value="login";
+document.getElementById("form").action="/api/login";
 document.getElementById("confirmField").style.display="none";
 hideAll();
 };
@@ -181,6 +183,7 @@ hideAll();
 document.getElementById("mode-create").onclick=function(){
 activateButton(modeButtons,this);
 document.getElementById("mode").value="create";
+document.getElementById("form").action="/api/register";
 document.getElementById("confirmField").style.display="block";
 showCreate();
 };
@@ -188,6 +191,7 @@ showCreate();
 document.getElementById("mode-join").onclick=function(){
 activateButton(modeButtons,this);
 document.getElementById("mode").value="join";
+document.getElementById("form").action="/api/register";
 document.getElementById("confirmField").style.display="block";
 showJoin();
 };
@@ -205,6 +209,7 @@ function showCreate(){
 hideAll();
 document.getElementById("nameField").classList.remove("hidden");
 document.getElementById("orgNameField").classList.remove("hidden");
+document.getElementById("role").value="org_admin";
 }
 
 function showJoin(){
@@ -238,6 +243,37 @@ document.getElementById("toggleConfirm").onclick=function(){
 const p=document.getElementById("confirmPassword");
 p.type=p.type==="password"?"text":"password";
 };
+
+document.getElementById("form").addEventListener("submit", function(event){
+  const mode = document.getElementById("mode").value;
+  const contact = document.getElementById("contact").value.trim();
+  const password = document.getElementById("password").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
+
+  if(!contact || !password){
+    event.preventDefault();
+    alert("Please enter your email/phone and password.");
+    return;
+  }
+
+  if(password.length < 6){
+    event.preventDefault();
+    alert("Password must be at least 6 characters.");
+    return;
+  }
+
+  if(mode !== "login" && password !== confirmPassword){
+    event.preventDefault();
+    alert("Passwords do not match.");
+    return;
+  }
+
+  // For normal form submission, browser handles cookies and redirects.
+});
+
+hideAll();
+document.getElementById("confirmField").style.display="none";
+activateButton(modeButtons, document.getElementById("mode-login"));
 </script>
 
 </body>

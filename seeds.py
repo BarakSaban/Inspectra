@@ -20,7 +20,7 @@ def seed_inspectors():
     try:
         count = Inspector.query.count()
         if count == 0:
-            print("🌱 Seeding default inspectors...")
+            print("Seeding default inspectors...")
             for ins in DEFAULT_INSPECTORS:
                 kwargs = dict(
                     inspector_id=ins["inspector_id"],
@@ -35,11 +35,11 @@ def seed_inspectors():
                     kwargs['completed_trips'] = 0
                 db.session.add(Inspector(**kwargs))
             db.session.commit()
-            print("✓ Inspectors seeded.")
+            print("Inspectors seeded.")
         else:
-            print("✓ Inspectors already exist — skipping.")
+            print("Inspectors already exist - skipping.")
     except Exception as e:
-        print("⚠️ seed_inspectors failed:", e)
+        print("seed_inspectors failed:", e)
         db.session.rollback()
 
 
@@ -49,12 +49,12 @@ def seed_fake_data():
         runs_count = InspectorRun.query.count()
         fines_count = Fine.query.count()
         if runs_count > 0 or fines_count > 0:
-            print("✓ Fake data already exists — skipping.")
+            print("Fake data already exists - skipping.")
             return
 
         inspectors = Inspector.query.all() or seed_inspectors()
         inspectors = Inspector.query.all()
-        print("🌱 Seeding fake runs and fines...")
+        print("Seeding fake runs and fines...")
 
         for ins in inspectors:
             for _ in range(random.randint(5, 10)):
