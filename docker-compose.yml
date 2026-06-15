@@ -8,10 +8,10 @@ services:
     ports:
       - "5000:5000"
     environment:
-      # Option A: Provide the full URL (Your code checks this first)
+      # option A: Provide the full URL to either a real DB or the docker-compose.yml db we spin up (favourable option)
       - DATABASE_URL=postgresql+psycopg2://postgres:secretpassword@db:5432/inspectra_db
       
-      # Option B: Or provide the individual pieces (Your code's backup logic)
+      # option B: Provide individual pieces for full on local db using inspectra.db - should be deprecated soon beezrat hashem
       # - POSTGRES_USER=postgres
       # - POSTGRES_PASSWORD=secretpassword
       # - DATABASE_HOST=db
