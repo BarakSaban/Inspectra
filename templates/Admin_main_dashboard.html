@@ -247,12 +247,25 @@
 <header class="mb-6">
   <h1 class="text-3xl font-extrabold text-blue-900">Overview</h1>
   <p class="text-sm text-gray-600 mb-3">Real persisted inspector activity and assignments</p>
-<!-- Admin Code Box -->
-<div id="adminCodeBox" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg shadow-sm bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200">
-  <i class="fas fa-id-card text-blue-600"></i>
-  <span class="text-sm font-semibold text-blue-800">
-    Admin Code: <span id="adminCodeValue" class="font-bold text-blue-900">{{ session.get('admin_code', '—') }}</span>
-  </span>
+<!-- Org / Team Code Boxes -->
+<div class="flex flex-wrap gap-3 mb-3">
+  {% if org_code %}
+  <div class="inline-flex items-center gap-2 px-4 py-2 rounded-lg shadow-sm bg-gradient-to-r from-green-50 to-green-100 border border-green-200">
+    <i class="fas fa-building text-green-600"></i>
+    <span class="text-sm font-semibold text-green-800">
+      Org Code: <span class="font-bold text-green-900">{{ org_code }}</span>
+    </span>
+  </div>
+  {% endif %}
+
+  {% if team_code %}
+  <div class="inline-flex items-center gap-2 px-4 py-2 rounded-lg shadow-sm bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200">
+    <i class="fas fa-id-card text-blue-600"></i>
+    <span class="text-sm font-semibold text-blue-800">
+      Team Code: <span class="font-bold text-blue-900">{{ team_code }}</span>
+    </span>
+  </div>
+  {% endif %}
 </div>
 
 </header>

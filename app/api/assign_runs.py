@@ -1,18 +1,16 @@
 from flask import Blueprint, jsonify, session
 from datetime import datetime
 from app.extensions import db
-from app.models import User, InspectorRun
-from Classes import Inspector
-from utils.auth_helpers import logged_in, current_role
+from app.models import User, InspectorRun, Inspector
+from utils.auth_helpers import logged_in, current_role, is_admin_role, get_scoped_inspector_query
 from app.services.actions_service import get_actions
 #NOTE: This is to be removed in the future in favour of automatic assignment of inspectors based on the algorithm. TODO!
 
 assignments_api = Blueprint("assignments_api", __name__)
 
-def assign_and_persist_runs(buffer_minutes=3, radius_m=666, max_walk_minutes=8, admin_code=None):
+def assign_and_persist_runs(buffer_minutes=3, radius_m=666, max_walk_minutes=8):
     """
-    Assign runs only to inspectors that belong to admin_code (if provided).
-    If admin_code is None, will assign globally (but this function is only used by admin endpoints).
+    Assign runs only to inspectors that belong to the current admin scope.
     """
     actions = get_actions
     if actions is None:
@@ -21,13 +19,9 @@ def assign_and_persist_runs(buffer_minutes=3, radius_m=666, max_walk_minutes=8, 
 
     results = []
     try:
-        if admin_code:
-            # get inspector objects that belong to this admin
-            inspector_users = User.query.filter_by(role='inspector', manager_code=admin_code).all()
-            inspector_ids = [u.inspector_id for u in inspector_users if u.inspector_id]
-            inspectors_db = Inspector.query.filter(Inspector.inspector_id.in_(inspector_ids)).all()
-        else:
-            inspectors_db = Inspector.query.all()
+        inspector_users = get_scoped_inspector_query().all()
+        inspector_ids = [u.inspector_id for u in inspector_users if u.inspector_id]
+        inspectors_db = Inspector.query.filter(Inspector.inspector_id.in_(inspector_ids)).all() if inspector_ids else []
 
         inspector_objs = [
             Inspector(i.inspector_id, i.name, i.latitude, i.longitude, bool(i.available))
@@ -63,9 +57,8 @@ def assign_and_persist_runs(buffer_minutes=3, radius_m=666, max_walk_minutes=8, 
 
 @assignments_api.route('/api/assign_runs', methods=['POST'])
 def api_assign_runs():
-    if not logged_in() or current_role() != 'admin':
+    if not logged_in() or not is_admin_role():
         return jsonify({"error": "unauthorized"}), 401
 
-    admin_code = session.get('admin_code')
-    results = assign_and_persist_runs(admin_code=admin_code)
+    results = assign_and_persist_runs()
     return jsonify({"assigned_count": len(results), "results_preview": results[:10]})

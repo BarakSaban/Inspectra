@@ -3,11 +3,10 @@ from flask import Blueprint, jsonify, session
 from sqlalchemy import func
 
 from app.extensions import db
-from app.models import User, InspectorRun, Fine
-from Classes import Inspector
-from utils.auth_helpers import logged_in, current_role
+from app.models import User, InspectorRun, Fine, Inspector
+from utils.auth_helpers import logged_in, current_role, is_admin_role, get_scoped_inspector_query
 import pandas as pd
-from app.db_status import DB_AVAILABLE
+import app.db_status as db_status
 from app.fallback import sample_inspectors
 
 staff_api = Blueprint("staff_api", __name__)
@@ -19,18 +18,13 @@ def api_staff():
     (filtered by manager_code stored in session). If session has no admin_code,
     returns empty list.
     """
-    if not logged_in() or current_role() != 'admin':
+    if not logged_in() or not is_admin_role():
         return jsonify({"error": "unauthorized"}), 401
 
     try:
-        if not DB_AVAILABLE:
+        if not db_status.DB_AVAILABLE:
             return jsonify(sample_inspectors())
-        admin_code = session.get('admin_code')
-        if not admin_code:
-            return jsonify([])
-
-        # find Users that are inspectors under this admin
-        inspector_users = User.query.filter_by(role='inspector', manager_code=admin_code).all()
+        inspector_users = get_scoped_inspector_query().all()
 
         today = date.today()
         seven_days_ago = datetime.now() - pd.Timedelta(days=7)

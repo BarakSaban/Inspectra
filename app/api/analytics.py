@@ -4,11 +4,10 @@ from sqlalchemy import func
 import pandas as pd
 
 from app.extensions import db
-from app.models import User, InspectorRun, Fine
-from Classes import Inspector
-from utils.auth_helpers import logged_in, current_role
+from app.models import User, InspectorRun, Fine, Inspector
+from utils.auth_helpers import logged_in, current_role, is_admin_role, get_scoped_inspector_query
 from app.fallback import sample_analytics
-from app.db_status import DB_AVAILABLE
+import app.db_status as db_status
 
 analytics_api = Blueprint("analytics_api", __name__)
 
@@ -17,19 +16,14 @@ def api_analytics():
     """
     Returns summary analytics for the current admin's inspectors only.
     """
-    if not logged_in() or current_role() != 'admin':
+    if not logged_in() or not is_admin_role():
         return jsonify({"error": "unauthorized"}), 401
 
     try:
-        if not DB_AVAILABLE:
+        if not db_status.DB_AVAILABLE:
             # return lightweight fallback analytics to keep UI functional
             return jsonify(sample_analytics())
-        admin_code = session.get('admin_code')
-        if not admin_code:
-            return jsonify({"error": "no admin code in session"}), 400
-
-        # inspector users belonging to admin
-        inspector_users = User.query.filter_by(role='inspector', manager_code=admin_code).all()
+        inspector_users = get_scoped_inspector_query().all()
         inspector_ids = [u.inspector_id for u in inspector_users if u.inspector_id]
 
         # basic totals

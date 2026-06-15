@@ -16,14 +16,27 @@ from auth.authentication import auth_bp
 # ---------------- Flask Setup ----------------
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
-CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
+# CORS: for localhost dev, allow credentials. In production, configure properly.
+cors_origins = os.environ.get("CORS_ORIGINS", "*").split(",") if os.environ.get("CORS_ORIGINS") else ["*"]
+if "*" in cors_origins:
+    # Wildcard: no credentials
+    CORS(app)
+else:
+    # Specific origins: allow credentials
+    CORS(app, supports_credentials=True, origins=cors_origins)
 
 app.secret_key = os.environ.get("INSPECTRA_SECRET", "inspectra_dev_secret_please_change")
+
+session_cookie_secure_env = os.environ.get("SESSION_COOKIE_SECURE")
+if session_cookie_secure_env is None:
+    session_cookie_secure = False
+else:
+    session_cookie_secure = session_cookie_secure_env == "True"
 
 app.config.update(
     SESSION_COOKIE_SAMESITE=os.environ.get("SESSION_COOKIE_SAMESITE", "Lax"),
     SESSION_COOKIE_HTTPONLY=os.environ.get("SESSION_COOKIE_HTTPONLY", "True") == "True",
-    SESSION_COOKIE_SECURE=os.environ.get("SESSION_COOKIE_SECURE", "True") == "True",
+    SESSION_COOKIE_SECURE=session_cookie_secure,
 )
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -53,6 +66,15 @@ app.register_blueprint(assignments_api)
 app.register_blueprint(trips_api, url_prefix="/api")
 
 db.init_app(app)
+
+# If we are using a local SQLite DB, initialize it automatically for examples.
+local_sqlite = database_url.startswith("sqlite://")
+if local_sqlite:
+    try:
+        from db_init import init_db
+        init_db(app)
+    except Exception as e:
+        print("[WARNING] Local DB init failed:", e)
 
 # ---------------- DB Availability Check ----------------
 # At startup, test whether the configured database is reachable and publish
