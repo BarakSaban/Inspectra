@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      # Option A: Provide the full URL (Your code checks this first)
+      - DATABASE_URL=postgresql+psycopg2://postgres:secretpassword@db:5432/inspectra_db
+      
+      # Option B: Or provide the individual pieces (Your code's backup logic)
+      # - POSTGRES_USER=postgres
+      # - POSTGRES_PASSWORD=secretpassword
+      # - DATABASE_HOST=db
+      # - POSTGRES_DB=inspectra_db
+      
+      - INSPECTRA_SECRET=dev_secret_123
+      - FLASK_DEBUG=True
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=secretpassword
+      - POSTGRES_DB=inspectra_db
+    volumes:
+      - inspectra_db_data:/var/lib/postgresql/data
+
+volumes:
+  inspectra_db_data:
