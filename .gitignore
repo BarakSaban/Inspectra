@@ -1,3 +1,8 @@
 gtfs/*.zip
 __pycache__/
 cache/
+.env
+.env.*
+*.pyc
+venv/
+.venv/
