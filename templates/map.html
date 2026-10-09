@@ -1,89 +1,806 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<!-- Note: In production, remove hardcoded location for real location under navigator.geolocation.watchPosition -->
-
 <head>
   <meta charset="utf-8" />
-  <title>Inspector Map</title>
+  <title>Inspectra | Inspector Operations</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-
-  <!-- AwesomeMarkers CSS -->
-  <link rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.awesome-markers/2.0.4/leaflet.awesome-markers.css" />
-
-  <!-- FontAwesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.awesome-markers/2.0.4/leaflet.awesome-markers.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
-    #map {
+    :root {
+      --bg: #f4f8fc;
+      --bg-soft: #edf3fb;
+      --panel: rgba(255, 255, 255, 0.94);
+      --panel-strong: #ffffff;
+      --primary: #1a68d8;
+      --primary-deep: #134ea8;
+      --primary-soft: #eaf2ff;
+      --secondary: #2aa8a1;
+      --secondary-soft: #e7f7f5;
+      --success: #3aa76c;
+      --warning: #e5a72d;
+      --danger: #d95d5d;
+      --text: #18314d;
+      --muted: #58738f;
+      --line: rgba(24, 49, 77, 0.08);
+      --shadow: 0 10px 18px rgba(19, 47, 77, 0.12);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: "Assistant", "Rubik", "Noto Sans Hebrew", "Segoe UI", Arial, sans-serif;
+      background: #f4f8fc;
+      color: var(--text);
+    }
+
+    body {
+      min-height: 100vh;
+      overflow: hidden;
+      direction: rtl;
+    }
+
+    button,
+    .map-button,
+    .primary-action,
+    .secondary-action,
+    .ghost-button,
+    .active-action {
+      font-family: "Rubik", "Assistant", "Noto Sans Hebrew", "Segoe UI", Arial, sans-serif;
+    }
+
+    .app-shell {
+      position: relative;
+      width: 100vw;
+      max-width: 430px;
       height: 100vh;
+      margin: 0 auto;
+      background: linear-gradient(180deg, #f8fbff 0%, #edf5ff 100%);
+      overflow: hidden;
+      border-left: 1px solid rgba(22, 50, 84, 0.08);
+      border-right: 1px solid rgba(22, 50, 84, 0.08);
+      box-shadow: 0 0 0 1px rgba(26,115,255,0.06), 0 20px 60px rgba(18, 56, 94, 0.12);
+    }
+
+    .mobile-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1200;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 18px 12px;
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(22, 50, 84, 0.04);
+    }
+
+    .brand-block {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      position: relative;
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: var(--primary);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.25);
+    }
+
+    .brand-mark::before {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border-radius: 8px;
+      background: #59b7e8;
+      transform: rotate(45deg);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.18);
+    }
+
+    .brand-copy {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .brand-copy strong {
+      font-size: 1.08rem;
+      letter-spacing: -0.04em;
+      color: var(--text);
+      font-weight: 900;
+    }
+
+    .brand-copy small {
+      color: var(--muted);
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+
+    .header-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: var(--secondary-soft);
+      border: 1px solid rgba(59, 199, 197, 0.2);
+      color: #0f7e7b;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .header-chip::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 0 3px rgba(46, 199, 141, 0.12);
+    }
+
+    .top-status {
+      position: absolute;
+      top: 84px;
+      left: 16px;
+      right: 16px;
+      z-index: 1100;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.8);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .status-pill::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      display: inline-block;
+    }
+
+    .status-pill.live {
+      background: rgba(46, 199, 141, 0.12);
+      color: var(--success);
+      border-color: rgba(46, 199, 141, 0.18);
+    }
+
+    .status-pill.fallback {
+      background: rgba(255, 200, 87, 0.16);
+      color: #d88900;
+      border-color: rgba(255, 200, 87, 0.2);
+    }
+
+    .status-pill.offline {
+      background: rgba(255, 107, 107, 0.1);
+      color: #e64d4d;
+      border-color: rgba(255, 107, 107, 0.2);
+    }
+
+    .status-meta {
+      color: var(--muted);
+      font-size: 0.71rem;
+      font-weight: 700;
+      text-align: left;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .map-stage {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      padding-top: 126px;
+    }
+
+    #map {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .map-actions {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 18px;
+      z-index: 1100;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
     .map-button {
-      position: absolute;
-      top: 10px;
-      z-index: 1000;
-      background-color: white;
-      padding: 8px 12px;
-      border: 1px solid #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid rgba(26,115,255,0.1);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.92);
+      color: var(--text);
+      font-weight: 800;
       cursor: pointer;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      box-shadow: var(--shadow);
+      transition: transform 0.14s ease, box-shadow 0.14s ease;
     }
 
-    #find-nearest-btn {
-      left: 60px;
+    .map-button:hover {
+      transform: translateY(-1px);
     }
 
-    #find-best-btn {
-      left: 245px;
+    .map-button.primary {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 8px 16px rgba(26, 102, 216, 0.16);
+    }
+
+    .map-button:disabled {
+      opacity: 0.72;
+      cursor: not-allowed;
+    }
+
+    .assignment-sheet {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      z-index: 1150;
+      transform: translateY(120%);
+      background: rgba(255,255,255,0.96);
+      border: 1px solid rgba(26,115,255,0.08);
+      border-radius: 24px 24px 18px 18px;
+      box-shadow: 0 22px 36px rgba(18, 56, 94, 0.14);
+      padding: 12px 12px 14px;
+      transition: transform 0.2s ease;
+    }
+
+    .assignment-sheet.visible {
+      transform: translateY(0);
+    }
+
+    .sheet-handle {
+      width: 54px;
+      height: 5px;
+      border-radius: 99px;
+      background: rgba(24, 57, 90, 0.14);
+      margin: 2px auto 10px;
+    }
+
+    .sheet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .line-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 72px;
+      padding: 9px 12px;
+      border-radius: 12px;
+      background: var(--primary-soft);
+      color: var(--primary-deep);
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      border: 1px solid rgba(26, 104, 216, 0.08);
+    }
+
+    .source-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 70px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+
+    .source-badge.live {
+      background: rgba(46, 199, 141, 0.1);
+      color: #128f66;
+    }
+
+    .source-badge.scheduled {
+      background: rgba(255, 200, 87, 0.12);
+      color: #c98000;
+    }
+
+    .sheet-main {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .assignment-topline {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .eyebrow-mini {
+      color: var(--muted);
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .assignment-destination {
+      font-size: 1.35rem;
+      line-height: 1.2;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      color: var(--text);
+    }
+
+    .ghost-button {
+      border: 1px solid rgba(26,115,255,0.1);
+      background: rgba(26,115,255,0.04);
+      color: var(--primary-deep);
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric-box {
+      background: #f6faff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 10px;
+    }
+
+    .metric-label {
+      font-size: 9px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 800;
+      margin-bottom: 7px;
+    }
+
+    .metric-value {
+      font-size: 1rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      color: var(--text);
+    }
+
+    .metric-value.accent { color: var(--primary-deep); }
+    .metric-value.success { color: #0d8d62; }
+
+    .sheet-note {
+      border-radius: 14px;
+      padding: 10px 12px;
+      color: var(--text);
+      background: linear-gradient(135deg, rgba(26,115,255,0.04), rgba(59,199,197,0.06));
+      border: 1px solid rgba(26,115,255,0.08);
+      line-height: 1.55;
+      font-size: 0.88rem;
+    }
+
+    .sheet-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .secondary-action,
+    .primary-action {
+      border-radius: 12px;
+      padding: 11px 12px;
+      font-weight: 800;
+      border: 0;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .secondary-action {
+      background: #f3f8ff;
+      color: var(--text);
+      border: 1px solid rgba(26,115,255,0.08);
+    }
+
+    .primary-action {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 8px 18px rgba(26, 102, 216, 0.14);
+    }
+
+    .active-assignment {
+      position: absolute;
+      right: 16px;
+      bottom: 18px;
+      z-index: 1100;
+      width: calc(100% - 32px);
+      padding: 16px 14px 14px;
+      background: rgba(255,255,255,0.96);
+      border: 1px solid rgba(26,115,255,0.08);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(18px);
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+
+    .active-assignment.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .active-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .active-line {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 62px;
+      min-height: 32px;
+      border-radius: 10px;
+      padding: 8px 10px;
+      background: var(--primary-soft);
+      color: var(--primary-deep);
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      border: 1px solid rgba(26, 104, 216, 0.08);
+    }
+
+    .active-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .active-route {
+      font-size: 1.08rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      color: var(--text);
+    }
+
+    .countdown-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .count-card {
+      background: #f6faff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 8px 6px;
+      text-align: center;
+    }
+
+    .count-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 8px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    .count-card strong {
+      font-size: 0.98rem;
+      letter-spacing: -0.04em;
+      color: var(--text);
+    }
+
+    .route-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(26,115,255,0.04);
+      color: var(--primary-deep);
+      font-size: 0.78rem;
+      font-weight: 700;
+      border: 1px solid rgba(26,115,255,0.08);
+    }
+
+    .route-pill i {
+      font-size: 0.8rem;
+    }
+
+    .active-action {
+      width: 100%;
+      border: 0;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      padding: 12px 14px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(26, 102, 216, 0.12);
+    }
+
+    @media (max-width: 420px) {
+      .app-shell {
+        max-width: 100vw;
+      }
     }
   </style>
 </head>
 
 <body>
-  <button id="find-nearest-btn" class="map-button">Find nearest stop (server)</button>
-  <button id="find-best-btn" class="map-button">Find best trip (server)</button>
+  <div class="app-shell">
+    <header class="mobile-header">
+      <div class="brand-block">
+        <div class="brand-mark" aria-label="Inspectra logo"></div>
+        <div class="brand-copy">
+          <strong>Inspectra</strong>
+          <small>field ops</small>
+        </div>
+      </div>
+      <div class="header-chip">מחובר</div>
+    </header>
 
-  <div id="map"></div>
+    <div class="top-status">
+      <div id="data-status" class="status-pill fallback"><span>גיבוי</span></div>
+      <div id="last-updated" class="status-meta">ממתין להמלצה</div>
+    </div>
 
-  <!-- Leaflet JS -->
+    <main class="map-stage">
+      <div id="map"></div>
+
+      <div class="map-actions">
+        <button id="find-nearest-btn" class="map-button"><i class="fa-solid fa-location-dot"></i>התחנה הקרובה</button>
+        <button id="find-best-btn" class="map-button primary"><i class="fa-solid fa-route"></i>המלץ על מסלול</button>
+      </div>
+
+      <aside id="assignment-sheet" class="assignment-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+          <div class="line-pill" id="assignment-line">-</div>
+          <div id="assignment-source" class="source-badge scheduled">מתוכנן</div>
+        </div>
+
+        <div class="sheet-main">
+          <div class="assignment-topline">
+            <div>
+              <div class="eyebrow-mini">יעד</div>
+              <div id="assignment-destination" class="assignment-destination">אין משימה</div>
+            </div>
+            <button class="ghost-button" type="button">צפייה</button>
+          </div>
+
+          <div class="metric-grid">
+            <div class="metric-box">
+              <div class="metric-label">הגעה</div>
+              <div id="assignment-arrival" class="metric-value accent">-</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-label">הליכה</div>
+              <div id="assignment-walk" class="metric-value">-</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-label">חלון</div>
+              <div id="assignment-window" class="metric-value success">-</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-label">פוטנציאל</div>
+              <div id="assignment-fines" class="metric-value accent">-</div>
+            </div>
+          </div>
+
+          <div id="assignment-insight" class="sheet-note">
+            פרטי המסלול יופיעו כאן לאחר חישוב המלצה.
+          </div>
+        </div>
+
+        <div class="sheet-actions">
+          <button id="assignment-dismiss" class="secondary-action" type="button">סגור</button>
+          <button id="assignment-accept" class="primary-action" type="button">קבל</button>
+        </div>
+      </aside>
+
+      <aside id="active-assignment" class="active-assignment" aria-live="polite">
+        <div class="active-header">
+          <div class="eyebrow-mini">משימה נוכחית</div>
+          <div id="active-source-badge" class="source-badge live">LIVE</div>
+        </div>
+
+        <div class="active-title">
+          <div id="active-line" class="active-line">-</div>
+          <div id="active-destination" class="active-route">-</div>
+        </div>
+
+        <div class="countdown-row">
+          <div class="count-card">
+            <span>הגעה</span>
+            <strong id="active-arrival">-</strong>
+          </div>
+          <div class="count-card">
+            <span>הליכה</span>
+            <strong id="active-walk">-</strong>
+          </div>
+          <div class="count-card">
+            <span>ETA</span>
+            <strong id="active-countdown">-</strong>
+          </div>
+        </div>
+
+        <div class="route-pill"><i class="fa-solid fa-bus"></i><span id="active-trip">מסלול</span></div>
+        <button id="active-navigation" class="active-action" type="button">ניווט לתחנה</button>
+      </aside>
+    </main>
+  </div>
+
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-  <!-- AwesomeMarkers JS -->
-  <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.awesome-markers/2.0.4/leaflet.awesome-markers.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.awesome-markers/2.0.4/leaflet.awesome-markers.js"></script>
 
   <script>
-    // ---------- CONFIG ----------
-    const SEARCH_RADIUS_METERS = 666; // optional: only consider stops within this radius
+    const SEARCH_RADIUS_METERS = 666;
     const BUS_ICON_URL = '/static/bus-stop.png';
-    // ---------- END CONFIG ----------
 
-    // Globals
     let map;
     let inspectorMarker = null;
     let inspectorCircle = null;
-    let userLatLng = null; // [lat, lon]
-    let stops = [];        // GeoJSON features for stops
-    let shapes = [];       // GeoJSON features for shapes
-    let stopShapeMap = []; // Array of {stop_id, shape_id, route_id, ...}
-    let currentDisplayed = { stopLayer: null, shapeLayer: null };
-    let displayedLayers = []; // Track added layers so they can be removed
+    let userLatLng = null;
+    let stops = [];
+    let shapes = [];
+    let stopShapeMap = [];
+    let currentDisplayed = { stopLayer: null, shapeLayer: null, walkLayer: null };
+    let activeAssignment = null;
 
-    // create map
+    function setDataStatus(mode, text) {
+      const el = document.getElementById('data-status');
+      const safeMode = mode || 'fallback';
+      el.className = 'status-pill ' + safeMode;
+      el.innerHTML = '<span>' + (safeMode === 'live' ? 'מחובר' : safeMode === 'offline' ? 'לא מקוון' : 'גיבוי') + '</span>';
+      if (text) {
+        document.getElementById('last-updated').textContent = text;
+      }
+    }
+
+    function setLastUpdated(label) {
+      document.getElementById('last-updated').textContent = label || 'ממתין לנתונים';
+    }
+
+    function renderAssignmentCard(json) {
+      const assignmentSheet = document.getElementById('assignment-sheet');
+      const sourceEl = document.getElementById('assignment-source');
+      const lineEl = document.getElementById('assignment-line');
+      const destinationEl = document.getElementById('assignment-destination');
+      const tripEl = document.getElementById('assignment-trip');
+      const arrivalEl = document.getElementById('assignment-arrival');
+      const walkEl = document.getElementById('assignment-walk');
+      const windowEl = document.getElementById('assignment-window');
+      const finesEl = document.getElementById('assignment-fines');
+      const insightEl = document.getElementById('assignment-insight');
+
+      if (!json || !json.best_option) {
+        assignmentSheet.classList.remove('visible');
+        return;
+      }
+
+      const best = json.best_option;
+      const source = (best.source || 'gtfs').toLowerCase();
+      const sourceLabel = source === 'live' ? 'LIVE' : 'מתוכנן';
+      const sourceClass = source === 'live' ? 'live' : 'scheduled';
+      const stopName = json.stop_feature && json.stop_feature.properties ? json.stop_feature.properties.stop_name : 'תחנה נבחרת';
+      const lineName = best.line_ref || best.route_id || best.trip_id || 'מסלול';
+
+      sourceEl.textContent = sourceLabel;
+      sourceEl.className = 'source-badge ' + sourceClass;
+      lineEl.textContent = String(lineName).replace(/\.0$/, '');
+      destinationEl.textContent = stopName;
+      arrivalEl.textContent = best.arrival_time ? String(best.arrival_time) : 'n/a';
+      walkEl.textContent = best.walk_time !== undefined ? `${best.walk_time} דק'` : 'n/a';
+      windowEl.textContent = best.time_on_board_min !== undefined ? `${best.time_on_board_min} דק'` : 'n/a';
+      finesEl.textContent = best.potential_fines !== undefined ? `${best.potential_fines}` : 'n/a';
+
+      const arrivalMinutes = best.minutes_until_arrival !== undefined ? `${Number(best.minutes_until_arrival).toFixed(1)} דק'` : 'n/a';
+      insightEl.innerHTML = source === 'live'
+        ? `הגעה בזמן אמת צפויה בעוד ${arrivalMinutes}. ההמלצה חושבה לפי נתוני SIRI עדכניים.`
+        : `ההמלצה מבוססת על לוח זמנים מתוכנן. נתוני SIRI לא היו זמינים או מחוץ לחלון הפעילות.`;
+
+      const activeLineEl = document.getElementById('active-line');
+      const activeDestinationEl = document.getElementById('active-destination');
+      const activeArrivalEl = document.getElementById('active-arrival');
+      const activeWalkEl = document.getElementById('active-walk');
+      const activeCountdownEl = document.getElementById('active-countdown');
+      const activeTripEl = document.getElementById('active-trip');
+      const activeSourceBadgeEl = document.getElementById('active-source-badge');
+
+      activeLineEl.textContent = String(lineName).replace(/\.0$/, '');
+      activeDestinationEl.textContent = stopName;
+      activeArrivalEl.textContent = best.arrival_time ? String(best.arrival_time) : 'n/a';
+      activeWalkEl.textContent = best.walk_time !== undefined ? `${best.walk_time} דק'` : 'n/a';
+      activeCountdownEl.textContent = arrivalMinutes;
+      activeTripEl.textContent = `מסלול ${best.trip_id || 'n/a'}`;
+      activeSourceBadgeEl.textContent = sourceLabel;
+      activeSourceBadgeEl.className = 'source-badge ' + sourceClass;
+
+      activeAssignment = json;
+      assignmentSheet.classList.add('visible');
+      document.getElementById('active-assignment').classList.add('visible');
+
+      if (tripEl) {
+        tripEl.textContent = 'מסלול ' + (best.trip_id || 'n/a');
+      }
+    }
+
     function initMap() {
       map = L.map('map').setView([32.0853, 34.7818], 13);
-
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
       }).addTo(map);
     }
 
-    // load files (stops, shapes, and mapping JSON)
     async function loadData() {
       const [stopsResp, shapesResp, mappingResp] = await Promise.all([
         fetch('/static/stops.geojson'),
@@ -98,11 +815,8 @@
       stops = stopsJson.features || [];
       shapes = shapesJson.features || [];
       stopShapeMap = mappingJson || [];
-
-      console.log('Loaded', stops.length, 'stops,', shapes.length, 'shapes,', stopShapeMap.length, 'mappings');
     }
 
-    // create a bus icon (PNG fallback)
     function createBusIcon() {
       try {
         return L.AwesomeMarkers.icon({
@@ -129,19 +843,17 @@
       popupAnchor: [0, -14]
     });
 
-    // show inspector location and watch for updates
     function startGeolocation() {
       if (!navigator.geolocation) {
-        alert('Geolocation not supported by your browser');
+        alert('הדפדפן אינו תומך במיקום גיאוגרפי.');
         return;
       }
 
-      navigator.geolocation.watchPosition(pos => { //Change here to input specific coords
-        const lat = 32.0880 //pos.coords.latitude;
-        const lon = 34.7898 //pos.coords.longitude;
+      navigator.geolocation.watchPosition(() => {
+        const lat = 32.0880;
+        const lon = 34.7898;
         userLatLng = [lat, lon];
 
-        // add or update marker
         if (!inspectorMarker) {
           inspectorMarker = L.marker(userLatLng, { icon: inspectorIcon, title: 'Inspector' }).addTo(map);
           inspectorMarker.bindPopup('You (Inspector)').openPopup();
@@ -149,31 +861,27 @@
           inspectorMarker.setLatLng(userLatLng);
         }
 
-        // add or update circle to show search radius (optional)
         if (!inspectorCircle) {
-          inspectorCircle = L.circle(userLatLng, { radius: 666, color: '#3388ff', fillOpacity: 0.05 }).addTo(map);
+          inspectorCircle = L.circle(userLatLng, { radius: 666, color: '#0d5bd7', fillOpacity: 0.05 }).addTo(map);
         } else {
           inspectorCircle.setLatLng(userLatLng);
         }
-
       }, err => {
         console.error('Geolocation error', err);
       }, { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 });
     }
 
-    // utility: convert GeoJSON feature coords [lon, lat] -> [lat, lon]
     function coords_lonlat_to_latlon(coord) {
       return [coord[1], coord[0]];
     }
 
-    // find nearest stop to the user (client-side fallback)
     function findNearestStopAndShow() {
       if (!userLatLng) {
-        alert('Waiting for location (allow geolocation in your browser).');
+        alert('מחכה למיקום.');
         return;
       }
       if (!stops || stops.length === 0) {
-        alert('Stops data not loaded yet.');
+        alert('נתוני התחנות עדיין לא נטענו.');
         return;
       }
 
@@ -191,24 +899,21 @@
       }
 
       if (!nearest) {
-        alert('No stop found nearby.');
+        alert('לא נמצאה תחנה בקרבת מקום.');
         return;
       }
 
       if (SEARCH_RADIUS_METERS && minDist > SEARCH_RADIUS_METERS) {
-        if (!confirm(`Nearest stop is ${Math.round(minDist)} m away — show it anyway?`)) return;
+        if (!confirm(`התחנה הקרובה נמצאת במרחק של ${Math.round(minDist)} מ' — להציג בכל זאת?`)) return;
       }
 
-      // clear previous displayed layers
       clearDisplayed();
 
-      // show the stop
       const stopLatLng = coords_lonlat_to_latlon(nearest.geometry.coordinates);
       const stopMarker = L.marker(stopLatLng, { icon: busIcon }).addTo(map);
       stopMarker.bindPopup(nearest.properties.stop_name || nearest.properties.stop_id).openPopup();
       currentDisplayed.stopLayer = stopMarker;
 
-      // find a mapping entry for this stop (preferably the first)
       const stopId = String(nearest.properties.stop_id);
       const mappingEntries = stopShapeMap.filter(s => String(s.stop_id) === stopId);
 
@@ -218,28 +923,23 @@
       }
 
       const mapEntry = mappingEntries[0];
-
-      // find the shape feature(s) that have this shape_id (use in-memory shapes)
       const shapeId = String(mapEntry.shape_id);
       const matchingShapes = shapes.filter(s => String(s.properties && s.properties.shape_id) === shapeId);
 
       if (matchingShapes.length === 0) {
-        alert('No shape geometry found for the route serving that stop.');
         map.setView(stopLatLng, 16);
         return;
       }
 
       const shapeLayer = L.geoJSON(matchingShapes[0], {
-        style: { color: 'red', weight: 4, opacity: 0.8 }
+        style: { color: '#e65757', weight: 4, opacity: 0.8 }
       }).addTo(map);
       currentDisplayed.shapeLayer = shapeLayer;
 
-      // fit map to show both inspector and the stop/line
       const group = L.featureGroup([inspectorMarker || L.marker(userLatLng), stopMarker, shapeLayer]);
       map.fitBounds(group.getBounds().pad(0.2));
     }
 
-    // clear previously displayed stop/shape
     function clearDisplayed() {
       if (currentDisplayed.stopLayer) {
         map.removeLayer(currentDisplayed.stopLayer);
@@ -255,8 +955,6 @@
       }
     }
 
-
-    // --- New robust helper for fetch ---
     async function safeJsonFetch(url, options) {
       const resp = await fetch(url, options);
       if (!resp.ok) {
@@ -266,66 +964,80 @@
       return resp.json();
     }
 
-  async function fetchBestTripAndShow() {
-      if (!userLatLng) return alert('Waiting for location...');
-      const [lat, lon] = userLatLng;
+    async function fetchBestTripAndShow() {
+      if (!userLatLng) {
+        alert('מחכה למיקום...');
+        return;
+      }
 
+      const [lat, lon] = userLatLng;
       const btn = document.getElementById('find-best-btn');
       btn.disabled = true;
-      btn.textContent = 'Searching...';
+      btn.textContent = 'מחשב המלצה...';
 
       try {
+        setDataStatus('fallback', 'מחשב המלצה בזמן אמת...');
         const json = await safeJsonFetch('/api/find_best_trip', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lat, lon, buffer: 3, radius: 666 })
+          body: JSON.stringify({ lat, lon, buffer: 3, radius: 666, use_live: true })
         });
 
-        if (json.best_option) {
-          clearDisplayed();
-          
-          if (json.best_option.route_geometry) {
-            const walkLayer = L.geoJSON(json.best_option.route_geometry, {
-              style: { color: 'black', weight: 4, opacity: 0.7, dashArray: '8,6' }
-            }).addTo(map);
-            currentDisplayed.walkLayer = walkLayer;
-          }
-
-          if (json.stop_feature) {
-            const stopLayer = L.geoJSON(json.stop_feature, {
-              pointToLayer: (f, latlng) => L.marker(latlng, { icon: busIcon })
-            }).addTo(map).bindPopup(json.stop_feature.properties && json.stop_feature.properties.stop_name).openPopup();
-            currentDisplayed.stopLayer = stopLayer;
-          }
-
-          if (json.shape_feature) {
-            const shapeLayer = L.geoJSON(json.shape_feature, {
-              style: { color: 'green', weight: 4 }
-            }).addTo(map);
-            currentDisplayed.shapeLayer = shapeLayer;
-          }
-
-          // optional: show stats
-          console.log('Best option', json.best_option);
-          if (json.best_option.potential_fines !== undefined) {
-            alert(`Best option: ${json.best_option.potential_fines} potential fines. Time on board: ${json.best_option.time_on_board_min} min`);
-          }
+        const source = json && json.best_option && json.best_option.source ? json.best_option.source : 'gtfs';
+        if (source === 'live') {
+          setDataStatus('live', 'נתוני SIRI פעילים');
         } else {
-          alert('No reachable trip found.');
+          setDataStatus('fallback', 'משתמשים ב-GTFS גיבוי');
+        }
+
+        setLastUpdated(`עדכון אחרון: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`);
+        renderAssignmentCard(json);
+
+        if (!json.best_option) {
+          clearDisplayed();
+          return;
+        }
+
+        clearDisplayed();
+
+        if (json.best_option.route_geometry) {
+          const walkLayer = L.geoJSON(json.best_option.route_geometry, {
+            style: { color: '#0d5bd7', weight: 4, opacity: 0.8, dashArray: '8,6' }
+          }).addTo(map);
+          currentDisplayed.walkLayer = walkLayer;
+        }
+
+        if (json.stop_feature) {
+          const stopLayer = L.geoJSON(json.stop_feature, {
+            pointToLayer: (f, latlng) => L.marker(latlng, { icon: busIcon })
+          }).addTo(map).bindPopup(json.stop_feature.properties && json.stop_feature.properties.stop_name).openPopup();
+          currentDisplayed.stopLayer = stopLayer;
+        }
+
+        if (json.shape_feature) {
+          const shapeLayer = L.geoJSON(json.shape_feature, {
+            style: { color: '#1dbb7b', weight: 4 }
+          }).addTo(map);
+          currentDisplayed.shapeLayer = shapeLayer;
         }
       } catch (err) {
         console.error(err);
-        alert('Error finding best trip: ' + err.message);
+        setDataStatus('offline', 'API לא זמין');
+        setLastUpdated('הזרמת נתונים לא זמינה');
+        alert('שגיאה בחישוב המסלול הטוב ביותר: ' + err.message);
       } finally {
         btn.disabled = false;
-        btn.textContent = 'Find best trip (server)';
+        btn.textContent = 'המלץ על מסלול';
       }
     }
 
-  async function fetchNearestAndShow() {
-      if (!userLatLng) return alert('Waiting for location...');
-      const [lat, lon] = userLatLng;
+    async function fetchNearestAndShow() {
+      if (!userLatLng) {
+        alert('מחכה למיקום...');
+        return;
+      }
 
+      const [lat, lon] = userLatLng;
       try {
         const json = await safeJsonFetch('/api/nearest_stop', {
           method: 'POST',
@@ -333,13 +1045,11 @@
           body: JSON.stringify({ lat, lon, radius: SEARCH_RADIUS_METERS })
         });
 
-        // clear old
         clearDisplayed();
 
-        // stop geometry
         const stopFeature = json.stop;
         if (!stopFeature || !stopFeature.geometry) {
-          alert('Server did not return a valid stop.');
+          alert('השרת לא החזיר תחנה תקינה.');
           return;
         }
 
@@ -349,38 +1059,43 @@
 
         currentDisplayed.stopLayer = stopMarker;
 
-        // fit bounds to the stop (and inspector if available)
         if (stopFeature.geometry && stopFeature.geometry.coordinates) {
           const latlng = [stopFeature.geometry.coordinates[1], stopFeature.geometry.coordinates[0]];
           map.setView(latlng, 16);
         }
       } catch (err) {
         console.error(err);
-        alert('Error fetching nearest stop: ' + err.message);
+        alert('שגיאה בקבלת התחנה הקרובה: ' + err.message);
       }
     }
 
-    // hook up UI (replaced setupUI)
     function setupUI() {
       document.getElementById('find-nearest-btn').addEventListener('click', () => {
-        // server-backed nearest by default
         fetchNearestAndShow();
-        // if you want client-side instead, call: findNearestStopAndShow();
       });
 
       document.getElementById('find-best-btn').addEventListener('click', () => {
         fetchBestTripAndShow();
       });
+
+      document.getElementById('assignment-dismiss').addEventListener('click', () => {
+        document.getElementById('assignment-sheet').classList.remove('visible');
+      });
+
+      document.getElementById('assignment-accept').addEventListener('click', () => {
+        document.getElementById('assignment-sheet').classList.remove('visible');
+        document.getElementById('active-assignment').classList.add('visible');
+      });
     }
 
-    // main boot
     (async function main() {
       initMap();
       await loadData();
       startGeolocation();
       setupUI();
+      setDataStatus('fallback', 'ממתין לנתונים חיים');
+      setLastUpdated('ממתין להמלצה על מסלול');
     })();
-
   </script>
 </body>
 </html>

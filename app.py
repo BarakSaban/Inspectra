@@ -105,10 +105,12 @@ def api_find_best_trip():
 
     inspector = Inspector(inspector_id='local', name='Local', latitude=lat, longitude=lon, available=True)
 
+    use_live_data = bool(req.get('use_live', True))
     best = actions.find_best_fine_trip(
         inspector,
         buffer_minutes=buffer_minutes,
-        radius_m=radius_m
+        radius_m=radius_m,
+        use_live_data=use_live_data
     )
 
     if not best:

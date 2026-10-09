@@ -6,15 +6,20 @@ from datetime import datetime
 from scipy.spatial import KDTree
 import numpy as np
 import math
+import time
+from urllib.parse import quote
 from shapely.geometry import mapping
+import requests
 
 
 class Actions:
-    def __init__(self, stops_df, stop_times_df, trips_df, routes_df):
+    def __init__(self, stops_df, stop_times_df, trips_df, routes_df, realtime_api_base="https://phy-r430.taila18e05.ts.net"):
         self.stops_df = stops_df.reset_index(drop=True)
         self.stop_times_df = stop_times_df
         self.trips_df = trips_df
         self.routes_df = routes_df
+        self.realtime_api_base = realtime_api_base.rstrip("/")
+        self._live_stop_cache = {}
 
         # ---------- (1) KDTree in METERS (local projection) ----------
         # Build a local, near-conformal projection to meters using a fixed reference latitude.
@@ -88,10 +93,166 @@ class Actions:
         return val.values[0] if not val.empty else None
     
     def get_route_id_from_trip_id(self, trip_id):
-        row = self.trips_df.loc[self.trips_df["trip_id"] == trip_id, "route_id"]
+        if trip_id is None:
+            return None
+
+        trip_id_str = str(trip_id).strip()
+        row = self.trips_df.loc[self.trips_df["trip_id"].astype(str) == trip_id_str, "route_id"]
         if not row.empty:
-            return int(row.values[0])  # convert from numpy.int64 to Python int
+            route_id = row.values[0]
+            try:
+                return int(route_id)
+            except (TypeError, ValueError):
+                return route_id
         return None
+
+    def _seconds_until_iso(self, value):
+        if value is None:
+            return None
+
+        if isinstance(value, (int, float)):
+            try:
+                return float(value)
+            except (TypeError, ValueError):
+                return None
+
+        if isinstance(value, str):
+            value = value.strip()
+            if not value:
+                return None
+
+            try:
+                dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+                return (dt - datetime.now()).total_seconds() / 60.0
+            except ValueError:
+                pass
+
+            try:
+                hh, mm, ss = [int(part) for part in value.split(":")[:3]]
+                now = datetime.now()
+                target = now.replace(hour=hh, minute=mm, second=ss, microsecond=0)
+                if target < now:
+                    target = target.replace(day=target.day + 1)
+                return (target - now).total_seconds() / 60.0
+            except ValueError:
+                return None
+
+        return None
+
+    def _extract_live_stop_events(self, payload):
+        if payload is None:
+            return []
+
+        candidates = payload if isinstance(payload, list) else [payload]
+        if isinstance(payload, dict):
+            for key in [
+                "stopMonitoringDelivery",
+                "stopMonitoring",
+                "monitoredStopVisits",
+                "monitoredStopVisit",
+                "StopMonitoringDelivery",
+            ]:
+                if key in payload:
+                    value = payload[key]
+                    candidates = value if isinstance(value, list) else [value]
+                    break
+            else:
+                if "MonitoredStopVisit" in payload:
+                    candidates = payload["MonitoredStopVisit"] if isinstance(payload["MonitoredStopVisit"], list) else [payload["MonitoredStopVisit"]]
+                elif "monitoredStopVisit" in payload:
+                    candidates = payload["monitoredStopVisit"] if isinstance(payload["monitoredStopVisit"], list) else [payload["monitoredStopVisit"]]
+
+        events = []
+        for visit in candidates:
+            if not isinstance(visit, dict):
+                continue
+
+            journey = visit.get("monitoredVehicleJourney") or visit.get("vehicleJourney") or visit
+            call = journey.get("monitoredCall") or journey.get("call") or {}
+            arrival_value = (
+                call.get("expectedArrivalTime")
+                or call.get("expectedDepartureTime")
+                or call.get("aimedArrivalTime")
+                or call.get("arrivalTime")
+            )
+            if arrival_value is None:
+                continue
+
+            minutes_until_arrival = self._seconds_until_iso(arrival_value)
+            if minutes_until_arrival is None:
+                continue
+
+            line_ref = journey.get("lineRef") or journey.get("line_ref") or journey.get("LineRef")
+            trip_ref = None
+            framed = journey.get("framedVehicleJourneyRef") or {}
+            if isinstance(framed, dict):
+                trip_ref = (
+                    framed.get("datedVehicleJourneyRef")
+                    or framed.get("vehicleJourneyRef")
+                    or framed.get("vehicleRef")
+                )
+            if trip_ref is None:
+                trip_ref = journey.get("journeyRef") or journey.get("tripRef") or journey.get("vehicleRef")
+
+            if trip_ref is None and line_ref is not None:
+                trip_ref = f"live_{line_ref}"
+
+            stop_ref = (
+                visit.get("monitoringRef")
+                or visit.get("MonitoringRef")
+                or journey.get("monitoringRef")
+                or journey.get("MonitoringRef")
+                or call.get("stopPointRef")
+                or call.get("StopPointRef")
+            )
+
+            events.append({
+                "trip_id": str(trip_ref) if trip_ref is not None else None,
+                "route_id": line_ref,
+                "line_ref": line_ref,
+                "stop_id": str(stop_ref) if stop_ref is not None else "",
+                "arrival_time": str(arrival_value),
+                "minutes_until_arrival": minutes_until_arrival,
+                "source": "live"
+            })
+
+        return events
+
+    def get_live_stop_arrivals(self, stop_id, line_ref=None, preview_interval="PT5M"):
+        if stop_id is None:
+            return []
+
+        cache_key = (str(stop_id), str(line_ref or ""), str(preview_interval))
+        now_ts = time.monotonic()
+        if cache_key in self._live_stop_cache:
+            cache_item = self._live_stop_cache[cache_key]
+            if cache_item["expires_at"] > now_ts:
+                return cache_item["events"]
+
+        try:
+            url = f"{self.realtime_api_base}/stops/{quote(str(stop_id))}"
+            params = {}
+            if line_ref:
+                params["line_ref"] = str(line_ref)
+            if preview_interval:
+                params["preview_interval"] = str(preview_interval)
+
+            response = requests.get(url, params=params, timeout=8)
+            response.raise_for_status()
+            payload = response.json()
+            events = self._extract_live_stop_events(payload)
+            self._live_stop_cache[cache_key] = {
+                "expires_at": now_ts + 10,
+                "events": events,
+            }
+            return events
+        except Exception as exc:
+            print(f"Live stop fetch failed for stop {stop_id}: {exc}")
+            self._live_stop_cache[cache_key] = {
+                "expires_at": now_ts + 5,
+                "events": []
+            }
+            return []
 
     # --------------------------
     # (3) Build walking network with dynamic radius + cache
@@ -213,7 +374,7 @@ class Actions:
     # --------------------------
     # Find all reachable trips (uses stop_times_map for speed)
     # --------------------------
-    def find_optional_lines(self, inspector_lat, inspector_lon, buffer_minutes=3, radius_m=666, max_walk_minutes=8):
+    def find_optional_lines(self, inspector_lat, inspector_lon, buffer_minutes=3, radius_m=666, max_walk_minutes=8, use_live_data=True):
         inspector_pos = (inspector_lat, inspector_lon)
         nearby_stations = self.get_nearby_stations_osm(inspector_pos, radius_m=radius_m, max_walk_minutes=max_walk_minutes)
         if not nearby_stations:
@@ -221,23 +382,52 @@ class Actions:
 
         print(f"Currently running find_optional_lines with pos {inspector_pos} on stations:\n{nearby_stations}")
         reachable = []
+        seen = set()
+
         for stop_id, walk_minutes, route_geom in nearby_stations:
             stop_times = self.stop_times_map.get(stop_id)
-            if stop_times is None or stop_times.empty:
-                continue
+            if stop_times is not None and not stop_times.empty:
+                for _, row in stop_times.iterrows():
+                    minutes_to_arrival = self.minutes_until_arrival(row['arrival_time'])
+                    if walk_minutes + buffer_minutes <= minutes_to_arrival:
+                        key = (str(row['trip_id']), str(stop_id), str(row['arrival_time']))
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        reachable.append({
+                            'trip_id': row['trip_id'],
+                            'stop_id': stop_id,
+                            'arrival_time': row['arrival_time'],
+                            'walk_time': round(walk_minutes, 2),
+                            'route_geometry': mapping(route_geom),
+                            'minutes_until_arrival': round(minutes_to_arrival, 1),
+                            'source': 'gtfs'
+                        })
 
-            # Iterate only this stop's times (no global filtering)
-            for _, row in stop_times.iterrows():
-                minutes_to_arrival = self.minutes_until_arrival(row['arrival_time'])
-                if walk_minutes + buffer_minutes <= minutes_to_arrival:
-                    reachable.append({
-                        'trip_id': row['trip_id'],
-                        'stop_id': stop_id,
-                        'arrival_time': row['arrival_time'],
-                        'walk_time': round(walk_minutes, 2),
-                        'route_geometry': mapping(route_geom),
-                        'minutes_until_arrival': round(minutes_to_arrival, 1)
-                    })
+            if use_live_data:
+                live_events = self.get_live_stop_arrivals(stop_id)
+                for live_event in live_events:
+                    minutes_to_arrival = live_event.get('minutes_until_arrival')
+                    if minutes_to_arrival is None:
+                        continue
+                    if walk_minutes + buffer_minutes <= minutes_to_arrival:
+                        trip_id = live_event.get('trip_id') or f"live:{stop_id}:{live_event.get('line_ref') or 'unknown'}"
+                        key = (str(trip_id), str(stop_id), str(live_event.get('arrival_time')))
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        reachable.append({
+                            'trip_id': trip_id,
+                            'stop_id': stop_id,
+                            'arrival_time': live_event.get('arrival_time'),
+                            'walk_time': round(walk_minutes, 2),
+                            'route_geometry': mapping(route_geom),
+                            'minutes_until_arrival': round(minutes_to_arrival, 1),
+                            'source': 'live',
+                            'route_id': live_event.get('route_id'),
+                            'line_ref': live_event.get('line_ref')
+                        })
+
         print(f"Reachable array (called from find_optional_lines):\n{reachable}")
         if not reachable:
             return pd.DataFrame()
@@ -246,7 +436,7 @@ class Actions:
     # --------------------------
     # Find best trip for fines potential (uses avg_dont_pay_map)
     # --------------------------
-    def find_best_fine_trip(self, inspector, buffer_minutes=3, radius_m=666, max_walk_minutes=8):
+    def find_best_fine_trip(self, inspector, buffer_minutes=3, radius_m=666, max_walk_minutes=8, use_live_data=True):
         if not getattr(inspector, "available", True):
             print("Inspector unavailable, exiting...")
             return None
@@ -254,7 +444,7 @@ class Actions:
         now = datetime.now()
         now_minutes = now.hour * 60 + now.minute + now.second / 60
 
-        reachable_df = self.find_optional_lines(inspector.lat, inspector.lon, buffer_minutes, radius_m, max_walk_minutes)
+        reachable_df = self.find_optional_lines(inspector.lat, inspector.lon, buffer_minutes, radius_m, max_walk_minutes, use_live_data=use_live_data)
         if reachable_df.empty:
             print("Reachable lines empty, exiting...")
             return None
@@ -265,45 +455,62 @@ class Actions:
 
         for _, row in reachable_df.iterrows():
             trip_id = row['trip_id']
-            if trip_id in checked_trips:
+            trip_key = str(trip_id)
+            if trip_key in checked_trips:
                 print(f"trip_id {trip_id} was already checked, continuing...")
                 continue
-            checked_trips.add(trip_id)
+            checked_trips.add(trip_key)
             print(f"Added {trip_id} trip id to checked trips")
 
-            trip_stop_times = self.stop_times_df[self.stop_times_df['trip_id'] == trip_id]
-            if trip_stop_times.empty:
+            trip_stop_times = self.stop_times_df[self.stop_times_df['trip_id'].astype(str) == trip_key]
+
+            if trip_stop_times.empty and row.get('source') != 'live':
                 print(f"trip_stop_times {trip_stop_times} is empty, continuing...")
                 continue
 
-            # Latest arrival for this trip
-            try:
-                latest_arrival_minutes = max([
-                    int(t.split(":")[0]) * 60 + int(t.split(":")[1]) + int(t.split(":")[2]) / 60.0
-                    for t in trip_stop_times['arrival_time']
-                    if isinstance(t, str) and len(t.split(":")) == 3
-                ])
-            except Exception as e:
-                print(f"Encountered exception in finding latest arrival for trip!\n{e}")
-                continue
-            print(f"Latest arrival minutes for trip {trip_id} is {latest_arrival_minutes}")
+            if trip_stop_times.empty:
+                time_on_board = float(row.get('minutes_until_arrival', 0.0))
+                if time_on_board <= 0:
+                    print(f"time on board is less than or equal to 0 ({time_on_board}), continuing...")
+                    continue
+                print(f"Using live prediction time on board for trip {trip_id} is {time_on_board}")
+            else:
+                try:
+                    latest_arrival_minutes = max([
+                        int(t.split(":")[0]) * 60 + int(t.split(":")[1]) + int(t.split(":")[2]) / 60.0
+                        for t in trip_stop_times['arrival_time']
+                        if isinstance(t, str) and len(t.split(":")) == 3
+                    ])
+                except Exception as e:
+                    print(f"Encountered exception in finding latest arrival for trip!\n{e}")
+                    continue
+                print(f"Latest arrival minutes for trip {trip_id} is {latest_arrival_minutes}")
 
-            time_on_board = latest_arrival_minutes - now_minutes
-            if time_on_board <= 0:
-                print(f"time on board is less than or equal to 0 ({time_on_board}), continuing...")
-                continue
-            print(f"Time on board for trip {trip_id} is {time_on_board}")
+                time_on_board = latest_arrival_minutes - now_minutes
+                if time_on_board <= 0:
+                    print(f"time on board is less than or equal to 0 ({time_on_board}), continuing...")
+                    continue
+                print(f"Time on board for trip {trip_id} is {time_on_board}")
 
             fines_possible = int(time_on_board // 5)
             print(f"fines possible for {trip_id} is {fines_possible}")
-            avg_dont_pay = self.get_dontpay_value(self.get_route_id_from_trip_id(trip_id))
-            print(f"count of average non paying users for trip {trip_id} is {avg_dont_pay}")
 
-            # #HOTFIX, IMPORTANT TO REMOVE!!! VVV
-            # import random
-            # avg_dont_pay = random.randrange(0, 18)
-            # print(f"Randomized count of average non paying users for trip {trip_id}, now {avg_dont_pay}")
-            # #HOTFIX, IMPORTANT TO REMOVE!!! ^^^
+            route_id = self.get_route_id_from_trip_id(trip_id)
+            if route_id is None:
+                route_id = row.get('route_id')
+            if route_id is None:
+                route_id = row.get('line_ref')
+            try:
+                route_id = int(route_id)
+            except (TypeError, ValueError):
+                pass
+
+            avg_dont_pay = None
+            if route_id is not None:
+                avg_dont_pay = self.get_dontpay_value(route_id)
+            if avg_dont_pay is None:
+                avg_dont_pay = 0
+            print(f"count of average non paying users for trip {trip_id} is {avg_dont_pay}")
 
             potential_fines = min(fines_possible, int(avg_dont_pay))
             if potential_fines > max_fines:
@@ -317,7 +524,8 @@ class Actions:
                     'minutes_until_arrival': row['minutes_until_arrival'],
                     'time_on_board_min': round(time_on_board, 1),
                     'AvgDontPay': avg_dont_pay,
-                    'potential_fines': potential_fines
+                    'potential_fines': potential_fines,
+                    'source': row.get('source', 'gtfs')
                 }
             else:
                 print(f"Potential fines {potential_fines} isnt bigger than max fines {max_fines}")
