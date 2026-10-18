@@ -1,0 +1,217 @@
+<!-- /sidebar.html -->
+<nav class="inspectra-topbar">
+  <div class="nav-content">
+    <!-- LEFT: Logo + Greeting -->
+    <div class="nav-logo" style="display:flex; align-items:center; gap:12px;">
+      <img src="/static/INSPECTRA_NEW.png" alt="Inspectra Logo" class="logo-img" />
+      <span id="userGreeting" style="font-weight:600; color:#334155; font-size:0.95rem;">Hi!</span>
+    </div>
+
+    <!-- CENTER: Navigation -->
+    <ul class="nav-menu">
+      <li>
+        <a href="/analytics" id="analyticsLink" class="nav-link">
+          <i class="fas fa-chart-line"></i>
+          <span>Analytics</span>
+        </a>
+      </li>
+      <li>
+        <a href="/admin" id="adminLink" class="nav-link">
+          <i class="fas fa-tachometer-alt"></i>
+          <span>Overview</span>
+        </a>
+      </li>
+      <li>
+        <a href="/staff" id="staffLink" class="nav-link">
+          <i class="fas fa-users"></i>
+          <span>Staff Management</span>
+        </a>
+      </li>
+      <li>
+        <a href="/profile" id="profileLink" class="nav-link">
+          <i class="fas fa-user-circle"></i>
+          <span>Profile</span>
+        </a>
+      </li>
+      <li>
+        <a href="/signup" id="signupLink" class="nav-link">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Log Out</span>
+        </a>
+      </li>
+    </ul>
+
+    <!-- RIGHT: User Button -->
+    <div class="nav-user">
+      <a href="/logout" class="user-btn" id="userBtn">
+        <i class="fas fa-user"></i>
+        <span>Inspect</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+/>
+
+<style>
+  .inspectra-topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.1);
+    z-index: 1200;
+  }
+
+  .nav-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 10px 24px;
+  }
+
+  .nav-logo {
+    position: absolute;
+    left: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .logo-img {
+    height: 44px;
+    object-fit: contain;
+  }
+
+  .nav-menu {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #334155;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 8px 16px;
+    border-radius: 30px;
+    transition: all 0.25s ease;
+  }
+
+  .nav-link:hover,
+  .nav-link.active {
+    background-color: rgba(31, 123, 209, 0.1);
+    color: #1f7bd1;
+    transform: translateY(-1px);
+  }
+
+  .nav-link i {
+    color: #1f7bd1;
+    font-size: 1rem;
+  }
+
+  .nav-user {
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .user-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    background-color: #1f7bd1;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.25s ease;
+  }
+
+  .user-btn:hover {
+    background-color: #1667b8;
+  }
+
+  .user-btn small {
+    font-weight: 400;
+    font-size: 0.75rem;
+    color: #D0E6FF;
+    line-height: 1.1;
+    display: block;
+    transition: opacity 0.2s ease;
+  }
+
+  @media (max-width: 600px) {
+    .nav-content {
+      flex-direction: column;
+    }
+
+    .nav-logo,
+    .nav-user {
+      position: static;
+      transform: none;
+      margin-bottom: 8px;
+    }
+
+    .nav-menu {
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .logo-img {
+      height: 36px;
+    }
+  }
+</style>
+
+<script>
+  // Highlight current page
+  const currentPath = window.location.pathname;
+  const linkMap = {
+    "/analytics": "analyticsLink",
+    "/admin": "adminLink",
+    "/staff": "staffLink",
+    "/profile": "profileLink",
+    "/signup": "signupLink"
+  };
+  for (const path in linkMap) {
+    if (currentPath.startsWith(path)) {
+      const el = document.getElementById(linkMap[path]);
+      if (el) el.classList.add("active");
+      break;
+    }
+  }
+
+  // Dynamic greeting (data must come from parent page)
+  function setSidebarUser(fullName, role) {
+    const greetingEl = document.getElementById("userGreeting");
+    if (!greetingEl) return;
+
+    const firstName = fullName?.trim().split(" ")[0] || "";
+    const niceRole = role ? role.toLowerCase() : "";
+
+    if (firstName && niceRole) {
+      greetingEl.textContent = `Hi, ${niceRole} ${firstName}`;
+    } else if (firstName) {
+      greetingEl.textContent = `Hi, ${firstName}`;
+    } else {
+      greetingEl.textContent = "Hi!";
+    }
+  }
+</script>
