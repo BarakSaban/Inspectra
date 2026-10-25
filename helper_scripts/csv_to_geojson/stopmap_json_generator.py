@@ -1,37 +1,54 @@
-import pandas as pd
 import json
+from pathlib import Path
 
-# Load filtered GTFS TXT files (with ID columns as strings)
-stop_times_df = pd.read_csv("./gtfs/gtfs_filtered/stop_times.txt", sep=",", encoding="utf-8", dtype={"stop_id": str, "trip_id": str})
-trips_df = pd.read_csv("./gtfs/gtfs_filtered/trips.txt", sep=",", encoding="utf-8", dtype={"trip_id": str, "route_id": str, "shape_id": str})
-routes_df = pd.read_csv("./gtfs/gtfs_filtered/routes.txt", sep=",", encoding="utf-8", dtype={"route_id": str})
+import pandas as pd
 
-# Merge stop_times with trips to get route_id and shape_id
-merged = stop_times_df.merge(
-    trips_df[['trip_id', 'route_id', 'shape_id']],
-    on='trip_id',
-    how='left'
-)
 
-# Add route metadata (optional but nice for map popups)
-merged = merged.merge(
-    routes_df[['route_id', 'route_short_name', 'route_long_name']],
-    on='route_id',
-    how='left'
-)
+def build_stop_shape_map(stop_times_df, trips_df, routes_df):
+    merged = stop_times_df[['stop_id', 'trip_id']].merge(
+        trips_df[['trip_id', 'route_id', 'shape_id']],
+        on='trip_id',
+        how='inner',
+        validate='many_to_one',
+    )
+    merged = merged.merge(
+        routes_df[['route_id', 'route_short_name', 'route_long_name']],
+        on='route_id',
+        how='inner',
+        validate='many_to_one',
+    )
+    merged['shape_id'] = merged['shape_id'].astype(str).str.replace(r'\.0$', '', regex=True)
+    return merged[[
+        'stop_id', 'trip_id', 'route_id', 'shape_id',
+        'route_short_name', 'route_long_name',
+    ]].drop_duplicates().to_dict(orient='records')
 
-# Clean up possible float-looking shape_ids like "1234.0"
-merged['shape_id'] = merged['shape_id'].astype(str).str.replace(r'\.0$', '', regex=True)
 
-# Select only needed columns & drop duplicates
-map_df = merged[['stop_id', 'trip_id', 'route_id', 'shape_id',
-                 'route_short_name', 'route_long_name']].drop_duplicates()
+def main():
+    project_dir = Path(__file__).resolve().parents[2]
+    gtfs_dir = project_dir / 'gtfs' / 'gtfs_filtered'
+    output_path = project_dir / 'static' / 'stop_shape_map.json'
 
-# Convert to list of dicts for JSON
-records = map_df.to_dict(orient="records")
+    stop_times_df = pd.read_csv(
+        gtfs_dir / 'stop_times.txt',
+        dtype={'stop_id': str, 'trip_id': str},
+    )
+    trips_df = pd.read_csv(
+        gtfs_dir / 'trips.txt',
+        dtype={'trip_id': str, 'route_id': str, 'shape_id': str},
+    )
+    routes_df = pd.read_csv(
+        gtfs_dir / 'routes.txt',
+        dtype={'route_id': str, 'route_short_name': str},
+    )
+    records = build_stop_shape_map(stop_times_df, trips_df, routes_df)
 
-# Save as JSON
-with open("stop_shape_map.json", "w", encoding="utf-8") as f:
-    json.dump(records, f, ensure_ascii=False, indent=2)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open('w', encoding='utf-8') as output_file:
+        json.dump(records, output_file, ensure_ascii=False, indent=2)
 
-print(f"Saved {len(records)} records to stop_shape_map.json")
+    print(f'Saved {len(records)} verified stop-trip-route records to {output_path}')
+
+
+if __name__ == '__main__':
+    main()

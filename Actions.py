@@ -258,10 +258,84 @@ class Actions:
             return pd.DataFrame()
         return pd.DataFrame(reachable).sort_values(by='minutes_until_arrival')
 
+    @staticmethod
+    def _normalize_live_candidate(candidate):
+        if not isinstance(candidate, dict):
+            return None
+
+        trip_id = candidate.get('trip_id')
+        stop_id = candidate.get('stop_id')
+        if trip_id is None or stop_id is None:
+            return None
+
+        arrival_time = candidate.get('arrival_time') or candidate.get('expected_arrival_time')
+        minutes_until_arrival = candidate.get('minutes_until_arrival')
+        if arrival_time is None and minutes_until_arrival is None:
+            return None
+
+        try:
+            minutes_until_arrival = float(minutes_until_arrival)
+        except (TypeError, ValueError):
+            minutes_until_arrival = None
+
+        return {
+            'trip_id': str(trip_id),
+            'stop_id': str(stop_id),
+            'arrival_time': arrival_time,
+            'walk_time': 0.0,
+            'route_geometry': None,
+            'minutes_until_arrival': minutes_until_arrival,
+            'is_live': True,
+            'data_source': 'live',
+            'source_label': 'Live SIRI data',
+            'live_status': 'live'
+        }
+
+    @staticmethod
+    def _dedupe_trip_candidates(candidate_rows):
+        deduped = {}
+        for row in candidate_rows:
+            if not isinstance(row, dict):
+                continue
+
+            trip_id = row.get('trip_id')
+            if trip_id is None:
+                continue
+
+            def candidate_score(item):
+                value = item.get('minutes_until_arrival')
+                if value is None:
+                    value = item.get('time_on_board_min')
+                try:
+                    return float(value)
+                except (TypeError, ValueError):
+                    return float('-inf')
+
+            current = deduped.get(trip_id)
+            if current is None:
+                deduped[trip_id] = row
+                continue
+
+            current_is_live = bool(current.get('is_live'))
+            candidate_is_live = bool(row.get('is_live'))
+            current_score = candidate_score(current)
+            candidate_score_value = candidate_score(row)
+
+            prefer_current = (
+                current_is_live and not candidate_is_live
+            ) or (
+                current_is_live == candidate_is_live and current_score >= candidate_score_value
+            )
+
+            if not prefer_current:
+                deduped[trip_id] = row
+
+        return list(deduped.values())
+
     # --------------------------
     # Find best trip for fines potential (uses avg_dont_pay_map)
     # --------------------------
-    def find_best_fine_trip(self, inspector, buffer_minutes=3, radius_m=666, max_walk_minutes=8):
+    def find_best_fine_trip(self, inspector, buffer_minutes=3, radius_m=666, max_walk_minutes=8, live_option=None, live_options=None):
         if not getattr(inspector, "available", True):
             print("Inspector unavailable, exiting...")
             return None
@@ -270,7 +344,26 @@ class Actions:
         now_minutes = now.hour * 60 + now.minute + now.second / 60
 
         reachable_df = self.find_optional_lines(inspector.lat, inspector.lon, buffer_minutes, radius_m, max_walk_minutes)
-        if reachable_df.empty:
+        candidate_rows = reachable_df.to_dict(orient='records') if not reachable_df.empty else []
+
+        live_candidates = []
+        if live_option is not None:
+            live_candidates.append(live_option)
+        if live_options is not None:
+            if isinstance(live_options, (list, tuple)):
+                live_candidates.extend(live_options)
+            else:
+                live_candidates.append(live_options)
+
+        for item in live_candidates:
+            normalized = self._normalize_live_candidate(item)
+            if normalized is None:
+                continue
+            candidate_rows.append(normalized)
+
+        candidate_rows = self._dedupe_trip_candidates(candidate_rows)
+
+        if not candidate_rows:
             print("Reachable lines empty, exiting...")
             return None
 
@@ -278,7 +371,7 @@ class Actions:
         max_fines = 0
         checked_trips = set()
 
-        for _, row in reachable_df.iterrows():
+        for row in candidate_rows:
             trip_id = row['trip_id']
             if trip_id in checked_trips:
                 print(f"trip_id {trip_id} was already checked, continuing...")
@@ -286,24 +379,33 @@ class Actions:
             checked_trips.add(trip_id)
             print(f"Added {trip_id} trip id to checked trips")
 
-            trip_stop_times = self.stop_times_df[self.stop_times_df['trip_id'] == trip_id]
-            if trip_stop_times.empty:
-                print(f"trip_stop_times {trip_stop_times} is empty, continuing...")
-                continue
+            if row.get('is_live'):
+                minutes_until_arrival = row.get('minutes_until_arrival')
+                if minutes_until_arrival is None:
+                    continue
+                time_on_board = float(minutes_until_arrival)
+                arrival_time = row.get('arrival_time')
+                walk_time = 0.0
+            else:
+                trip_stop_times = self.stop_times_df[self.stop_times_df['trip_id'] == trip_id]
+                if trip_stop_times.empty:
+                    print(f"trip_stop_times {trip_stop_times} is empty, continuing...")
+                    continue
 
-            # Latest arrival for this trip
-            try:
-                latest_arrival_minutes = max([
-                    int(t.split(":")[0]) * 60 + int(t.split(":")[1]) + int(t.split(":")[2]) / 60.0
-                    for t in trip_stop_times['arrival_time']
-                    if isinstance(t, str) and len(t.split(":")) == 3
-                ])
-            except Exception as e:
-                print(f"Encountered exception in finding latest arrival for trip!\n{e}")
-                continue
-            print(f"Latest arrival minutes for trip {trip_id} is {latest_arrival_minutes}")
+                try:
+                    latest_arrival_minutes = max([
+                        int(t.split(":")[0]) * 60 + int(t.split(":")[1]) + int(t.split(":")[2]) / 60.0
+                        for t in trip_stop_times['arrival_time']
+                        if isinstance(t, str) and len(t.split(":")) == 3
+                    ])
+                except Exception as e:
+                    print(f"Encountered exception in finding latest arrival for trip!\n{e}")
+                    continue
+                print(f"Latest arrival minutes for trip {trip_id} is {latest_arrival_minutes}")
+                time_on_board = latest_arrival_minutes - now_minutes
+                arrival_time = row['arrival_time']
+                walk_time = row['walk_time']
 
-            time_on_board = latest_arrival_minutes - now_minutes
             if time_on_board <= 0:
                 print(f"time on board is less than or equal to 0 ({time_on_board}), continuing...")
                 continue
@@ -314,25 +416,23 @@ class Actions:
             avg_dont_pay = self.get_dontpay_value(self.get_route_id_from_trip_id(trip_id))
             print(f"count of average non paying users for trip {trip_id} is {avg_dont_pay}")
 
-            # #HOTFIX, IMPORTANT TO REMOVE!!! VVV
-            # import random
-            # avg_dont_pay = random.randrange(0, 18)
-            # print(f"Randomized count of average non paying users for trip {trip_id}, now {avg_dont_pay}")
-            # #HOTFIX, IMPORTANT TO REMOVE!!! ^^^
-
             potential_fines = min(fines_possible, int(avg_dont_pay))
             if potential_fines > max_fines:
                 max_fines = potential_fines
                 best_option = {
                     'trip_id': trip_id,
                     'stop_id': row['stop_id'],
-                    'arrival_time': row['arrival_time'],
-                    'walk_time': row['walk_time'],
-                    'route_geometry': row['route_geometry'],
-                    'minutes_until_arrival': row['minutes_until_arrival'],
+                    'arrival_time': arrival_time,
+                    'walk_time': walk_time,
+                    'route_geometry': row.get('route_geometry'),
+                    'minutes_until_arrival': row.get('minutes_until_arrival', time_on_board),
                     'time_on_board_min': round(time_on_board, 1),
                     'AvgDontPay': avg_dont_pay,
-                    'potential_fines': potential_fines
+                    'potential_fines': potential_fines,
+                    'is_live': bool(row.get('is_live')),
+                    'data_source': row.get('data_source', 'static'),
+                    'source_label': row.get('source_label', 'Static GTFS fallback'),
+                    'live_status': row.get('live_status', 'fallback')
                 }
             else:
                 print(f"Potential fines {potential_fines} isnt bigger than max fines {max_fines}")
@@ -344,7 +444,7 @@ class Actions:
         # --------------------------
     # Global assignment: maximize total fines across inspectors
     # --------------------------
-    def assign_best_trips_global(self, inspectors, buffer_minutes=3, radius_m=666, max_walk_minutes=8):
+    def assign_best_trips_global(self, inspectors, buffer_minutes=3, radius_m=666, max_walk_minutes=8, live_options_by_inspector=None):
         """
         Assigns inspectors to trips globally to maximize total fines, 
         avoiding duplicate assignments. Uses max weight bipartite matching.
@@ -357,10 +457,16 @@ class Actions:
         now = datetime.now()
         now_minutes = now.hour * 60 + now.minute + now.second / 60
 
+        if live_options_by_inspector is None:
+            live_options_by_inspector = {}
+
         # 1) Build graph edges: inspector -> trip with weight = potential_fines
         for inspector in inspectors:
             if not getattr(inspector, "available", True):
                 continue
+
+            live_options = live_options_by_inspector.get(getattr(inspector, 'inspector_id', id(inspector)), [])
+            candidate_rows = []
 
             reachable_df = self.find_optional_lines(
                 inspector.lat, inspector.lon,
@@ -368,26 +474,43 @@ class Actions:
                 radius_m=radius_m,
                 max_walk_minutes=max_walk_minutes
             )
-            if reachable_df.empty:
+            if not reachable_df.empty:
+                candidate_rows.extend(reachable_df.to_dict(orient='records'))
+
+            for item in live_options or []:
+                normalized = self._normalize_live_candidate(item)
+                if normalized is not None:
+                    candidate_rows.append(normalized)
+
+            candidate_rows = self._dedupe_trip_candidates(candidate_rows)
+            if not candidate_rows:
                 continue
 
-            for _, row in reachable_df.iterrows():
+            for row in candidate_rows:
                 trip_id = row["trip_id"]
+                is_live = bool(row.get("is_live"))
 
-                trip_stop_times = self.stop_times_df[self.stop_times_df["trip_id"] == trip_id]
-                if trip_stop_times.empty:
-                    continue
+                if is_live:
+                    minutes_until_arrival = row.get("minutes_until_arrival")
+                    if minutes_until_arrival is None:
+                        continue
+                    time_on_board = float(minutes_until_arrival)
+                else:
+                    trip_stop_times = self.stop_times_df[self.stop_times_df["trip_id"] == trip_id]
+                    if trip_stop_times.empty:
+                        continue
 
-                try:
-                    latest_arrival_minutes = max([
-                        int(t.split(":")[0]) * 60 + int(t.split(":")[1]) + int(t.split(":")[2]) / 60.0
-                        for t in trip_stop_times["arrival_time"]
-                        if isinstance(t, str) and len(t.split(":")) == 3
-                    ])
-                except:
-                    continue
+                    try:
+                        latest_arrival_minutes = max([
+                            int(t.split(":")[0]) * 60 + int(t.split(":")[1]) + int(t.split(":")[2]) / 60.0
+                            for t in trip_stop_times["arrival_time"]
+                            if isinstance(t, str) and len(t.split(":")) == 3
+                        ])
+                    except:
+                        continue
 
-                time_on_board = latest_arrival_minutes - now_minutes
+                    time_on_board = latest_arrival_minutes - now_minutes
+
                 if time_on_board <= 0:
                     continue
 
@@ -409,16 +532,18 @@ class Actions:
                 trip_details[(inspector_node, trip_node)] = {
                     'trip_id': trip_id,
                     'stop_id': row['stop_id'],
-                    'arrival_time': row['arrival_time'],
-                    'walk_time': row['walk_time'],
-                    'route_geometry': row['route_geometry'],
-                    'minutes_until_arrival': row['minutes_until_arrival'],
+                    'arrival_time': row.get('arrival_time', row.get('expected_arrival_time')),
+                    'walk_time': row.get('walk_time', 0.0),
+                    'route_geometry': row.get('route_geometry'),
+                    'minutes_until_arrival': row.get('minutes_until_arrival', time_on_board),
                     'time_on_board_min': round(time_on_board, 1),
                     'AvgDontPay': avg_dont_pay,
                     'potential_fines': potential_fines,
                     'inspector_id': getattr(inspector, "id", None),
                     'inspector_lat': inspector.lat,
-                    'inspector_lon': inspector.lon
+                    'inspector_lon': inspector.lon,
+                    'is_live': is_live,
+                    'data_source': row.get('data_source', 'static')
                 }
 
         if not G.edges:

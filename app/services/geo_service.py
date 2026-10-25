@@ -1,6 +1,10 @@
-import os
 import json
+import logging
+import os
+
 from utils.geo_utils import haversine_meters, to_serializable
+
+logger = logging.getLogger(__name__)
 
 _stops_gj = None
 _shapes_gj = None
@@ -19,9 +23,12 @@ def load_geo_data():
     STATIC_DIR = os.path.join(BASE_DIR, "static")
 
     try:
-        _stops_gj = json.load(open(os.path.join(STATIC_DIR, "stops.geojson"), encoding="utf-8"))
-        _shapes_gj = json.load(open(os.path.join(STATIC_DIR, "shapes.geojson"), encoding="utf-8"))
-        _stop_shape_map = json.load(open(os.path.join(STATIC_DIR, "stop_shape_map.json"), encoding="utf-8"))
+        with open(os.path.join(STATIC_DIR, "stops.geojson"), encoding="utf-8") as stops_file:
+            _stops_gj = json.load(stops_file)
+        with open(os.path.join(STATIC_DIR, "shapes.geojson"), encoding="utf-8") as shapes_file:
+            _shapes_gj = json.load(shapes_file)
+        with open(os.path.join(STATIC_DIR, "stop_shape_map.json"), encoding="utf-8") as stop_map_file:
+            _stop_shape_map = json.load(stop_map_file)
 
         _stop_lookup = {
             str(f["properties"]["stop_id"]): f
@@ -33,10 +40,10 @@ def load_geo_data():
             for f in _shapes_gj.get("features", [])
         }
 
-        print("✓ Geo data loaded")
+        logger.info("Geo data loaded")
 
-    except Exception as e:
-        print("⚠️ Geo data load failed:", e)
+    except Exception as exc:
+        logger.warning("Geo data load failed: %s", exc)
 
         _stops_gj = {"features": []}
         _shapes_gj = {"features": []}
@@ -68,7 +75,13 @@ def get_shape_lookup():
     load_geo_data()
     return _shape_lookup
 
-def find_nearest_stop(lat: float, lon: float): # Isn't in use for now, potentially deprecated. Might only prove useful if we end up having an offline mode for inspectra.
+def find_nearest_stop(lat: float, lon: float):
+    """Legacy nearest-stop helper kept for fallback/offline scenarios.
+
+    Prefer the cached stop lookup services when available; this helper is retained
+    for compatibility and offline fallback use only.
+    """
+    logger.warning("find_nearest_stop is legacy and should only be used for offline fallback paths.")
     stops_gj = get_stops_geojson()
 
     best = None

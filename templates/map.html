@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Note: In production, remove hardcoded location for real location under navigator.geolocation.watchPosition -->
+
+<head>
+  <meta charset="utf-8" />
+  <title>Inspector Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+  <!-- AwesomeMarkers CSS -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.awesome-markers/2.0.4/leaflet.awesome-markers.css" />
+
+  <!-- FontAwesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    #map {
+      height: 100vh;
+    }
+
+    .map-button {
+      position: absolute;
+      top: 10px;
+      z-index: 1000;
+      background-color: white;
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    #find-nearest-btn {
+      left: 60px;
+    }
+
+    #find-best-btn {
+      left: 245px;
+    }
+  </style>
+</head>
+
+<body>
+  <button id="find-nearest-btn" class="map-button">Find nearest stop (server)</button>
+  <button id="find-best-btn" class="map-button">Find best trip (server)</button>
+  <div id="data-source-banner" style="position:absolute;top:10px;right:10px;z-index:1000;background:rgba(17,24,39,.82);color:white;padding:8px 12px;border-radius:999px;font:12px sans-serif;display:none;">Data source: unavailable</div>
+
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <!-- AwesomeMarkers JS -->
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.awesome-markers/2.0.4/leaflet.awesome-markers.js"></script>
+
+  <script>
+    // ---------- CONFIG ----------
+    const SEARCH_RADIUS_METERS = 666; // optional: only consider stops within this radius
+    const BUS_ICON_URL = '/static/bus-stop.png';
+    // ---------- END CONFIG ----------
+
+    // Globals
+    let map;
+    let inspectorMarker = null;
+    let inspectorCircle = null;
+    let userLatLng = null; // [lat, lon]
+    let stops = [];        // GeoJSON features for stops
+    let shapes = [];       // GeoJSON features for shapes
+    let stopShapeMap = []; // Array of {stop_id, shape_id, route_id, ...}
+    let currentDisplayed = { stopLayer: null, shapeLayer: null };
+    let displayedLayers = []; // Track added layers so they can be removed
+
+    // create map
+    function initMap() {
+      map = L.map('map').setView([32.0853, 34.7818], 13);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+    }
+
+    // load files (stops, shapes, and mapping JSON)
+    async function loadData() {
+      const [stopsResp, shapesResp, mappingResp] = await Promise.all([
+        fetch('/static/stops.geojson'),
+        fetch('/static/shapes.geojson'),
+        fetch('/static/stop_shape_map.json')
+      ]);
+
+      const stopsJson = await stopsResp.json();
+      const shapesJson = await shapesResp.json();
+      const mappingJson = await mappingResp.json();
+
+      stops = stopsJson.features || [];
+      shapes = shapesJson.features || [];
+      stopShapeMap = mappingJson || [];
+
+      console.log('Loaded', stops.length, 'stops,', shapes.length, 'shapes,', stopShapeMap.length, 'mappings');
+    }
+
+    // create a bus icon (PNG fallback)
+    function createBusIcon() {
+      try {
+        return L.AwesomeMarkers.icon({
+          icon: 'bus',
+          prefix: 'fa',
+          markerColor: 'blue',
+          iconColor: 'white'
+        });
+      } catch (e) {
+        return L.icon({
+          iconUrl: BUS_ICON_URL,
+          iconSize: [28, 28],
+          iconAnchor: [14, 28],
+          popupAnchor: [0, -28]
+        });
+      }
+    }
+
+    const busIcon = createBusIcon();
+    const inspectorIcon = L.icon({
+      iconUrl: 'https://cdn-icons-png.flaticon.com/512/64/64572.png',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+      popupAnchor: [0, -14]
+    });
+
+    // show inspector location and watch for updates
+    function startGeolocation() {
+      if (!navigator.geolocation) {
+        alert('Geolocation not supported by your browser');
+        return;
+      }
+
+      navigator.geolocation.watchPosition(pos => { //Change here to input specific coords
+        const lat = 32.0880 //pos.coords.latitude;
+        const lon = 34.7898 //pos.coords.longitude;
+        userLatLng = [lat, lon];
+
+        // add or update marker
+        if (!inspectorMarker) {
+          inspectorMarker = L.marker(userLatLng, { icon: inspectorIcon, title: 'Inspector' }).addTo(map);
+          inspectorMarker.bindPopup('You (Inspector)').openPopup();
+        } else {
+          inspectorMarker.setLatLng(userLatLng);
+        }
+
+        // add or update circle to show search radius (optional)
+        if (!inspectorCircle) {
+          inspectorCircle = L.circle(userLatLng, { radius: 666, color: '#3388ff', fillOpacity: 0.05 }).addTo(map);
+        } else {
+          inspectorCircle.setLatLng(userLatLng);
+        }
+
+      }, err => {
+        console.error('Geolocation error', err);
+      }, { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 });
+    }
+
+    // utility: convert GeoJSON feature coords [lon, lat] -> [lat, lon]
+    function coords_lonlat_to_latlon(coord) {
+      return [coord[1], coord[0]];
+    }
+
+    // find nearest stop to the user (client-side fallback)
+    function findNearestStopAndShow() {
+      if (!userLatLng) {
+        alert('Waiting for location (allow geolocation in your browser).');
+        return;
+      }
+      if (!stops || stops.length === 0) {
+        alert('Stops data not loaded yet.');
+        return;
+      }
+
+      let nearest = null;
+      let minDist = Infinity;
+
+      for (const f of stops) {
+        if (!f.geometry || !f.geometry.coordinates) continue;
+        const latlon = coords_lonlat_to_latlon(f.geometry.coordinates);
+        const d = map.distance(userLatLng, latlon);
+        if (d < minDist) {
+          minDist = d;
+          nearest = f;
+        }
+      }
+
+      if (!nearest) {
+        alert('No stop found nearby.');
+        return;
+      }
+
+      if (SEARCH_RADIUS_METERS && minDist > SEARCH_RADIUS_METERS) {
+        if (!confirm(`Nearest stop is ${Math.round(minDist)} m away — show it anyway?`)) return;
+      }
+
+      // clear previous displayed layers
+      clearDisplayed();
+
+      // show the stop
+      const stopLatLng = coords_lonlat_to_latlon(nearest.geometry.coordinates);
+      const stopMarker = L.marker(stopLatLng, { icon: busIcon }).addTo(map);
+      stopMarker.bindPopup(nearest.properties.stop_name || nearest.properties.stop_id).openPopup();
+      currentDisplayed.stopLayer = stopMarker;
+
+      // find a mapping entry for this stop (preferably the first)
+      const stopId = String(nearest.properties.stop_id);
+      const mappingEntries = stopShapeMap.filter(s => String(s.stop_id) === stopId);
+
+      if (!mappingEntries || mappingEntries.length === 0) {
+        map.fitBounds(stopMarker.getBounds ? stopMarker.getBounds() : [stopLatLng]);
+        return;
+      }
+
+      const mapEntry = mappingEntries[0];
+
+      // find the shape feature(s) that have this shape_id (use in-memory shapes)
+      const shapeId = String(mapEntry.shape_id);
+      const matchingShapes = shapes.filter(s => String(s.properties && s.properties.shape_id) === shapeId);
+
+      if (matchingShapes.length === 0) {
+        alert('No shape geometry found for the route serving that stop.');
+        map.setView(stopLatLng, 16);
+        return;
+      }
+
+      const shapeLayer = L.geoJSON(matchingShapes[0], {
+        style: { color: 'red', weight: 4, opacity: 0.8 }
+      }).addTo(map);
+      currentDisplayed.shapeLayer = shapeLayer;
+
+      // fit map to show both inspector and the stop/line
+      const group = L.featureGroup([inspectorMarker || L.marker(userLatLng), stopMarker, shapeLayer]);
+      map.fitBounds(group.getBounds().pad(0.2));
+    }
+
+    // clear previously displayed stop/shape
+    function clearDisplayed() {
+      if (currentDisplayed.stopLayer) {
+        map.removeLayer(currentDisplayed.stopLayer);
+        currentDisplayed.stopLayer = null;
+      }
+      if (currentDisplayed.shapeLayer) {
+        map.removeLayer(currentDisplayed.shapeLayer);
+        currentDisplayed.shapeLayer = null;
+      }
+      if (currentDisplayed.walkLayer) {
+        map.removeLayer(currentDisplayed.walkLayer);
+        currentDisplayed.walkLayer = null;
+      }
+    }
+
+
+    // --- New robust helper for fetch ---
+    async function safeJsonFetch(url, options) {
+      const resp = await fetch(url, options);
+      if (!resp.ok) {
+        const text = await resp.text().catch(() => '');
+        throw new Error(`Network error ${resp.status}: ${text}`);
+      }
+      return resp.json();
+    }
+
+  async function fetchBestTripAndShow() {
+      if (!userLatLng) return alert('Waiting for location...');
+      const [lat, lon] = userLatLng;
+
+      const btn = document.getElementById('find-best-btn');
+      btn.disabled = true;
+      btn.textContent = 'Searching...';
+
+      try {
+        const json = await safeJsonFetch('/api/find_best_trip', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lat, lon, buffer: 3, radius: 666 })
+        });
+
+        const banner = document.getElementById('data-source-banner');
+        const sourceLabel = json.source_label || (json.is_live ? 'Live SIRI data' : 'Static GTFS fallback');
+        if (banner) {
+          banner.textContent = `Data source: ${sourceLabel}`;
+          banner.style.display = 'block';
+          banner.style.background = json.is_live ? 'rgba(22,101,52,.85)' : 'rgba(30,41,59,.82)';
+        }
+
+        if (json.best_option) {
+          clearDisplayed();
+          
+          if (json.best_option.route_geometry) {
+            const walkLayer = L.geoJSON(json.best_option.route_geometry, {
+              style: { color: 'black', weight: 4, opacity: 0.7, dashArray: '8,6' }
+            }).addTo(map);
+            currentDisplayed.walkLayer = walkLayer;
+          }
+
+          if (json.stop_feature) {
+            const stopLayer = L.geoJSON(json.stop_feature, {
+              pointToLayer: (f, latlng) => L.marker(latlng, { icon: busIcon })
+            }).addTo(map).bindPopup(json.stop_feature.properties && json.stop_feature.properties.stop_name).openPopup();
+            currentDisplayed.stopLayer = stopLayer;
+          }
+
+          if (json.shape_feature) {
+            const shapeLayer = L.geoJSON(json.shape_feature, {
+              style: { color: 'green', weight: 4 }
+            }).addTo(map);
+            currentDisplayed.shapeLayer = shapeLayer;
+          }
+
+          console.log('Best option', json.best_option);
+          if (json.best_option.potential_fines !== undefined) {
+            alert(`${sourceLabel}: ${json.best_option.potential_fines} potential fines. Time on board: ${json.best_option.time_on_board_min} min`);
+          }
+        } else {
+          alert('No reachable trip found.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Error finding best trip: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Find best trip (server)';
+      }
+    }
+
+  async function fetchNearestAndShow() {
+      if (!userLatLng) return alert('Waiting for location...');
+      const [lat, lon] = userLatLng;
+
+      try {
+        const json = await safeJsonFetch('/api/nearest_stop', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lat, lon, radius: SEARCH_RADIUS_METERS })
+        });
+
+        // clear old
+        clearDisplayed();
+
+        // stop geometry
+        const stopFeature = json.stop;
+        if (!stopFeature || !stopFeature.geometry) {
+          alert('Server did not return a valid stop.');
+          return;
+        }
+
+        const stopMarker = L.geoJSON(stopFeature, {
+          pointToLayer: (f, latlng) => L.marker(latlng, { icon: busIcon })
+        }).addTo(map).bindPopup(stopFeature.properties && stopFeature.properties.stop_name).openPopup();
+
+        currentDisplayed.stopLayer = stopMarker;
+
+        // fit bounds to the stop (and inspector if available)
+        if (stopFeature.geometry && stopFeature.geometry.coordinates) {
+          const latlng = [stopFeature.geometry.coordinates[1], stopFeature.geometry.coordinates[0]];
+          map.setView(latlng, 16);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Error fetching nearest stop: ' + err.message);
+      }
+    }
+
+    // hook up UI (replaced setupUI)
+    function setupUI() {
+      document.getElementById('find-nearest-btn').addEventListener('click', () => {
+        // server-backed nearest by default
+        fetchNearestAndShow();
+        // if you want client-side instead, call: findNearestStopAndShow();
+      });
+
+      document.getElementById('find-best-btn').addEventListener('click', () => {
+        fetchBestTripAndShow();
+      });
+    }
+
+    // main boot
+    (async function main() {
+      initMap();
+      await loadData();
+      startGeolocation();
+      setupUI();
+    })();
+
+  </script>
+</body>
+</html>

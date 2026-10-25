@@ -243,6 +243,7 @@
       <button id="ride-action-btn" class="ride-btn">Get Ride</button>
     </div>
   </div>
+  <div id="data-source-banner" style="position:absolute;top:18px;right:18px;z-index:1100;background:rgba(17,24,39,.82);color:white;padding:8px 12px;border-radius:999px;font:12px sans-serif;display:none;">Data source: unavailable</div>
 
   <!-- Availability Toggle -->
   <div class="availability-toggle">
@@ -438,6 +439,11 @@
 
     // ---------- State Handlers ----------
     async function assignRide() {
+      if (!Array.isArray(userLatLng) || userLatLng.length !== 2 || !userLatLng.every(Number.isFinite)) {
+        alert("Waiting for your location. Please try again in a moment.");
+        return;
+      }
+
       try {
         const btn = actionBtn;
         btn.disabled = true;
@@ -451,6 +457,14 @@
         });
 
         clearDisplayed();
+        const banner = document.getElementById('data-source-banner');
+        const sourceLabel = json.source_label || (json.is_live ? 'Live SIRI data' : 'Static GTFS fallback');
+        if (banner) {
+          banner.textContent = `Data source: ${sourceLabel}`;
+          banner.style.display = 'block';
+          banner.style.background = json.is_live ? 'rgba(22,101,52,.85)' : 'rgba(30,41,59,.82)';
+        }
+
         if (!json.best_option) {
           alert("No reachable trip found.");
           btn.disabled = false;

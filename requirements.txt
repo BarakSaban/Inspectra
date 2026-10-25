@@ -7,4 +7,3 @@ scipy==1.11.3
 osmnx==2.3.1
 networkx==3.2
 shapely==2.0.1
-chart.js==2.9.4
