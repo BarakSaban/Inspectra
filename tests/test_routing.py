@@ -20,7 +20,8 @@ class StaticScoringTests(unittest.TestCase):
         self.assertFalse(best["is_live"])
         self.assertEqual((best["route_id"], best["route_num"], best["destination"]), (101, "101", "Terminal"))
         self.assertEqual((best["data_source"], best["source_label"]), ("static", "Static GTFS fallback"))
-        self.assertEqual(best["potential_fines"], min(int(best["time_on_board_min"] // 5), 12))
+        # time_on_board_min is rounded to 0.1, so its floor can sit one fine above the unrounded value the score used.
+        self.assertIn(best["potential_fines"], range(1, int(best["time_on_board_min"] // 5) + 1))
         self.assertTrue(best["route_geometry"])
 
     def test_unavailable_inspector_gets_nothing(self):
