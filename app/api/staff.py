@@ -1,66 +1,82 @@
-from datetime import date, datetime
+import logging
+from datetime import timedelta
+
 from flask import Blueprint, jsonify, session
 from sqlalchemy import func
 
 from app.extensions import db
-from app.models import User, InspectorRun, Fine
-from Classes import Inspector
-from utils.auth_helpers import logged_in, current_role
-import pandas as pd
+from app.models import Fine, InspectorRun
+from app.services.inspectors import (
+    get_admin_inspector_users,
+    get_inspector_ids,
+    get_inspectors_by_id,
+)
+from app.services.runs import ACTIVE_STATUSES
+from app.utils.auth import admin_required_api
+from app.utils.clock import now_local
+
+logger = logging.getLogger(__name__)
 
 staff_api = Blueprint("staff_api", __name__)
 
-@staff_api.route('/api/staff')
-def api_staff():
-    """
-    Returns the list of inspectors that belong to the currently-logged-in admin
-    (filtered by manager_code stored in session). If session has no admin_code,
-    returns empty list.
-    """
-    if not logged_in() or current_role() != 'admin':
-        return jsonify({"error": "unauthorized"}), 401
 
+@staff_api.route('/api/staff')
+@admin_required_api
+def api_staff():
+    """Inspectors of the logged-in admin (matched by manager_code) with their weekly/today stats."""
     try:
-        admin_code = session.get('admin_code')
-        if not admin_code:
+        users = get_admin_inspector_users(session.get('admin_code'))
+        if not users:
             return jsonify([])
 
-        # find Users that are inspectors under this admin
-        inspector_users = User.query.filter_by(role='inspector', manager_code=admin_code).all()
+        ids = get_inspector_ids(users)
+        inspectors = get_inspectors_by_id(ids)
+        now = now_local()
+        seven_days_ago = now - timedelta(days=7)
 
-        today = date.today()
-        seven_days_ago = datetime.now() - pd.Timedelta(days=7)
+        # One grouped query per metric instead of several queries per inspector.
+        weekly_fines = dict(
+            db.session.query(Fine.inspector_id, func.count(Fine.id))
+            .filter(Fine.inspector_id.in_(ids), Fine.timestamp >= seven_days_ago)
+            .group_by(Fine.inspector_id).all()
+        )
+        today_trips = dict(
+            db.session.query(InspectorRun.inspector_id, func.count(InspectorRun.id))
+            .filter(InspectorRun.inspector_id.in_(ids), func.date(InspectorRun.assigned_at) == now.date().isoformat())
+            .group_by(InspectorRun.inspector_id).all()
+        )
+        current_runs = {}
+        for run in (
+            InspectorRun.query
+            .filter(InspectorRun.inspector_id.in_(ids), InspectorRun.status.in_(ACTIVE_STATUSES))
+            .order_by(InspectorRun.assigned_at.desc()).all()
+        ):
+            current_runs.setdefault(run.inspector_id, run)  # newest first
 
         staff_list = []
-        for u in inspector_users:
-            # try to find Inspector record for coordinates/status
-            insp = Inspector.query.filter_by(inspector_id=u.inspector_id).first()
-            weekly_fines = db.session.query(func.count(Fine.id)).filter(Fine.inspector_id==u.inspector_id, Fine.timestamp>=seven_days_ago).scalar() or 0
-            today_trips = db.session.query(func.count(InspectorRun.id)).filter(InspectorRun.inspector_id==u.inspector_id, func.date(InspectorRun.assigned_at)==today).scalar() or 0
-            current_run = InspectorRun.query.filter_by(inspector_id=u.inspector_id).filter(InspectorRun.status.in_( ["assigned","accepted"]) ).order_by(InspectorRun.assigned_at.desc()).first()
-            current_assignment = {
-                "trip_id": current_run.trip_id,
-                "status": current_run.status,
-                "potential_fines": current_run.potential_fines
-            } if current_run else None
-
+        for user in users:
+            inspector = inspectors.get(user.inspector_id)
+            run = current_runs.get(user.inspector_id)
             staff_list.append({
-                "inspector_id": u.inspector_id,
-                "username": u.username,
-                "name": getattr(insp, 'name', u.full_name or u.username),
-                "email": getattr(u, 'email', None),
-                "latitude": getattr(insp, 'latitude', None),
-                "longitude": getattr(insp, 'longitude', None),
-                "available": getattr(insp, 'available', True),
-                "today_trips": today_trips,
-                "weekly_fines": weekly_fines,
-                "current_assignment": current_assignment,
-                # optional: totals from Inspector table if present
-                "total_fines": getattr(insp, 'total_fines', 0),
-                "completed_trips": getattr(insp, 'completed_trips', 0)
+                "inspector_id": user.inspector_id,
+                "username": user.username,
+                "name": inspector.name if inspector else (user.full_name or user.username),
+                "email": inspector.email if inspector else None,
+                "latitude": inspector.latitude if inspector else None,
+                "longitude": inspector.longitude if inspector else None,
+                "available": inspector.available if inspector else True,
+                "today_trips": today_trips.get(user.inspector_id, 0),
+                "weekly_fines": weekly_fines.get(user.inspector_id, 0),
+                "current_assignment": {
+                    "trip_id": run.trip_id,
+                    "status": run.status,
+                    "potential_fines": run.potential_fines,
+                } if run else None,
+                "total_fines": inspector.total_fines if inspector else 0,
+                "completed_trips": inspector.completed_trips if inspector else 0,
             })
 
         return jsonify(staff_list)
-    except Exception as e:
-        print("⚠️ api_staff error:", e)
+    except Exception:
+        logger.exception("api_staff failed")
         return jsonify({"error": "server error"}), 500

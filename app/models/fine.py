@@ -1,5 +1,6 @@
-from datetime import datetime
 from app.extensions import db
+from app.utils.clock import now_local
+
 
 class Fine(db.Model):
     __tablename__ = "fines"
@@ -17,6 +18,5 @@ class Fine(db.Model):
     )
     trip_id = db.Column(db.String, nullable=True)
     stop_id = db.Column(db.String, nullable=True)
-    count = db.Column(db.Integer, default=0)
     amount = db.Column(db.Float, default=0.0)
-    timestamp = db.Column(db.DateTime, default=datetime.now)
+    timestamp = db.Column(db.DateTime, default=now_local)

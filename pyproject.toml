@@ -1,0 +1,14 @@
+# Tooling configuration only (the project is not packaged). Dependencies live in requirements.txt.
+
+[tool.ruff]
+line-length = 140
+target-version = "py310"
+
+[tool.ruff.lint]
+# pyflakes, pycodestyle, import order, bugbear
+select = ["E", "F", "W", "I", "B"]
+ignore = [
+    "E501",  # long lines are fine: the formatter is not enforced
+    "B905",  # zip() without strict=
+    "B008",  # function calls in argument defaults
+]

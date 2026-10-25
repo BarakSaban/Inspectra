@@ -1,5 +1,6 @@
-from datetime import datetime
 from app.extensions import db
+from app.utils.clock import now_local
+
 
 class Inspector(db.Model):
     __tablename__ = "inspectors"
@@ -14,4 +15,4 @@ class Inspector(db.Model):
     total_fines = db.Column(db.Integer, default=0)
     completed_trips = db.Column(db.Integer, default=0)
     last_assignment_completed_at = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.now)
+    created_at = db.Column(db.DateTime, default=now_local)

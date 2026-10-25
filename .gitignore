@@ -1,3 +1,16 @@
-gtfs/*.zip
+# Python
 __pycache__/
+*.pyc
+.venv/
+
+# Local configuration and secrets (copy .env.example to .env)
+.env
+
+# Local databases
+*.db
+
+# OpenStreetMap response cache (created by osmnx)
 cache/
+
+# Raw national GTFS downloads (input of tools/build_gtfs_subset.py)
+data/raw/

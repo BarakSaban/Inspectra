@@ -4,7 +4,7 @@
 		{
 			"label": "Run Inspectra app",
 			"type": "shell",
-			"command": "python app.py",
+			"command": "python run.py",
 			"isBackground": true,
 			"problemMatcher": [],
 			"group": "build"

@@ -1,5 +1,6 @@
-from datetime import datetime
 from app.extensions import db
+from app.utils.clock import now_local
+
 
 class InspectorRun(db.Model):
     __tablename__ = "inspector_runs"
@@ -14,7 +15,7 @@ class InspectorRun(db.Model):
     stop_id = db.Column(db.String, nullable=True)
     potential_fines = db.Column(db.Integer, default=0)
     actual_fines = db.Column(db.Integer, nullable=True)
-    assigned_at = db.Column(db.DateTime, default=datetime.now)
+    assigned_at = db.Column(db.DateTime, default=now_local)
     accepted_at = db.Column(db.DateTime, nullable=True)
     finished_at = db.Column(db.DateTime, nullable=True)
     status = db.Column(db.String, default="assigned")
