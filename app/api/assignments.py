@@ -5,6 +5,7 @@ from flask import Blueprint, jsonify, session
 from app.extensions import db
 from app.models import Inspector, InspectorRun
 from app.services.inspectors import get_admin_inspector_users, get_inspector_ids, is_connected
+from app.services import push as push_service
 from app.services.recommendations import fetch_live_options
 from app.services.routing import InspectorLocation, get_engine
 from app.services.team import audit, get_settings
@@ -65,6 +66,8 @@ def assign_and_persist_runs(buffer_minutes=3, radius_m=666, max_walk_minutes=8, 
             except RunError:
                 continue
         db.session.commit()
+        for run in runs:
+            push_service.notify_inspector(run.inspector_id, "offer")
         return [
             {
                 "run_id": run.id,

@@ -57,9 +57,25 @@ DEFAULT_LANGUAGE = "he"  # Hebrew is always the first choice
 RTL_LANGUAGES = ("he", "ar")
 
 
+_BUILD = {}
+
+
+def _build_id():
+    """Changes whenever a static file changes, so phones fetch new scripts instead of mixing old and new."""
+    if "id" not in _BUILD:
+        from pathlib import Path
+        root = Path(__file__).parent / "static"
+        _BUILD["id"] = str(int(max((f.stat().st_mtime for f in root.rglob("*") if f.is_file()), default=0)))
+    return _BUILD["id"]
+
+
 def _register_language(app):
     """Templates get `lang`/`dir` from the `lang` cookie (set by static/js/i18n.js) so pages render in the right direction at once."""
     from flask import request
+
+    @app.context_processor
+    def inject_build():
+        return {"debug_mode": bool(app.debug or config.DEBUG), "build_id": _build_id()}
 
     @app.context_processor
     def inject_language():
@@ -98,11 +114,12 @@ def _register_blueprints(app):
     from app.api.auth import auth_api
     from app.api.inspectors import inspectors_api
     from app.api.profile import profile_api
+    from app.api.push import push_api
     from app.api.runs import runs_api
     from app.api.staff import staff_api
     from app.api.trips import trips_api
     from app.views.pages import views_bp
 
-    for blueprint in (views_bp, auth_api, profile_api, staff_api, analytics_api, assignments_api, inspectors_api, runs_api, admin_ops_api, events_api, approvals_api):
+    for blueprint in (views_bp, auth_api, profile_api, staff_api, analytics_api, assignments_api, inspectors_api, runs_api, admin_ops_api, events_api, approvals_api, push_api):
         app.register_blueprint(blueprint)
     app.register_blueprint(trips_api, url_prefix="/api")

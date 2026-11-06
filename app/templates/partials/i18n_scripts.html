@@ -1,5 +1,5 @@
 {# Translation tables first, then the engine (which applies data-i18n attributes on load). #}
-<script src="{{ url_for('static', filename='js/i18n-strings.js') }}"></script>
-<script src="{{ url_for('static', filename='js/i18n-strings-auth.js') }}"></script>
-<script src="{{ url_for('static', filename='js/i18n-strings-admin.js') }}"></script>
-<script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+<script src="{{ url_for('static', filename='js/i18n-strings.js') }}?v={{ build_id }}"></script>
+<script src="{{ url_for('static', filename='js/i18n-strings-auth.js') }}?v={{ build_id }}"></script>
+<script src="{{ url_for('static', filename='js/i18n-strings-admin.js') }}?v={{ build_id }}"></script>
+<script src="{{ url_for('static', filename='js/i18n.js') }}?v={{ build_id }}"></script>

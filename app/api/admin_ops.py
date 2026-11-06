@@ -5,6 +5,7 @@ from flask import Blueprint, jsonify, request, session
 
 from app.extensions import db
 from app.models import Inspector, InspectorRun, User
+from app.services import push as push_service
 from app.services import runs as run_service
 from app.services.activity import inspector_detail, recent_activity
 from app.services.inspectors import (
@@ -138,6 +139,7 @@ def assign_manually():
         return jsonify({"error": exc.message}), exc.status
     db.session.commit()
     audit(session.get('admin_code'), session.get('user'), "run_assigned", owned[1].inspector_id, f"trip {trip_id}")
+    push_service.notify_inspector(owned[1].inspector_id, "offer")
     return jsonify(run_service.serialize_run(run)), 201
 
 

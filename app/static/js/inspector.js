@@ -13,14 +13,17 @@
   const REPOSITION_POLL_M = 150;
   const REPORT_POSITION_MS = 30000;
   const BUS_REMOVE_AFTER_MS = 90000;
-  const SPLASH_MIN_MS = 1900;
+  const SPLASH_MIN_MS = 600;
+  const API_TIMEOUT_MS = 12000;     // a stalled request must never freeze polling or the splash
+  const SHIFT_KEY = 'inspectra.online';
+  const SHIFT_RESUME_MS = 30 * 60 * 1000;   // a shift is offered back if the app was closed less than this long ago
   const RADIUS_OPTIONS = [300, 500, 666, 1000, 1500];
   const GOAL_OPTIONS = [5, 10, 15, 20];
   const BREAK_PRESETS = [15, 30, 45, 60];
   const BREAK_REASONS = ['lunch', 'rest', 'other'];
   const BREAK_MIN = 5, BREAK_EXTEND = 10;
   const QUEUE_KEY = 'inspectra.queue';
-  const DEMO = new URLSearchParams(location.search).has('demo');
+  const DEMO = document.documentElement.dataset.debug === '1' && new URLSearchParams(location.search).has('demo');   // fake position: development only
   const DEMO_POSITION = [32.0880, 34.7898];
 
   // ---------------- helpers ----------------
@@ -30,18 +33,23 @@
   const isRtl = () => document.documentElement.dir === 'rtl';
 
   async function api(path, method = 'GET', body) {
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), API_TIMEOUT_MS);
     try {
       const resp = await fetch(path, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: body ? JSON.stringify(body) : undefined,
+        signal: ctl.signal,
       });
       if (resp.status === 401) showSessionExpired();
       else setNetDown(false);
       return { ok: resp.ok, status: resp.status, data: await resp.json().catch(() => ({})) };
     } catch (err) {
-      setNetDown(true);
+      setNetDown(true);      // no answer in time counts as no connection: the work is kept and retried
       return { ok: false, status: 0, data: {} };
+    } finally {
+      clearTimeout(timer);
     }
   }
 
@@ -112,7 +120,8 @@
         if (res.status === 0 || res.status === 401 || res.status >= 500) break;   // try again later
         q = readQueue().slice(1);                                                  // delivered, or refused for good
         writeQueue(q);
-        done += 1;
+        if (res.ok) done += 1;
+        else toast(t('i.toast.saveFail', { err: res.data.error || '' }), 'error');
       }
       if (done && !readQueue().length) { toast(t('i.net.synced'), 'ok'); refreshMe(); }
     } finally { flushing = false; }
@@ -120,7 +129,7 @@
 
   // ---------------- settings (per device) ----------------
   const settings = (() => {
-    const defaults = { radius: 666, sound: true, vibrate: true, awake: false, size: 'm', contrast: false, goal: 10 };
+    const defaults = { radius: 666, sound: true, vibrate: true, awake: true, size: 'm', contrast: false, goal: 10 };
     let saved = {};
     try { saved = JSON.parse(localStorage.getItem('inspectra.settings') || '{}'); } catch (e) { /* ignore */ }
     const s = { ...defaults, ...saved };
@@ -373,6 +382,7 @@
     updateRideLive();
   }
 
+  let lastGeoToast = 0;
   function startGeolocation() {
     if (DEMO) { onPosition(...DEMO_POSITION); window.__setDemoPosition = (lat, lon) => onPosition(lat, lon); return; }  // demo: fixed position, movable from the console
     if (!navigator.geolocation) { geoStatus = 'unsupported'; renderBoard(); updateChip(); return; }
@@ -382,7 +392,7 @@
         geoStatus = err.code === 1 ? 'denied' : 'error';
         renderBoard();
         updateChip();
-        toast(t(err.code === 1 ? 'i.toast.locDenied' : 'i.toast.locFail'), 'error');
+        if (Date.now() - lastGeoToast > 60000) { lastGeoToast = Date.now(); toast(t(err.code === 1 ? 'i.toast.locDenied' : 'i.toast.locFail'), 'error'); }
       },
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 },
     );
@@ -538,8 +548,14 @@
   }
 
   // ---------------- going online / offline ----------------
+  function rememberShift(on) {
+    try { if (on) localStorage.setItem(SHIFT_KEY, String(Date.now())); else localStorage.removeItem(SHIFT_KEY); } catch (e) { /* ignore */ }
+  }
+  function shiftWasRecent() {
+    try { return Date.now() - Number(localStorage.getItem(SHIFT_KEY) || 0) < SHIFT_RESUME_MS; } catch (e) { return false; }
+  }
   async function goOnline(silent = false) {
-    try { sessionStorage.setItem('inspectra.online', '1'); } catch (e) { /* ignore */ }
+    rememberShift(true);
     setMode('searching');
     if (!silent) toast(t('i.toast.online'), 'ok');
     requestWakeLock();
@@ -549,7 +565,7 @@
   }
 
   async function goOffline() {
-    try { sessionStorage.removeItem('inspectra.online'); } catch (e) { /* ignore */ }
+    rememberShift(false);
     clearTimeout(searchTimer);
     releaseWakeLock();
     clearRideLayers();
@@ -1007,10 +1023,12 @@
   async function completeRide() {
     const fines = await askFines(rideFines);
     if (fines === null) return;
+    rideFines = fines;                       // what was typed is kept: if saving fails, the next try starts from it
+    $('fineValue').textContent = rideFines;
     if (currentRunId) {
       const path = `/api/runs/${currentRunId}/complete`;
       const done = await api(path, 'POST', { actual_fines: fines });
-      if (done.status === 0) { enqueue(path, 'POST', { actual_fines: fines }); toast(t('i.net.savedOffline'), 'ok'); }   // no signal: keep it and sync later
+      if (done.status === 0 || done.status >= 500) { enqueue(path, 'POST', { actual_fines: fines }); toast(t('i.net.savedOffline'), 'ok'); }   // no signal or a server hiccup: keep it and sync later
       else if (!done.ok) { toast(t('i.toast.saveFail', { err: done.data.error || '' }), 'error'); return; }
       currentRunId = null;
     }
@@ -1222,6 +1240,38 @@
     $('setAwake').closest('.set-row').hidden = !('wakeLock' in navigator);
   }
 
+  // ---------------- push alerts (offers and break end while the app is closed) ----------------
+  const b64ToBytes = (b64) => {
+    const raw = atob((b64 + '='.repeat((4 - (b64.length % 4)) % 4)).replace(/-/g, '+').replace(/_/g, '/'));
+    return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+  };
+  async function setupPush() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
+    const info = await api('/api/push/key');
+    if (!info.ok || !info.data.enabled) return;                       // the server has no push keys: the switch stays hidden
+    const reg = await navigator.serviceWorker.ready;
+    const input = $('setPush');
+    $('pushRow').hidden = false;
+    $('pushHint').hidden = false;
+    input.checked = !!(await reg.pushManager.getSubscription()) && Notification.permission === 'granted';
+    input.onchange = async () => {
+      try {
+        if (input.checked) {
+          if ((await Notification.requestPermission()) !== 'granted') { input.checked = false; toast(t('i.settings.pushBlocked'), 'error'); return; }
+          const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(info.data.public_key) });
+          const res = await api('/api/push/subscribe', 'POST', { subscription: sub.toJSON(), lang: window.I18n.lang });
+          if (!res.ok) throw new Error('subscribe');
+        } else {
+          const sub = await reg.pushManager.getSubscription();
+          if (sub) { await api('/api/push/unsubscribe', 'POST', { endpoint: sub.endpoint }); await sub.unsubscribe(); }
+        }
+      } catch (err) {
+        input.checked = !input.checked;
+        toast(t('i.settings.pushFail'), 'error');
+      }
+    };
+  }
+
   // ---------------- language changes ----------------
   function onLangChange() {
     renderModeCopy();
@@ -1265,6 +1315,7 @@
     window.addEventListener('online', () => { setNetDown(false); flushQueue(); });
     window.addEventListener('offline', () => setNetDown(true));
     setInterval(() => { if (readQueue().length && navigator.onLine) flushQueue(); }, 15000);
+    document.querySelectorAll('a[href="/logout"]').forEach((a) => a.addEventListener('click', () => navigator.serviceWorker?.controller?.postMessage('logout')));
     applyComfort();
     renderNet();
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => { /* the app works without it */ });
@@ -1277,9 +1328,11 @@
     setInterval(tickCountdowns, 1000);
 
     startGeolocation();
+    setupPush().catch(() => { /* push is optional */ });
 
     // A stationary phone gets no new GPS fixes, so repeat the last one: the manager only sees inspectors who keep reporting.
     setInterval(() => {
+      if (mode !== 'offline') rememberShift(true);   // keeps the "still on shift" memory fresh
       if (userLatLng && mode !== 'offline' && Date.now() - lastReport > REPORT_POSITION_MS) {
         lastReport = Date.now();
         api('/api/me/status', 'PUT', { latitude: userLatLng[0], longitude: userLatLng[1] });
@@ -1296,26 +1349,32 @@
     }
 
     const started = Date.now();
+    const hideSplash = () => {
+      const splash = $('splash');
+      if (!splash || splash.classList.contains('is-done')) return;
+      splash.classList.add('is-done');
+      setTimeout(() => splash.remove(), 700);
+    };
+    setTimeout(hideSplash, 6000);   // a dead connection can not keep the app behind the splash
+    try {
     await flushQueue();        // rides finished without signal are delivered before anything else
     await refreshMe();
-    // An unfinished run always wins; otherwise resume the shift only if it was started in this browser session.
+    // An unfinished run always wins; otherwise resume the shift if the app was closed only a moment ago.
     const current = await api('/api/runs/current');
     const run = current.data?.run;
     let wasOnline = false;
-    try { wasOnline = sessionStorage.getItem('inspectra.online') === '1'; } catch (e) { /* ignore */ }
+    wasOnline = shiftWasRecent();
 
     if (run && run.status === 'accepted') await resumeRun(run);
     else if (run && run.status === 'assigned') { await goOnline(true); }
     else if (me.on_break) enterBreak(me.break_seconds_left || 0);
     else if (wasOnline) await goOnline(true);
-    else if (me.available) api('/api/me/status', 'PUT', { available: false }); // a new session starts off shift
-
-    const wait = Math.max(0, SPLASH_MIN_MS - (Date.now() - started));
-    setTimeout(() => {
-      const splash = $('splash');
-      splash.classList.add('is-done');
-      setTimeout(() => splash.remove(), 700);
-    }, wait);
+    else if (me.available) api('/api/me/status', 'PUT', { available: false }); // a long-closed app starts off shift
+    } catch (err) {
+      console.error('boot', err);
+    } finally {
+      setTimeout(hideSplash, Math.max(0, SPLASH_MIN_MS - (Date.now() - started)));
+    }
   }
 
   boot();

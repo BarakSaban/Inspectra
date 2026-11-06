@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ lang }}" dir="{{ dir }}">
+<html lang="{{ lang }}" dir="{{ dir }}" data-debug="{{ 1 if debug_mode else 0 }}">
 <head>
   <meta charset="utf-8" />
   <title data-i18n="i.pageTitle">Inspectra Field</title>
@@ -13,8 +13,8 @@
   {% include "partials/i18n_head.html" %}
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/inspector.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/inspector-flow.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/inspector.css') }}?v={{ build_id }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/inspector-flow.css') }}?v={{ build_id }}">
 </head>
 
 <body data-available="{{ 'true' if available else 'false' }}" data-name="{{ (user.full_name or user.username) if user else '' }}" data-inspector-id="{{ inspector_id or '' }}">
@@ -271,6 +271,9 @@
               <span class="switch"><input type="checkbox" id="setVibrate"><span class="switch__track"></span></span></label>
             <label class="set-row"><span data-i18n="i.settings.awake">Keep screen on while online</span>
               <span class="switch"><input type="checkbox" id="setAwake"><span class="switch__track"></span></span></label>
+            <label class="set-row" id="pushRow" hidden><span data-i18n="i.settings.push">Alerts when the app is closed</span>
+              <span class="switch"><input type="checkbox" id="setPush"><span class="switch__track"></span></span></label>
+            <p class="set-hint" id="pushHint" hidden data-i18n="i.settings.pushHint">Offers and the end of a break reach you even with the screen locked.</p>
           </section>
 
           <section class="set-group" aria-labelledby="setComfT">
@@ -302,6 +305,6 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   {% include "partials/i18n_scripts.html" %}
-  <script src="{{ url_for('static', filename='js/inspector.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/inspector.js') }}?v={{ build_id }}"></script>
 </body>
 </html>

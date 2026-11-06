@@ -8,3 +8,4 @@ scipy==1.16.1
 osmnx==2.0.5
 networkx==3.5
 shapely==2.1.1
+pywebpush==2.5.0

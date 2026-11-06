@@ -10,7 +10,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
 from app.models import Fine, Inspector, InspectorRun
-from app.services import shifts
+from app.services import push, shifts
 from app.services.team import break_cap
 from app.utils.clock import now_local
 
@@ -184,6 +184,7 @@ def set_break(inspector, minutes=None, reason=None, extend=None):
         log.extended_minutes += extend
         inspector.break_until = max(inspector.break_until, now_local()) + timedelta(minutes=extend)
         db.session.commit()
+        push.schedule_break_end(iid, (inspector.break_until - now_local()).total_seconds() / 60)
         return inspector
     try:
         minutes = int(minutes)
@@ -205,6 +206,9 @@ def set_break(inspector, minutes=None, reason=None, extend=None):
         shifts.start_break_log(iid, minutes, reason)
         inspector.break_until = now_local() + timedelta(minutes=minutes)
         inspector.available = False
+        db.session.commit()
+        push.schedule_break_end(iid, minutes)
+        return inspector
     db.session.commit()
     return inspector
 

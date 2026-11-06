@@ -1,4 +1,6 @@
 """HTML pages. Data for these pages is loaded client-side from the JSON endpoints in `app.api`."""
+from pathlib import Path
+
 from flask import Blueprint, redirect, render_template, session, url_for
 
 from app.models import Inspector, User
@@ -117,8 +119,9 @@ def manifest():
     icon = lambda name, size, purpose='any': {"src": url_for('static', filename=f'img/{name}'), "sizes": f"{size}x{size}", "type": "image/png", "purpose": purpose}
     response = jsonify({
         "name": "Inspectra Field", "short_name": "Inspectra", "id": "/inspect", "start_url": "/inspect", "scope": "/",
-        "display": "standalone", "orientation": "portrait", "lang": "he", "dir": "auto",
-        "background_color": "#ffffff", "theme_color": "#1f7bd1",
+        "display": "standalone", "lang": "he", "dir": "auto", "categories": ["navigation", "productivity"],
+        "background_color": "#ffffff", "theme_color": "#1b74c4",
+        "shortcuts": [{"name": "My stats", "url": "/inspect/stats"}],
         "icons": [icon("icon-192.png", 192), icon("icon-512.png", 512), icon("icon-maskable-512.png", 512, "maskable")],
     })
     response.headers["Content-Type"] = "application/manifest+json"
@@ -128,8 +131,10 @@ def manifest():
 @views_bp.route('/sw.js')
 def service_worker():
     """Served from the root so it can control every page; never cached so a new version is picked up at once."""
-    from flask import current_app, send_from_directory
-    response = send_from_directory(current_app.static_folder, 'sw.js', mimetype='application/javascript')
+    from flask import Response, current_app
+    from app import _build_id
+    source = (Path(current_app.static_folder) / 'sw.js').read_text(encoding='utf-8').replace('__BUILD__', _build_id())
+    response = Response(source, mimetype='application/javascript')
     response.headers["Cache-Control"] = "no-cache"
     response.headers["Service-Worker-Allowed"] = "/"
     return response

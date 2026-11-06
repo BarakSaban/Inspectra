@@ -87,6 +87,10 @@ SESSION_DAYS = int(_env("INSPECTRA_SESSION_DAYS", "14"))
 TRUST_PROXY = _env_flag("INSPECTRA_TRUST_PROXY", False)
 MAX_BODY_BYTES = int(_env("INSPECTRA_MAX_BODY_BYTES", str(1024 * 1024)))
 MIN_PASSWORD_LENGTH = 8
+# Web Push (alerts on a locked phone). Generate a pair with `python -m tools.vapid`; without it push stays off.
+VAPID_PUBLIC_KEY = _env("INSPECTRA_VAPID_PUBLIC_KEY", "")
+VAPID_PRIVATE_KEY = _env("INSPECTRA_VAPID_PRIVATE_KEY", "")
+VAPID_SUBJECT = _env("INSPECTRA_VAPID_SUBJECT", "mailto:admin@localhost")
 
 
 class Config:
