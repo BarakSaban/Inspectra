@@ -9,7 +9,7 @@
 <body>
   {% include "partials/sidebar.html" %}
 
-  <main class="page page--narrow">
+  <main class="page">
     <div class="page__head">
       <div>
         <h1 data-i18n="p.title"></h1>
@@ -17,49 +17,59 @@
       </div>
     </div>
 
-    <form id="profileForm" class="card" novalidate>
-      <h2 data-i18n="p.details"></h2>
+    <div class="profile">
+      <section class="card profile__who" aria-label="{{ user.full_name or user.username }}">
+        <div class="avatar" aria-hidden="true">{{ ((user.full_name or user.username or "?").strip() or "?")[:1] }}</div>
+        <h2><bdi>{{ user.full_name or user.username }}</bdi></h2>
+        <span class="badge badge--on badge--plain" id="roleBadge"></span>
+        <div class="field">
+          <label for="login_id" data-i18n="p.loginId"></label>
+          <div class="input input--locked"><i class="fa-regular fa-id-badge" aria-hidden="true"></i>
+            <input id="login_id" type="text" class="ltr" value="{{ user.username }}" readonly></div>
+        </div>
+        <div class="field">
+          <label for="role" data-i18n="p.role"></label>
+          <div class="input input--locked"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+            <input id="role" type="text" value="" readonly data-role="{{ user.role }}"></div>
+        </div>
+        <div class="field">
+          <label for="manager_code" data-i18n="{{ 'p.codeAdmin' if user.role == 'admin' else 'p.codeInspector' }}"></label>
+          <div class="input input--locked"><i class="fa-solid fa-key" aria-hidden="true"></i>
+            <input id="manager_code" type="text" class="ltr" value="{{ user.manager_code or '' }}" readonly></div>
+          {% if user.role == 'admin' %}<p class="hint" data-i18n="p.codeHint"></p>{% endif %}
+        </div>
+      </section>
 
-      <div class="field">
-        <label for="full_name" data-i18n="p.name"></label>
-        <div class="input"><i class="fa-regular fa-user" aria-hidden="true"></i>
-          <input id="full_name" type="text" autocomplete="name" value="{{ user.full_name or '' }}" required></div>
-      </div>
+      <form id="profileForm" class="profile__forms" novalidate>
+        <section class="card">
+          <h2 data-i18n="p.details"></h2>
+          <div class="field" style="margin-bottom:0">
+            <label for="full_name" data-i18n="p.name"></label>
+            <div class="input"><i class="fa-regular fa-user" aria-hidden="true"></i>
+              <input id="full_name" type="text" autocomplete="name" value="{{ user.full_name or '' }}" required></div>
+          </div>
+        </section>
 
-      <div class="field">
-        <label for="login_id" data-i18n="p.loginId"></label>
-        <div class="input input--locked"><i class="fa-regular fa-id-badge" aria-hidden="true"></i>
-          <input id="login_id" type="text" class="ltr" value="{{ user.username }}" readonly></div>
-      </div>
+        <section class="card">
+          <h2 data-i18n="p.passwordTitle"></h2>
+          <div class="fields-2">
+            <div class="field">
+              <label for="password" data-i18n="p.newPassword"></label>
+              <div class="input"><i class="fa-solid fa-lock" aria-hidden="true"></i>
+                <input id="password" type="password" autocomplete="new-password"></div>
+              <p class="hint" data-i18n="p.passwordHint"></p>
+            </div>
+            <div class="field">
+              <label for="password2" data-i18n="a.f.confirm"></label>
+              <div class="input"><i class="fa-solid fa-lock" aria-hidden="true"></i>
+                <input id="password2" type="password" autocomplete="new-password"></div>
+            </div>
+          </div>
+        </section>
 
-      <div class="field">
-        <label for="role" data-i18n="p.role"></label>
-        <div class="input input--locked"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
-          <input id="role" type="text" value="" readonly data-role="{{ user.role }}"></div>
-      </div>
-
-      <div class="field">
-        <label for="manager_code" data-i18n="{{ 'p.codeAdmin' if user.role == 'admin' else 'p.codeInspector' }}"></label>
-        <div class="input input--locked"><i class="fa-solid fa-key" aria-hidden="true"></i>
-          <input id="manager_code" type="text" class="ltr" value="{{ user.manager_code or '' }}" readonly></div>
-        {% if user.role == 'admin' %}<p class="hint" data-i18n="p.codeHint"></p>{% endif %}
-      </div>
-
-      <h2 style="margin-top:24px" data-i18n="p.passwordTitle"></h2>
-      <div class="field">
-        <label for="password" data-i18n="p.newPassword"></label>
-        <div class="input"><i class="fa-solid fa-lock" aria-hidden="true"></i>
-          <input id="password" type="password" autocomplete="new-password"></div>
-        <p class="hint" data-i18n="p.passwordHint"></p>
-      </div>
-      <div class="field">
-        <label for="password2" data-i18n="a.f.confirm"></label>
-        <div class="input"><i class="fa-solid fa-lock" aria-hidden="true"></i>
-          <input id="password2" type="password" autocomplete="new-password"></div>
-      </div>
-
-      <button type="submit" class="btn btn--block" id="saveBtn" data-i18n="p.save"></button>
-    </form>
+        <div class="profile__save"><button type="submit" class="btn" id="saveBtn" data-i18n="p.save"></button></div>
+      </form>
+    </div>
   </main>
 
   {% include "partials/i18n_scripts.html" %}
@@ -69,7 +79,7 @@
     const { t } = window.I18n, { toast, api, errorText } = window.Admin;
     const $ = (id) => document.getElementById(id);
     const roleField = $('role');
-    const setRole = () => { roleField.value = t('p.role.' + roleField.dataset.role); };
+    const setRole = () => { roleField.value = t('p.role.' + roleField.dataset.role); $('roleBadge').textContent = roleField.value; };
     setRole();
     document.addEventListener('langchange', setRole);
 

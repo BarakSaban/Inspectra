@@ -22,7 +22,7 @@
       </div>
     </div>
 
-    <div class="grid grid--stats">
+    <div class="kpis">
       <div class="stat"><div class="stat__icon"><i class="fa-solid fa-receipt" aria-hidden="true"></i></div>
         <div><div class="stat__value" id="totalFines">—</div><div class="stat__label" data-i18n="an.totalFines"></div><div class="stat__sub" id="vsPrev"></div></div></div>
       <div class="stat"><div class="stat__icon stat__icon--good"><i class="fa-solid fa-user-check" aria-hidden="true"></i></div>
@@ -31,14 +31,16 @@
         <div><div class="stat__value" id="peakHour">—</div><div class="stat__label" data-i18n="an.peak"></div></div></div>
     </div>
 
-    <form class="card" id="filters" style="margin-bottom:16px">
+    <form class="card rangebar" id="filters">
+      <div>
       <h2 data-i18n="an.range"></h2>
-      <div class="chips no-print" id="presets" role="group" style="margin-bottom:12px">
+      <div class="chips no-print" id="presets" role="group">
         <button type="button" class="chip" data-d="0" data-i18n="an.preset.today"></button>
         <button type="button" class="chip" data-d="6" data-i18n="an.preset.7"></button>
         <button type="button" class="chip" data-d="29" data-i18n="an.preset.30"></button>
         <button type="button" class="chip" data-d="month" data-i18n="an.preset.month"></button>
         <button type="button" class="chip" data-d="89" data-i18n="an.preset.quarter"></button>
+      </div>
       </div>
       <div class="filters">
         <div class="field"><label for="startDate" data-i18n="an.from"></label>
@@ -56,15 +58,24 @@
       </div>
     </form>
 
-    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));margin-bottom:16px">
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(420px,1fr));margin-bottom:20px">
       <section class="card needs-data"><h3 data-i18n="an.byHour"></h3><div class="chart-box"><canvas id="hourlyChart" role="img" data-i18n-attr="aria-label:an.byHour"></canvas></div></section>
       <section class="card needs-data"><h3 data-i18n="an.byDay"></h3><div class="chart-box"><canvas id="dailyChart" role="img" data-i18n-attr="aria-label:an.byDay"></canvas></div></section>
     </div>
-    <section class="card" style="margin-bottom:16px">
+    <div class="split split--even" style="margin-bottom:20px">
+    <section class="card">
       <div class="card__head"><h3 data-i18n="an.board"></h3>
         <button type="button" class="btn btn--quiet btn--small" id="exportCsv"><i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i><span data-i18n="c.csv"></span></button></div>
       <ol class="rank" id="board"></ol>
     </section>
+    <section class="card">
+      <h3 data-i18n="an.people"></h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th data-i18n="ad.th.inspector"></th><th class="num" data-i18n="an.p.fines"></th><th class="num" data-i18n="an.p.shift"></th><th class="num" data-i18n="an.p.perHour"></th><th class="num" data-i18n="an.p.break"></th><th class="num" data-i18n="an.p.breaks"></th></tr></thead>
+        <tbody id="peopleBody"></tbody>
+      </table></div>
+    </section>
+    </div>
     <div class="split needs-data" style="margin-bottom:16px">
       <section class="card" aria-labelledby="hotTitle">
         <h3 id="hotTitle" data-i18n="an.hotspots"></h3>
@@ -78,13 +89,6 @@
         <ol class="rank" id="topLines"></ol>
       </section>
     </div>
-    <section class="card needs-data" style="margin-bottom:16px">
-      <h3 data-i18n="an.people"></h3>
-      <div class="table-wrap"><table>
-        <thead><tr><th data-i18n="ad.th.inspector"></th><th class="num" data-i18n="an.p.fines"></th><th class="num" data-i18n="an.p.shift"></th><th class="num" data-i18n="an.p.perHour"></th><th class="num" data-i18n="an.p.break"></th><th class="num" data-i18n="an.p.breaks"></th></tr></thead>
-        <tbody id="peopleBody"></tbody>
-      </table></div>
-    </section>
     <section class="card needs-data"><h3 data-i18n="an.timeline"></h3><div class="chart-box"><canvas id="timelineChart" role="img" data-i18n-attr="aria-label:an.timeline"></canvas></div></section>
     <p class="empty hidden" id="noData" data-i18n="an.none"></p>
   </main>

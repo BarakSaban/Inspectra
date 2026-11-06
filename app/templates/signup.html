@@ -9,10 +9,13 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
 </head>
 <body>
-  <main class="auth">
+  <div class="auth-shell">
+  {% include "partials/auth_aside.html" %}
+  <div class="auth-main">
+  <div class="auth__lang" data-lang-switcher></div>
+  <main class="auth auth--wide">
     <div class="auth__top">
       <img class="brand" src="{{ url_for('static', filename='img/inspectra-logo.png') }}" alt="Inspectra" width="132" height="99">
-      <div data-lang-switcher></div>
     </div>
     <h1 data-i18n="a.signup.title">Create your account</h1>
     <p class="auth__sub" data-i18n="a.signup.sub">Join the Inspectra platform</p>
@@ -24,6 +27,7 @@
 
     <form id="registerForm" novalidate>
       <input type="hidden" id="role" value="inspector">
+      <div class="fields-2">
       <div class="field">
         <label for="name" data-i18n="a.f.name">Full name</label>
         <div class="input"><i class="fa-regular fa-user" aria-hidden="true"></i>
@@ -49,6 +53,8 @@
         <div class="input"><i class="fa-solid fa-users" aria-hidden="true"></i>
           <input id="teamName" type="text" data-i18n-attr="placeholder:a.f.team.ph"></div>
       </div>
+      </div>
+      <div class="fields-2">
       <div class="field">
         <label for="password" data-i18n="a.f.password">Password</label>
         <div class="input"><i class="fa-solid fa-lock" aria-hidden="true"></i>
@@ -62,10 +68,13 @@
         <div class="input"><i class="fa-solid fa-lock" aria-hidden="true"></i>
           <input id="confirmPassword" type="password" autocomplete="new-password" required dir="ltr"></div>
       </div>
+      </div>
       <button class="submit" type="submit" data-i18n="a.signup.btn">Register</button>
     </form>
     <p class="switch-line"><span data-i18n="a.signup.have">Already registered?</span> <a href="/login" data-i18n="a.signup.login">Log in</a></p>
   </main>
+  </div>
+  </div>
 
   <div id="toast" class="toast" role="status" aria-live="polite"><span id="toastMsg"></span></div>
   <div class="bar" aria-hidden="true"><span id="barFill"></span></div>

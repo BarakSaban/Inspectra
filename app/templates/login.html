@@ -9,10 +9,13 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
 </head>
 <body>
+  <div class="auth-shell">
+  {% include "partials/auth_aside.html" %}
+  <div class="auth-main">
+  <div class="auth__lang" data-lang-switcher></div>
   <main class="auth">
     <div class="auth__top">
       <img class="brand" src="{{ url_for('static', filename='img/inspectra-logo.png') }}" alt="Inspectra" width="132" height="99">
-      <div data-lang-switcher></div>
     </div>
     <h1 data-i18n="a.login.title">Welcome back</h1>
     <p class="auth__sub" data-i18n="a.login.sub">Log in to your Inspectra account</p>
@@ -40,6 +43,8 @@
     </form>
     <p class="switch-line"><span data-i18n="a.login.noAcc">Don't have an account?</span> <a href="/signup" data-i18n="a.login.signup">Sign up</a></p>
   </main>
+  </div>
+  </div>
 
   <div id="toast" class="toast" role="status" aria-live="polite"><span id="toastMsg"></span></div>
   <div class="bar" aria-hidden="true"><span id="barFill"></span></div>
