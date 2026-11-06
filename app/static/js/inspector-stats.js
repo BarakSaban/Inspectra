@@ -6,7 +6,7 @@
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const PERIODS = ['today', 'week', 'month', 'year'];
   const GOALS = [5, 10, 15, 20];
-  const lang = () => window.I18n.lang;
+  const lang = () => `${window.I18n.lang}-u-nu-latn`;   // Latin digits in every language, like the rest of the app
   const num = (v) => Number(v ?? 0).toLocaleString(lang());
 
   let period = 'week', offset = 0, data = null, picked = null;

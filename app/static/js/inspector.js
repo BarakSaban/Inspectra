@@ -181,16 +181,6 @@
     }
   }
 
-  function drawStopAndWalk(stopFeature, walkGeometry, fit = true) {
-    clearRideLayers();
-    if (walkGeometry) layers.walk = L.geoJSON(walkGeometry, { style: { color: '#0f1b2d', weight: 5, dashArray: '2 9', lineCap: 'round' } }).addTo(map);
-    if (stopFeature) {
-      layers.stop = L.geoJSON(stopFeature, { pointToLayer: (_f, latlng) => L.marker(latlng, { icon: stopIcon() }) }).addTo(map);
-      const b = layers.stop.getBounds();
-      if (fit && b.isValid()) map.fitBounds(userLatLng ? b.extend(userLatLng) : b, { padding: [70, 70], maxZoom: 17 });
-    }
-  }
-
   function recenter() {
     if (userLatLng) map.flyTo(userLatLng, Math.max(map.getZoom(), 16), { duration: 0.6 });
     else toast(t('i.toast.noLoc'));
@@ -455,6 +445,7 @@
       if (!moved) { sheet.go({ peek: 'half', half: 'full', full: 'peek' }[sheet.snap]); return; }
       sheet.go(sheet.nearest(Math.min(sheet.offsets.peek, Math.max(0, startOffset + (e.clientY - startY))), velocity));
     };
+    handle.addEventListener('click', (e) => { if (e.detail === 0) sheet.go({ peek: 'half', half: 'full', full: 'peek' }[sheet.snap]); });
     handle.addEventListener('pointerup', end);
     handle.addEventListener('pointercancel', end);
     handle.addEventListener('keydown', (e) => {
@@ -481,7 +472,6 @@
     pill.className = `pill ${next === 'break' ? 'pill--break' : online ? 'pill--on' : 'pill--off'}`;
     $('statusText').textContent = statusLabel();
     if (next !== 'break') stopBreakTimer();
-    if (next !== 'offer') document.body.classList.remove('has-offer');
     if (next !== 'ride') sheetEl.classList.remove('is-complete');   // the green "ride saved" look belongs to the ride screen only
     renderModeCopy();
     updateChip();
@@ -723,7 +713,7 @@
     // bus line: white casing under a thick coloured line, so it reads on any map tile
     if (v.shape) {
       const casing = L.geoJSON(v.shape, { style: { color: '#fff', weight: 11, opacity: .95, lineCap: 'round', lineJoin: 'round' } });
-      const line = L.geoJSON(v.shape, { style: { color: '#1f7bd1', weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round' } });
+      const line = L.geoJSON(v.shape, { style: { color: '#1b74c4', weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round' } });
       layers.shape = L.layerGroup([casing, line]).addTo(map);
     }
     // walk to the stop, with a chip showing how long it takes
@@ -1100,7 +1090,7 @@
   let breakEndsAt = 0, breakTimer = null, breakNotified = false, breakGrace = null;
   const breakPick = { minutes: 30, reason: 'lunch' };
   const breakCap = () => me.max_break_minutes || 90;
-  const clockTime = (ms) => new Date(ms).toLocaleTimeString(window.I18n.lang, { hour: '2-digit', minute: '2-digit' });
+  const clockTime = (ms) => new Date(ms).toLocaleTimeString(`${window.I18n.lang}-u-nu-latn`, { hour: '2-digit', minute: '2-digit', hour12: false });
 
   const clock = (ms) => { const sec = Math.max(0, Math.ceil(ms / 1000)); return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; };
   function renderBreakExtra() {
@@ -1272,6 +1262,19 @@
     };
   }
 
+  // ---------------- dialogs: the page behind an open one is inert ----------------
+  function watchDialogs() {
+    const dialogs = ['offer', 'settings', 'menu', 'breakOverlay', 'finesOverlay', 'sessionOverlay'].map($).filter(Boolean);
+    const behind = ['map', 'sheet'].map($).concat([...document.querySelectorAll('.topbar, .map-tools')]).filter(Boolean);
+    const sync = () => {
+      const open = dialogs.some((d) => !d.hidden);
+      behind.forEach((el) => { if (open) el.setAttribute('inert', ''); else el.removeAttribute('inert'); });
+    };
+    const observer = new MutationObserver(sync);
+    dialogs.forEach((d) => observer.observe(d, { attributes: true, attributeFilter: ['hidden'] }));
+    sync();
+  }
+
   // ---------------- language changes ----------------
   function onLangChange() {
     renderModeCopy();
@@ -1298,6 +1301,8 @@
     $('fineLess').addEventListener('click', () => changeFines(-1));
     $('fineMore').addEventListener('click', () => changeFines(1));
     $('recenterBtn').addEventListener('click', recenter);
+    $('zoomIn').addEventListener('click', () => map.zoomIn());
+    $('zoomOut').addEventListener('click', () => map.zoomOut());
     $('offerAccept').addEventListener('click', acceptOffer);
     $('offerDecline').addEventListener('click', () => closeOffer('decline'));
     $('menuBtn').addEventListener('click', openMenu);
@@ -1329,6 +1334,7 @@
 
     startGeolocation();
     setupPush().catch(() => { /* push is optional */ });
+    watchDialogs();
 
     // A stationary phone gets no new GPS fixes, so repeat the last one: the manager only sees inspectors who keep reporting.
     setInterval(() => {

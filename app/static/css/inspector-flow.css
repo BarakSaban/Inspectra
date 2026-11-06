@@ -51,8 +51,6 @@
 #map .leaflet-tile-pane { transition: filter .6s; }
 
 .mode[hidden] { display: none; }
-.mode__top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.mode__hello { margin: 0; font-size: .875rem; font-weight: 600; color: var(--ink-soft); }
 .mode .i18n-switcher__btn { min-height: 36px; }
 
 .today { display: flex; gap: 0; margin: 0 0 16px; padding: 12px 0; border-block: 1px solid var(--line); }
@@ -64,7 +62,7 @@
 /* Swipe sliders: go online (blue -> green fill) and end shift (slate -> red fill). --x is the thumb offset, --w the filled width, --p 0..1. */
 .swipe {
   --x: 0px; --w: 64px; --p: 0;
-  --base: #1f7bd1; --base-2: #0e68c4; --fill: var(--live); --thumb-ink: var(--accent-strong); --thumb-done: var(--live);
+  --base: #1b74c4; --base-2: #0d5fae; --fill: var(--live); --thumb-ink: var(--accent-strong); --thumb-done: var(--live);
   position: relative; height: 64px; overflow: hidden;
   background: linear-gradient(90deg, var(--base), var(--base-2));
   border-radius: 32px;
@@ -179,7 +177,7 @@
 .offer__facts dd { margin: 0; font-size: 1.25rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 .offer__facts .offer__fines { background: var(--live-tint); }
 .offer__fines dd { font-size: 1.625rem; line-height: 1.1; color: var(--live); }
-.offer__actions { display: flex; gap: 12px; margin-top: auto; padding-top: 4px; }
+.offer__actions { display: flex; gap: 20px; margin-top: auto; padding-top: 4px; }
 .btn--accept { position: relative; overflow: hidden; min-height: 58px; font-size: 1.125rem; flex: 2; }
 .btn--accept .btn__fill { position: absolute; inset: 0; background: rgba(255, 255, 255, .22); transform-origin: left; transform: scaleX(var(--p, 0)); }
 [dir="rtl"] .btn--accept .btn__fill { transform-origin: right; }
@@ -256,7 +254,7 @@
 .ridelive__note { margin: 8px 0 0; font-size: .8125rem; color: var(--ink-soft); min-height: 1.1em; }
 .ridelive__note:empty { display: none; }
 
-.fcount { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 14px; padding: 12px 14px; background: var(--surface-2, #f3f6f9); border-radius: 14px; }
+.fcount { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 14px; padding: 12px 14px; background: var(--surface-sunk); border-radius: 14px; }
 .fcount__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .fcount__label { font-weight: 700; }
 .fcount__hint { font-size: .75rem; color: var(--ink-faint); }
@@ -271,7 +269,7 @@
 .navlinks { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 14px; }
 .navlinks__title { flex-basis: 100%; font-size: .75rem; font-weight: 600; color: var(--ink-faint); }
 .navlinks__a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 22px; border: 1px solid var(--line); color: var(--ink); font-weight: 600; font-size: .875rem; text-decoration: none; }
-.navlinks__a:hover { background: var(--surface-2, #f3f6f9); }
+.navlinks__a:hover { background: var(--surface-sunk); }
 
 @media (prefers-reduced-motion: reduce) {
   .swipe__chev, .fcount__value.is-bump { animation: none; }
@@ -306,18 +304,6 @@
 .goal__ring strong { position: relative; font-size: 1.375rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 .goal__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .goal__text strong { font-size: 1rem; }
-.weekbars { display: flex; align-items: flex-end; gap: 8px; height: 110px; padding-top: 8px; }
-.weekbars > div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; height: 100%; font-size: .6875rem; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
-.weekbars i { display: block; width: 100%; max-width: 28px; min-height: 3px; border-radius: 6px 6px 2px 2px; background: #c9d9ea; }
-.weekbars .is-today i { background: var(--accent); }
-.weekbars b { font-weight: 700; color: var(--ink); }
-.ridelist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.ridelist li { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--surface-2, #f3f6f9); border-radius: 12px; }
-.ridelist .route-badge { flex: none; }
-.ridelist__main { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: .875rem; }
-.ridelist__main small { color: var(--ink-faint); }
-.ridelist__fines { font-weight: 800; font-variant-numeric: tabular-nums; }
-.ridelist__empty { color: var(--ink-faint); font-size: .875rem; padding: 8px 0; }
 
 /* comfort: text size and sunlight contrast */
 html[data-size="l"] { font-size: 112.5%; }
@@ -330,7 +316,8 @@ body.hc .btn--ghost { border: 2px solid #000; color: #000; }
 /* =====================================================================
    Menu (replaces the settings button) and the flexible break sheet
    ===================================================================== */
-.overlay--menu { align-items: flex-start; justify-content: flex-end; background: transparent; padding: max(64px, calc(env(safe-area-inset-top) + 56px)) 12px 0; }
+.overlay--menu { align-items: flex-end; justify-content: flex-end; background: transparent; padding: 0 0 calc(var(--sheet-visible, 220px) + 12px + 110px); padding-inline: 12px 74px; }
+@media (min-width: 900px) { .overlay--menu { padding-bottom: 140px; } }
 .menu { min-width: 220px; display: grid; gap: 2px; padding: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 12px 40px rgba(15, 27, 45, .28); animation: rise .2s var(--ease-out); }
 .menu__item { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 14px; border: 0; border-radius: 12px; background: transparent; color: var(--ink); font: 700 1rem/1 var(--font); text-decoration: none; cursor: pointer; text-align: start; }
 .menu__item i { width: 22px; text-align: center; color: var(--accent); }
@@ -348,3 +335,4 @@ body.hc .btn--ghost { border: 2px solid #000; color: #000; }
 .dialog--break .dialog__actions .btn { flex: 1; }
 #breakChoices { grid-template-columns: repeat(4, 1fr); }
 #breakChoices button { padding: 0 4px; }
+.set-row[hidden] { display: none; }

@@ -32,7 +32,7 @@ input[type="tel"], input[type="email"], input[type="number"], .ltr { direction: 
   transition: background .15s;
 }
 .i18n-switcher__btn:hover { background: var(--accent-tint, #e8f2fc); }
-.i18n-switcher__btn:focus-visible, .i18n-switcher__menu button:focus-visible { outline: 3px solid #1f7bd1; outline-offset: 2px; }
+.i18n-switcher__btn:focus-visible, .i18n-switcher__menu button:focus-visible { outline: 3px solid #1b74c4; outline-offset: 2px; }
 .i18n-switcher__menu {
   position: absolute; inset-inline-end: 0; top: calc(100% + 6px);
   min-width: 160px; margin: 0; padding: 6px; list-style: none;
@@ -46,5 +46,5 @@ input[type="tel"], input[type="email"], input[type="number"], .ltr { direction: 
   color: #0f1b2d; font-size: .9375rem; font-weight: 600; text-align: start; cursor: pointer;
 }
 .i18n-switcher__menu button:hover { background: var(--surface-sunk, #f2f6fb); }
-.i18n-switcher__menu button[aria-checked="true"] { background: var(--accent-tint, #e8f2fc); color: var(--accent-strong, #0e68c4); }
+.i18n-switcher__menu button[aria-checked="true"] { background: var(--accent-tint, #e8f2fc); color: var(--accent-strong, #0d5fae); }
 .i18n-switcher__menu button[aria-checked="true"]::after { content: "✓"; float: inline-end; }

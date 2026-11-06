@@ -254,7 +254,7 @@
           m.bindPopup(`<b>${esc(i.name)}</b><br>${esc(t('ad.state.' + state))}<br><small>${esc(seen)}</small><br>${esc(t('ad.th.fines'))}: ${num(i.total_fines)} · ${esc(t('ad.th.trips'))}: ${num(i.completed_trips)}`);
           const stop = i.current_assignment?.stop;
           if (stop && stop.latitude != null) {   // a line from the inspector to the stop they are heading to
-            L.polyline([[i.latitude, i.longitude], [stop.latitude, stop.longitude]], { color: state === 'offered' ? '#7a4fd1' : '#1f7bd1', weight: 3, dashArray: '4 8' }).addTo(linkLayer);
+            L.polyline([[i.latitude, i.longitude], [stop.latitude, stop.longitude]], { color: state === 'offered' ? '#7a4fd1' : '#1b74c4', weight: 3, dashArray: '4 8' }).addTo(linkLayer);
             L.marker([stop.latitude, stop.longitude], { icon: stopIcon(), interactive: false, keyboard: false }).addTo(linkLayer);
           }
           markers[i.inspector_id] = m;
