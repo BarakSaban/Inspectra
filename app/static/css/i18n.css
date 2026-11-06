@@ -24,10 +24,10 @@ input[type="tel"], input[type="email"], input[type="number"], .ltr { direction: 
 .i18n-switcher { position: relative; display: inline-block; z-index: 1500; }
 .i18n-switcher__btn {
   display: inline-flex; align-items: center; gap: 8px;
-  min-height: 40px; padding: 0 14px;
+  min-height: 44px; padding: 0 14px;
   background: var(--surface, #fff); color: var(--ink, #0f1b2d);
-  border: 1px solid #dbe4ee; border-radius: 999px;
-  box-shadow: 0 1px 2px rgba(15, 27, 45, .08);
+  border: 1px solid var(--line, #dbe4ee); border-radius: 10px;
+  box-shadow: none;
   font-size: .8125rem; font-weight: 600; cursor: pointer;
   transition: background .15s;
 }

@@ -10,13 +10,10 @@
 </head>
 <body>
   <div class="auth-shell">
-  {% include "partials/auth_aside.html" %}
   <div class="auth-main">
-  <div class="auth__lang" data-lang-switcher></div>
   <main class="auth">
-    <div class="auth__top">
-      <img class="brand" src="{{ url_for('static', filename='img/inspectra-logo.png') }}" alt="Inspectra" width="132" height="99">
-    </div>
+    <div class="auth__lang" data-lang-switcher></div>
+    <a class="auth__logo" href="/" aria-label="Inspectra"><img src="{{ url_for('static', filename='img/inspectra-logo.png') }}" alt="Inspectra" width="132" height="99"></a>
     <h1 data-i18n="a.login.title">Welcome back</h1>
     <p class="auth__sub" data-i18n="a.login.sub">Log in to your Inspectra account</p>
 
@@ -33,12 +30,12 @@
           <input id="contact" type="text" autocomplete="username" required dir="ltr" placeholder="050-1234567"></div>
       </div>
       <div class="field">
-        <label for="password" data-i18n="a.f.password">Password</label>
+        <div class="field__row"><label for="password" data-i18n="a.f.password">Password</label>
+          <button type="button" class="link" id="forgotPassword" data-i18n="a.login.forgot">Forgot password?</button></div>
         <div class="input"><i class="fa-solid fa-lock" aria-hidden="true"></i>
           <input id="password" type="password" autocomplete="current-password" required dir="ltr" placeholder="••••••••">
           <button type="button" id="togglePassword" data-i18n-attr="aria-label:a.f.show"><i class="fa-regular fa-eye" aria-hidden="true"></i></button></div>
       </div>
-      <div class="row-end"><button type="button" class="link" id="forgotPassword" data-i18n="a.login.forgot">Forgot password?</button></div>
       <button class="submit" type="submit" data-i18n="a.login.btn">Log in</button>
     </form>
     <p class="switch-line"><span data-i18n="a.login.noAcc">Don't have an account?</span> <a href="/signup" data-i18n="a.login.signup">Sign up</a></p>

@@ -14,3 +14,6 @@ cache/
 
 # Raw national GTFS downloads (input of tools/build_gtfs_subset.py)
 data/raw/
+.impeccable/
+.ruff_cache/
+.pytest_cache/

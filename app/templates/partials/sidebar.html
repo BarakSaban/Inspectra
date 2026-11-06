@@ -20,7 +20,7 @@
       <li><a href="/logout"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i><span data-i18n="n.logout"></span></a></li>
     </ul>
     <div class="rail__tools">
-      {% if first_name %}<span class="greet"><span data-i18n="n.hi"></span> <bdi>{{ first_name }}</bdi></span>{% endif %}
+      {% if first_name %}<span class="greet"><span class="avatar-mini" aria-hidden="true">{{ first_name[:1] }}</span><span class="greet__text"><span data-i18n="n.hi"></span> <bdi>{{ first_name }}</bdi></span></span>{% endif %}
       <div class="rail__row">
         <div data-lang-switcher></div>
         <button type="button" class="themebtn" id="themeToggle" data-i18n-attr="aria-label:n.theme; title:n.theme"><i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i></button>
