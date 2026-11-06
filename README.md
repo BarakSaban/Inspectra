@@ -161,4 +161,22 @@ An inspector picks any break length from 5 minutes up to the cap the manager set
 
 ## Demo accounts
 
-`python -m tools.demo_data create` adds two managers (`demo.manager1` with 6 inspectors, `demo.manager2` with 3) and about six weeks of shifts, breaks, rides and fines to the real database, all with the password `demo1234`; inspectors are `demo.i01` to `demo.i09`. Rides use real trips and stops from the timetable. `status` lists them, `live` keeps four demo inspectors online (fresh position every 30 s, Ctrl-C to stop) so the manager's live map has people on it, and `delete` removes exactly what `create` made (usernames starting `demo.`, inspector ids starting `DM`) after showing the counts; real accounts are never touched.
+Log in at `/login`. The password of every demo account is `demo1234`.
+
+| Role | Username | Name | Notes |
+|---|---|---|---|
+| Manager | `demo.manager1` | מירי הדר | team of 6, longest break 90 min |
+| Manager | `demo.manager2` | עומר ביטון | team of 3, longest break 60 min |
+| Inspector | `demo.i01` | דנה לוי | team of manager 1 |
+| Inspector | `demo.i02` | יוסי כהן | team of manager 1 |
+| Inspector | `demo.i03` | נועה שחר | team of manager 1 |
+| Inspector | `demo.i04` | אמיר בן דוד | team of manager 1 |
+| Inspector | `demo.i05` | ליאור מזרחי | team of manager 1 |
+| Inspector | `demo.i06` | רוני אלון | team of manager 1 |
+| Inspector | `demo.i07` | מיכל גולן | team of manager 2 |
+| Inspector | `demo.i08` | אורי פרץ | team of manager 2 |
+| Inspector | `demo.i09` | תמר אביב | team of manager 2 |
+
+A manager's invite code is shown in the *Invite* dialog on the dashboard (it is random per database). Inspectors are offline with six weeks of history; log in as one and swipe to go online, or run `python -m tools.demo_data live` to keep four online.
+
+`python -m tools.demo_data create` builds these accounts in the real database (rides use real trips and stops from the timetable). `status` lists them, `live` keeps four demo inspectors online (fresh position every 30 s, Ctrl-C to stop) so the manager's live map has people on it, and `delete` removes exactly what `create` made (usernames starting `demo.`, inspector ids starting `DM`) after showing the counts; real accounts are never touched.
