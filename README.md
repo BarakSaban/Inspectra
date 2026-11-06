@@ -193,10 +193,11 @@ An inspector picks any break length from 5 minutes up to the cap the manager set
 
 ## Demo accounts
 
-Log in at `/login`. The password of every demo account is `demo1234`.
+Log in at `/login`. The password of every demo account is `demo1234`, except the owner account listed first.
 
 | Role | Username | Name | Notes |
 |---|---|---|---|
+| Owner (admin) | `admin` | Admin | password `Owner-avp27AsC`; approves manager sign-ups under Staff. Local demo database only: change it before any real use |
 | Manager | `demo.manager1` | מירי הדר | team of 6, longest break 90 min |
 | Manager | `demo.manager2` | עומר ביטון | team of 3, longest break 60 min |
 | Inspector | `demo.i01` | דנה לוי | team of manager 1 |
