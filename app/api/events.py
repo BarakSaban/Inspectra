@@ -5,6 +5,7 @@ the page then re-reads the normal JSON endpoints. Pages keep their polling as a 
 Each open stream holds one worker thread: run the app with a threaded server (the dev server and gunicorn `--worker-class gthread` are).
 """
 import hashlib
+import threading
 import time
 
 from flask import Blueprint, Response, jsonify, request, session, stream_with_context
@@ -18,6 +19,9 @@ events_api = Blueprint("events_api", __name__)
 
 POLL_SECONDS = 2.0        # how often the server looks for a change
 KEEPALIVE_SECONDS = 15.0  # comment lines keep proxies from closing an idle stream
+MAX_STREAMS_PER_USER = 4  # one per open tab; stops a runaway page from tying up every worker thread
+_open_streams = {}
+_streams_lock = threading.Lock()
 MAX_STREAM_SECONDS = 55   # the browser reconnects by itself; short streams free threads and pick up deploys
 
 
@@ -48,20 +52,30 @@ def events():
     except ValueError:
         return jsonify({"error": "max_seconds must be a number"}), 400
 
+    who = session.get('user')
+    with _streams_lock:
+        if _open_streams.get(who, 0) >= MAX_STREAMS_PER_USER:
+            return jsonify({"error": "too many requests"}), 429
+        _open_streams[who] = _open_streams.get(who, 0) + 1
+
     @stream_with_context
     def stream():
-        yield "retry: 3000\n\n"
-        last = signature(role, inspector_id, admin_code)
-        started = last_beat = time.monotonic()
-        while time.monotonic() - started < limit:
-            time.sleep(min(POLL_SECONDS, max(0.01, limit)))
-            current = signature(role, inspector_id, admin_code)
-            if current != last:
-                last = current
-                yield "event: change\ndata: 1\n\n"
-            elif time.monotonic() - last_beat > KEEPALIVE_SECONDS:
-                last_beat = time.monotonic()
-                yield ": keepalive\n\n"
+        try:
+            yield "retry: 3000\n\n"
+            last = signature(role, inspector_id, admin_code)
+            started = last_beat = time.monotonic()
+            while time.monotonic() - started < limit:
+                time.sleep(min(POLL_SECONDS, max(0.01, limit)))
+                current = signature(role, inspector_id, admin_code)
+                if current != last:
+                    last = current
+                    yield "event: change\ndata: 1\n\n"
+                elif time.monotonic() - last_beat > KEEPALIVE_SECONDS:
+                    last_beat = time.monotonic()
+                    yield ": keepalive\n\n"
+        finally:
+            with _streams_lock:
+                _open_streams[who] = max(0, _open_streams.get(who, 1) - 1)
 
     return Response(stream(), mimetype="text/event-stream",
                     headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})

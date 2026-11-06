@@ -1,3 +1,4 @@
+from sqlalchemy import Index
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.extensions import db
@@ -25,6 +26,8 @@ class User(db.Model):
 
     def end_sessions(self):
         self.session_version = (self.session_version or 0) + 1
+
+    __table_args__ = (Index("ix_users_manager_code", "manager_code"), Index("ix_users_inspector_id", "inspector_id"))
 
     def set_password(self, raw):
         self.password_hash = generate_password_hash(raw)

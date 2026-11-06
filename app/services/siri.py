@@ -21,8 +21,21 @@ DESTINATION_UNKNOWN = "Destination unknown"
 _LIVE_CACHE = {}
 
 
+MAX_CACHE_ENTRIES = 3000
+
+
 def _utc_now():
     return datetime.now(timezone.utc)
+
+
+def _remember(url, entry):
+    """Store a cache entry; when the cache grows past its bound, drop the stale entries (then the oldest)."""
+    _LIVE_CACHE[url] = entry
+    if len(_LIVE_CACHE) > MAX_CACHE_ENTRIES:
+        for key in [k for k, v in list(_LIVE_CACHE.items()) if not _is_fresh(v)]:
+            _LIVE_CACHE.pop(key, None)
+        while len(_LIVE_CACHE) > MAX_CACHE_ENTRIES:
+            _LIVE_CACHE.pop(next(iter(_LIVE_CACHE)), None)
 
 
 def parse_iso_datetime(value):
@@ -187,9 +200,9 @@ def fetch_live_stop_visits(stop_code, line_ref=None, preview_interval=None):
             logger.warning("Malformed JSON in SIRI response for stop %s: %r", ref, exc)
 
     if visits is None:
-        _LIVE_CACHE[url] = {"timestamp": _utc_now(), "visits": [], "failed": True}
+        _remember(url, {"timestamp": _utc_now(), "visits": [], "failed": True})
         return []
-    _LIVE_CACHE[url] = {"timestamp": _utc_now(), "visits": visits}
+    _remember(url, {"timestamp": _utc_now(), "visits": visits})
     return visits
 
 

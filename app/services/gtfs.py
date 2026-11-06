@@ -221,6 +221,9 @@ def load_gtfs():
     """Read the committed feed (`data/gtfs`) and the fare-evasion table into a GtfsData."""
     read = lambda name: pd.read_csv(config.GTFS_DIR / name)  # noqa: E731
     calendar_file = config.GTFS_DIR / "calendar.txt"
+    if not calendar_file.exists():
+        logger.warning("data/gtfs/calendar.txt is missing: every scheduled trip is treated as running today, so the "
+                       "static fallback may offer buses that do not run. Live SIRI data is not affected.")
     return GtfsData(
         stops=read("stops.txt"),
         stop_times=read("stop_times.txt"),

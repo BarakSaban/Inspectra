@@ -6,6 +6,8 @@ records the fines issued and updates the inspector's totals, which is what analy
 """
 from datetime import timedelta
 
+from sqlalchemy.exc import IntegrityError
+
 from app.extensions import db
 from app.models import Fine, Inspector, InspectorRun
 from app.services import shifts
@@ -32,6 +34,32 @@ def get_active_run(inspector_id):
     )
 
 
+def create_run(message="this inspector already has an active run", **fields):
+    """Insert one run. The unique index on active runs turns a simultaneous second one into a clean 409, never a duplicate."""
+    run = InspectorRun(**fields)
+    try:
+        with db.session.begin_nested():
+            db.session.add(run)
+    except IntegrityError:
+        raise RunError(message, 409)
+    return run
+
+
+def _claim(run, allowed, **values):
+    """Move a run to its next state only if it is still in an allowed state in the database right now.
+
+    The check and the write are one statement, so of two simultaneous requests (a double tap, two managers)
+    exactly one wins and the other gets a 409.
+    """
+    changed = (InspectorRun.query.filter(InspectorRun.id == run.id, InspectorRun.status.in_(allowed))
+               .update(values, synchronize_session=False))
+    if changed != 1:
+        db.session.rollback()
+        db.session.refresh(run)
+        raise RunError(f"a {run.status} run cannot be changed this way", 409)
+    db.session.refresh(run)
+
+
 def start_run(inspector_id, trip_id=None, stop_id=None, potential_fines=0):
     """The inspector takes a recommended trip: a new run that is already accepted."""
     if not trip_id:
@@ -41,11 +69,11 @@ def start_run(inspector_id, trip_id=None, stop_id=None, potential_fines=0):
         raise RunError("finish or cancel your current run first", 409)
 
     now = now_local()
-    run = InspectorRun(
+    run = create_run(
+        message="finish or cancel your current run first",
         inspector_id=inspector_id, trip_id=str(trip_id), stop_id=str(stop_id) if stop_id is not None else None,
         potential_fines=fines, assigned_at=now, accepted_at=now, status="accepted",
     )
-    db.session.add(run)
     db.session.commit()
     return run
 
@@ -53,8 +81,7 @@ def start_run(inspector_id, trip_id=None, stop_id=None, potential_fines=0):
 def accept_run(run):
     if run.status != "assigned":
         raise RunError(f"a {run.status} run cannot be accepted", 409)
-    run.status = "accepted"
-    run.accepted_at = now_local()
+    _claim(run, ("assigned",), status="accepted", accepted_at=now_local())
     db.session.commit()
     return run
 
@@ -62,8 +89,7 @@ def accept_run(run):
 def cancel_run(run):
     if run.status not in ACTIVE_STATUSES:
         raise RunError(f"a {run.status} run cannot be cancelled", 409)
-    run.status = "cancelled"
-    run.finished_at = now_local()
+    _claim(run, ACTIVE_STATUSES, status="cancelled", finished_at=now_local())
     db.session.commit()
     return run
 
@@ -91,9 +117,7 @@ def complete_run(run, actual_fines=0):
         raise RunError(f"actual_fines cannot exceed {MAX_FINES_PER_RUN}")
 
     now = now_local()
-    run.status = "completed"
-    run.actual_fines = fines
-    run.finished_at = now
+    _claim(run, ("accepted",), status="completed", actual_fines=fines, finished_at=now)
     db.session.add_all(
         Fine(inspector_id=run.inspector_id, run_id=run.id, trip_id=run.trip_id, stop_id=run.stop_id, timestamp=now)
         for _ in range(fines)
@@ -188,6 +212,7 @@ def set_break(inspector, minutes=None, reason=None, extend=None):
 def serialize_inspector_summary(inspector):
     """Identity, availability and today's completed runs/fines (local calendar day)."""
     on_break, break_until = _break_state(inspector)
+    current_break = shifts.current_break(inspector.inspector_id) if break_until else None
     start_of_day = now_local().replace(hour=0, minute=0, second=0, microsecond=0)
     today = InspectorRun.query.filter(
         InspectorRun.inspector_id == inspector.inspector_id,
@@ -201,8 +226,8 @@ def serialize_inspector_summary(inspector):
         "on_break": on_break,
         "break_until": break_until.isoformat() if break_until else None,
         "break_seconds_left": max(0, int((break_until - now_local()).total_seconds())) if break_until else 0,
-        "break_planned_minutes": (lambda b: b.planned_minutes + b.extended_minutes if b else None)(shifts.current_break(inspector.inspector_id)) if break_until else None,
-        "break_reason": (lambda b: b.reason if b else None)(shifts.current_break(inspector.inspector_id)) if break_until else None,
+        "break_planned_minutes": current_break.planned_minutes + current_break.extended_minutes if current_break else None,
+        "break_reason": current_break.reason if current_break else None,
         "max_break_minutes": break_cap(inspector.inspector_id),
         "today_runs": len(today),
         "today_fines": sum(run.actual_fines or 0 for run in today),

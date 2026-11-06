@@ -1,3 +1,5 @@
+from sqlalchemy import Index
+
 from app.extensions import db
 from app.utils.clock import now_local
 
@@ -20,3 +22,5 @@ class Fine(db.Model):
     stop_id = db.Column(db.String, nullable=True)
     amount = db.Column(db.Float, default=0.0)
     timestamp = db.Column(db.DateTime, default=now_local)
+
+    __table_args__ = (Index("ix_fines_inspector_time", "inspector_id", "timestamp"),)

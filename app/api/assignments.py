@@ -8,7 +8,7 @@ from app.services.inspectors import get_admin_inspector_users, get_inspector_ids
 from app.services.recommendations import fetch_live_options
 from app.services.routing import InspectorLocation, get_engine
 from app.services.team import audit, get_settings
-from app.services.runs import ACTIVE_STATUSES
+from app.services.runs import ACTIVE_STATUSES, RunError, create_run
 from app.utils.auth import admin_required_api
 from app.utils.clock import now_local
 
@@ -55,18 +55,15 @@ def assign_and_persist_runs(buffer_minutes=3, radius_m=666, max_walk_minutes=8, 
         if assigned is None or assigned.empty:
             return []
 
-        runs = [
-            InspectorRun(
-                inspector_id=row['inspector_id'],
-                trip_id=str(row['trip_id']),
-                stop_id=str(row['stop_id']),
-                potential_fines=int(row['potential_fines']),
-                assigned_at=now_local(),
-                status="assigned",
-            )
-            for row in assigned.to_dict(orient='records')
-        ]
-        db.session.add_all(runs)
+        runs = []
+        for row in assigned.to_dict(orient='records'):
+            try:   # one inspector who got a run meanwhile must not cancel everyone else's
+                runs.append(create_run(
+                    inspector_id=row['inspector_id'], trip_id=str(row['trip_id']), stop_id=str(row['stop_id']),
+                    potential_fines=int(row['potential_fines']), assigned_at=now_local(), status="assigned",
+                ))
+            except RunError:
+                continue
         db.session.commit()
         return [
             {

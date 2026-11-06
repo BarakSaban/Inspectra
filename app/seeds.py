@@ -130,11 +130,33 @@ def _add_missing_columns():
     db.session.commit()
 
 
+INDEXES = [
+    "CREATE INDEX IF NOT EXISTS ix_runs_inspector_status_finished ON inspector_runs (inspector_id, status, finished_at)",
+    "CREATE UNIQUE INDEX IF NOT EXISTS uq_runs_one_active_per_inspector ON inspector_runs (inspector_id) WHERE status IN ('assigned', 'accepted')",
+    "CREATE INDEX IF NOT EXISTS ix_fines_inspector_time ON fines (inspector_id, timestamp)",
+    "CREATE INDEX IF NOT EXISTS ix_users_manager_code ON users (manager_code)",
+    "CREATE INDEX IF NOT EXISTS ix_users_inspector_id ON users (inspector_id)",
+]
+
+
+def _ensure_indexes():
+    """`create_all` does not add indexes to tables that already exist. One failing index (say, old duplicate data) must not stop the rest."""
+    from sqlalchemy import text
+    for statement in INDEXES:
+        try:
+            db.session.execute(text(statement))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            logger.warning("Could not create index: %s", statement.split(" ON ")[0], exc_info=True)
+
+
 def bootstrap_database(app_config):
     """Create tables and seed data. A schema failure stops the start; demo seeding failures only log."""
     try:
         db.create_all()
         _add_missing_columns()
+        _ensure_indexes()
         seed_admin(app_config["ADMIN_PASSWORD"])
     except Exception:
         logger.exception("DB init/create_all failed")

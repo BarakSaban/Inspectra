@@ -131,9 +131,11 @@ def assign_manually():
     if owned[1].break_until and owned[1].break_until > now_local():
         return jsonify({"error": "this inspector is on a break"}), 409
 
-    run = InspectorRun(inspector_id=owned[1].inspector_id, trip_id=str(trip_id), stop_id=str(stop_id),
-                       potential_fines=fines, assigned_at=now_local(), status="assigned")
-    db.session.add(run)
+    try:
+        run = run_service.create_run(inspector_id=owned[1].inspector_id, trip_id=str(trip_id), stop_id=str(stop_id),
+                                     potential_fines=fines, assigned_at=now_local(), status="assigned")
+    except run_service.RunError as exc:
+        return jsonify({"error": exc.message}), exc.status
     db.session.commit()
     audit(session.get('admin_code'), session.get('user'), "run_assigned", owned[1].inspector_id, f"trip {trip_id}")
     return jsonify(run_service.serialize_run(run)), 201
