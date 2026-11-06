@@ -1,0 +1,22 @@
+/* Design tokens shared by every page. Page stylesheets add only what is specific to them. */
+:root {
+  --accent: #1f7bd1; --accent-strong: #0e68c4; --accent-tint: #e8f2fc;
+  --ink: #0f1b2d; --ink-soft: #3d4f66; --ink-faint: #5b6c82;
+  --surface: #fff; --surface-sunk: #f2f6fb; --bg: #eef4fa; --line: #dbe4ee;
+  --live: #137a3b; --live-tint: #e3f5ea; --good: var(--live); --good-tint: var(--live-tint);
+  --warn: #8a5300; --warn-tint: #fdf0d8;
+  --bad: #b3261e; --bad-tint: #fce8e6;
+  --glow: #dcebf9; --btn-hover: var(--accent-strong);
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+}
+
+/* Dark theme for the manager pages: chosen with the sun/moon button, remembered per browser. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: #e6edf6; --ink-soft: #b4c2d4; --ink-faint: #8c9db3;
+  --surface: #16212f; --surface-sunk: #101a26; --bg: #0b131d; --line: #27374a; --glow: #12263c;
+  --accent: #2b86da; --accent-strong: #7db9f0; --accent-tint: #17304a; --btn-hover: #3a95e8;
+  --live: #4cc47d; --live-tint: #123826;
+  --warn: #f0b254; --warn-tint: #3a2d10;
+  --bad: #ff8a80; --bad-tint: #3d1a18;
+}

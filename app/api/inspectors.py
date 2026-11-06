@@ -4,7 +4,8 @@ from flask import Blueprint, jsonify, request, session
 
 from app.extensions import db
 from app.models import Fine, Inspector, InspectorRun, User
-from app.services.inspectors import DEFAULT_LAT, DEFAULT_LON, find_owned_inspector
+from app.services.inspectors import find_owned_inspector
+from app.services.team import audit
 from app.utils.auth import admin_required_api, generate_temp_password
 
 logger = logging.getLogger(__name__)
@@ -70,9 +71,7 @@ def create_inspector():
         inspector = Inspector(
             inspector_id=inspector_id,
             name=name,
-            latitude=DEFAULT_LAT,
-            longitude=DEFAULT_LON,
-            available=True,
+            available=False,   # no position until the inspector's phone reports a real one
         )
         _apply_fields(inspector, {k: v for k, v in data.items() if k in ("email", "latitude", "longitude", "available")})
 
@@ -91,6 +90,7 @@ def create_inspector():
         logger.exception("create_inspector failed")
         return jsonify({"error": "server error"}), 500
 
+    audit(admin_code, session.get('user'), "inspector_created", inspector_id)
     return jsonify({**_serialize(inspector), "temporary_password": temp_password}), 201
 
 
@@ -125,6 +125,26 @@ def update_inspector(inspector_id):
     return jsonify(_serialize(inspector))
 
 
+@inspectors_api.route('/api/inspector/<inspector_id>/reset_password', methods=['POST'])
+@admin_required_api
+def reset_inspector_password(inspector_id):
+    """Give the inspector a new temporary password (shown to the admin once). The old password stops working."""
+    owned = find_owned_inspector(session.get('admin_code'), inspector_id)
+    if owned is None:
+        return jsonify({"error": "not found"}), 404
+    user, inspector = owned
+    temp_password = generate_temp_password()
+    try:
+        user.set_password(temp_password)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        logger.exception("reset_inspector_password failed")
+        return jsonify({"error": "server error"}), 500
+    audit(session.get('admin_code'), session.get('user'), "password_reset", inspector_id)
+    return jsonify({"inspector_id": inspector.inspector_id, "name": inspector.name, "temporary_password": temp_password})
+
+
 @inspectors_api.route('/api/inspector/<inspector_id>', methods=['DELETE'])
 @admin_required_api
 def delete_inspector(inspector_id):
@@ -140,9 +160,11 @@ def delete_inspector(inspector_id):
         )
         if has_history:
             # Keep runs/fines for reporting integrity: detach from the admin and take offline instead of deleting.
-            user.manager_code = None
+            user.former_manager_code, user.manager_code = user.manager_code, None
             inspector.available = False
+            inspector.break_until = None
             db.session.commit()
+            audit(session.get('admin_code'), session.get('user'), "inspector_deactivated", inspector_id)
             return jsonify({"success": True, "deactivated": True})
 
         db.session.delete(user)
@@ -152,4 +174,5 @@ def delete_inspector(inspector_id):
         db.session.rollback()
         logger.exception("delete_inspector failed")
         return jsonify({"error": "server error"}), 500
+    audit(session.get('admin_code'), session.get('user'), "inspector_deleted", inspector_id)
     return jsonify({"success": True, "deactivated": False})

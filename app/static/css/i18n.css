@@ -1,0 +1,50 @@
+/* Per-language fonts and the language switcher, shared by every page. Montserrat has no Hebrew or Arabic glyphs. */
+
+html[lang="he"] body, html[lang="he"] button, html[lang="he"] input, html[lang="he"] select, html[lang="he"] textarea {
+  font-family: "Heebo", "Montserrat", system-ui, sans-serif !important;
+}
+html[lang="ar"] body, html[lang="ar"] button, html[lang="ar"] input, html[lang="ar"] select, html[lang="ar"] textarea {
+  font-family: "Noto Sans Arabic", "Montserrat", system-ui, sans-serif !important;
+}
+html[lang="ru"] body, html[lang="ru"] button, html[lang="ru"] input, html[lang="ru"] select, html[lang="ru"] textarea {
+  font-family: "Montserrat", system-ui, sans-serif !important;
+}
+
+/* Maps and numbers/codes stay left-to-right so geometry and phone numbers don't flip. */
+#map, .leaflet-container { direction: ltr; }
+input[type="tel"], input[type="email"], input[type="number"], .ltr { direction: ltr; text-align: start; }
+[dir="rtl"] input[type="tel"], [dir="rtl"] input[type="email"] { text-align: right; }
+
+/* Tailwind-built pages hard-code left/right alignment; mirror the common cases. */
+[dir="rtl"] .text-left { text-align: right; }
+[dir="rtl"] .text-right { text-align: left; }
+[dir="rtl"] th, [dir="rtl"] td { text-align: right; }
+
+/* Language switcher */
+.i18n-switcher { position: relative; display: inline-block; z-index: 1500; }
+.i18n-switcher__btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 40px; padding: 0 14px;
+  background: var(--surface, #fff); color: var(--ink, #0f1b2d);
+  border: 1px solid #dbe4ee; border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(15, 27, 45, .08);
+  font-size: .8125rem; font-weight: 600; cursor: pointer;
+  transition: background .15s;
+}
+.i18n-switcher__btn:hover { background: var(--accent-tint, #e8f2fc); }
+.i18n-switcher__btn:focus-visible, .i18n-switcher__menu button:focus-visible { outline: 3px solid #1f7bd1; outline-offset: 2px; }
+.i18n-switcher__menu {
+  position: absolute; inset-inline-end: 0; top: calc(100% + 6px);
+  min-width: 160px; margin: 0; padding: 6px; list-style: none;
+  background: var(--surface, #fff); border: 1px solid var(--line, #dbe4ee); border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(15, 27, 45, .16);
+}
+.i18n-switcher__menu[hidden] { display: none; }
+.i18n-switcher__menu button {
+  display: block; width: 100%; min-height: 44px; padding: 0 14px;
+  background: none; border: 0; border-radius: 10px;
+  color: #0f1b2d; font-size: .9375rem; font-weight: 600; text-align: start; cursor: pointer;
+}
+.i18n-switcher__menu button:hover { background: var(--surface-sunk, #f2f6fb); }
+.i18n-switcher__menu button[aria-checked="true"] { background: var(--accent-tint, #e8f2fc); color: var(--accent-strong, #0e68c4); }
+.i18n-switcher__menu button[aria-checked="true"]::after { content: "✓"; float: inline-end; }

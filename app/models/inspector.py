@@ -12,6 +12,8 @@ class Inspector(db.Model):
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
     available = db.Column(db.Boolean, default=True)
+    break_until = db.Column(db.DateTime, nullable=True)  # set while the inspector is on a timed break
+    location_updated_at = db.Column(db.DateTime, nullable=True)  # when the position was last reported
     total_fines = db.Column(db.Integer, default=0)
     completed_trips = db.Column(db.Integer, default=0)
     last_assignment_completed_at = db.Column(db.DateTime, nullable=True)

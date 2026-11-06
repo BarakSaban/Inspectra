@@ -28,6 +28,15 @@ class StaticScoringTests(unittest.TestCase):
         away = InspectorLocation("I001", 32.088, 34.7898, available=False)
         self.assertIsNone(make_engine().find_best_fine_trip(away))
 
+    def test_declined_offers_are_skipped_in_favour_of_the_next_best(self):
+        engine = make_engine(route_ids=(101, 102))
+        with offline_walking():
+            first = engine.find_best_fine_trip(INSPECTOR)
+            second = engine.find_best_fine_trip(INSPECTOR, exclude={(str(first["route_id"]), str(first["stop_id"]))})
+            nothing_left = engine.find_best_fine_trip(INSPECTOR, exclude={(str(r), str(first["stop_id"])) for r in (101, 102)})
+        self.assertNotEqual(second["route_id"], first["route_id"])
+        self.assertIsNone(nothing_left)
+
     def test_no_fares_to_catch_means_no_recommendation(self):
         with offline_walking():
             self.assertIsNone(make_engine(dont_pay=0).find_best_fine_trip(INSPECTOR))

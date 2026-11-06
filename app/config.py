@@ -50,7 +50,7 @@ ADMIN_PASSWORD = _env("INSPECTRA_ADMIN_PW", DEFAULT_ADMIN_PASSWORD)
 DB_PATH = Path(_env("INSPECTRA_DB_PATH", str(ROOT / "inspectra.db")))
 # The UI is served by this app (same origin), so CORS is off unless origins are listed explicitly.
 CORS_ORIGINS = [o.strip() for o in (_env("INSPECTRA_CORS_ORIGINS", "") or "").split(",") if o.strip()]
-SEED_DEMO_DATA = _env_flag("INSPECTRA_SEED_DEMO", True)
+SEED_DEMO_DATA = _env_flag("INSPECTRA_SEED_DEMO", False)
 # Browsers drop Secure cookies on plain-http hosts other than localhost; set to 0 for LAN http.
 COOKIE_SECURE = _env_flag("INSPECTRA_COOKIE_SECURE", True)
 # The Werkzeug debugger allows remote code execution, so debug mode is strictly opt-in.

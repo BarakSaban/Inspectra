@@ -55,9 +55,19 @@ def analytics_page():
     return _admin_page('analytics.html')
 
 
+@views_bp.route('/settings')
+def team_settings_page():
+    return redirect(url_for('views.staff_page'))
+
+
 @views_bp.route('/staff')
 def staff_page():
     return _admin_page('staff_management.html')
+
+
+@views_bp.route('/staff/<inspector_id>')
+def staff_detail_page(inspector_id):
+    return _admin_page('inspector_detail.html')
 
 
 @views_bp.route('/profile')
@@ -86,5 +96,40 @@ def profile_page():
 def inspect_page():
     if not logged_in() or current_role() != 'inspector':
         return _login_redirect()
+    inspector_id = session.get('inspector_id')
+    inspector = Inspector.query.filter_by(inspector_id=inspector_id).first() if inspector_id else None
     return render_template('inspector_view.html', show_sidebar=False, show_signout=True,
-                           user=_current_user(), inspector_id=session.get('inspector_id'))
+                           user=_current_user(), inspector_id=inspector_id,
+                           available=inspector.available if inspector else True)
+
+
+@views_bp.route('/inspect/stats')
+def inspect_stats_page():
+    if not logged_in() or current_role() != 'inspector':
+        return _login_redirect()
+    return render_template('inspector_stats.html', show_sidebar=False)
+
+
+# ---- installable app (PWA): the manifest and a root-scoped service worker ----
+@views_bp.route('/manifest.webmanifest')
+def manifest():
+    from flask import jsonify
+    icon = lambda name, size, purpose='any': {"src": url_for('static', filename=f'img/{name}'), "sizes": f"{size}x{size}", "type": "image/png", "purpose": purpose}
+    response = jsonify({
+        "name": "Inspectra Field", "short_name": "Inspectra", "id": "/inspect", "start_url": "/inspect", "scope": "/",
+        "display": "standalone", "orientation": "portrait", "lang": "he", "dir": "auto",
+        "background_color": "#ffffff", "theme_color": "#1f7bd1",
+        "icons": [icon("icon-192.png", 192), icon("icon-512.png", 512), icon("icon-maskable-512.png", 512, "maskable")],
+    })
+    response.headers["Content-Type"] = "application/manifest+json"
+    return response
+
+
+@views_bp.route('/sw.js')
+def service_worker():
+    """Served from the root so it can control every page; never cached so a new version is picked up at once."""
+    from flask import current_app, send_from_directory
+    response = send_from_directory(current_app.static_folder, 'sw.js', mimetype='application/javascript')
+    response.headers["Cache-Control"] = "no-cache"
+    response.headers["Service-Worker-Allowed"] = "/"
+    return response

@@ -15,6 +15,7 @@ class InspectorRun(db.Model):
     stop_id = db.Column(db.String, nullable=True)
     potential_fines = db.Column(db.Integer, default=0)
     actual_fines = db.Column(db.Integer, nullable=True)
+    fines_in_progress = db.Column(db.Integer, nullable=False, default=0, server_default="0")  # live counter during a ride
     assigned_at = db.Column(db.DateTime, default=now_local)
     accepted_at = db.Column(db.DateTime, nullable=True)
     finished_at = db.Column(db.DateTime, nullable=True)

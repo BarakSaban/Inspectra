@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ dir }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title data-i18n="e.{{ code }}.title">Inspectra</title>
+  {% include "partials/i18n_head.html" %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+</head>
+<body>
+  <main class="auth" style="text-align:center">
+    <img class="brand" style="margin:0 auto 18px" src="{{ url_for('static', filename='img/inspectra-logo.png') }}" alt="Inspectra" width="132" height="99">
+    <h1 data-i18n="e.{{ code }}.title"></h1>
+    <p class="auth__sub" data-i18n="e.{{ code }}.text"></p>
+    <a class="submit" style="display:flex;align-items:center;justify-content:center;text-decoration:none" href="/" data-i18n="e.home"></a>
+    <div style="margin-top:16px" data-lang-switcher></div>
+  </main>
+  {% include "partials/i18n_scripts.html" %}
+</body>
+</html>

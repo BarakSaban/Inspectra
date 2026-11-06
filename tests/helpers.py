@@ -12,6 +12,7 @@ import app.services.siri as siri
 from app import create_app
 from app.extensions import db
 from app.models import Inspector, User
+from app.utils.clock import now_local
 from app.services.gtfs import DONTPAY_SLOTS, GtfsData
 from app.services.routing import RoutingEngine
 from app.services.walking import WalkingNetwork
@@ -97,9 +98,9 @@ class ApiTestCase(unittest.TestCase):
         self.ctx.push()
         db.create_all()
         db.session.add_all([
-            Inspector(inspector_id="I001", name="Lior", latitude=32.088, longitude=34.7898, available=True),
-            Inspector(inspector_id="I002", name="Dana", latitude=32.089, longitude=34.7900, available=True),
-            Inspector(inspector_id="X001", name="Other", latitude=32.0, longitude=34.7, available=True),
+            Inspector(inspector_id="I001", name="Lior", latitude=32.088, longitude=34.7898, available=True, location_updated_at=now_local()),
+            Inspector(inspector_id="I002", name="Dana", latitude=32.089, longitude=34.7900, available=True, location_updated_at=now_local()),
+            Inspector(inspector_id="X001", name="Other", latitude=32.0, longitude=34.7, available=True, location_updated_at=now_local()),
         ])
         for username, role, inspector_id, code in (
             ("admin", "admin", None, ADMIN_CODE),

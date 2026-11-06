@@ -161,6 +161,50 @@ class StaffAndAnalyticsTests(ApiTestCase):
         data = self.client.get("/api/analytics").get_json()
         self.assertEqual((data["assignedInspectors"], data["unassignedInspectors"], data["avgCompletionMin"]), (0, 2, None))
 
+    def test_analytics_report_groups_own_fines_by_hour_weekday_and_period(self):
+        from datetime import datetime
+        sunday_9 = datetime(2025, 3, 2, 9, 15)  # a Sunday
+        db.session.add_all([
+            Fine(inspector_id="I001", timestamp=sunday_9),
+            Fine(inspector_id="I002", timestamp=sunday_9.replace(hour=9, minute=40)),
+            Fine(inspector_id="I001", timestamp=datetime(2025, 5, 7, 14, 0)),  # Wednesday, a later month
+            Fine(inspector_id="X001", timestamp=sunday_9),  # another admin's inspector
+            Fine(inspector_id="I001", timestamp=datetime(2024, 12, 1, 8, 0)),  # outside the range
+        ])
+        db.session.commit()
+        self.login()
+
+        data = self.client.get("/api/analytics/report?start=2025-03-01&end=2025-05-31&granularity=month").get_json()
+
+        self.assertEqual(data["totals"]["fines"], 3)
+        self.assertEqual((data["hourly"][9], data["hourly"][14]), (2, 1))
+        self.assertEqual((data["weekday"][0], data["weekday"][3]), (2, 1))  # Sunday first
+        self.assertEqual(data["timeline"], [{"period": "2025-03", "fines": 2}, {"period": "2025-04", "fines": 0},
+                                            {"period": "2025-05", "fines": 1}])
+
+    def test_analytics_report_ranks_inspectors_by_fines(self):
+        from datetime import datetime
+        db.session.add_all([Fine(inspector_id="I002", timestamp=datetime(2025, 3, 2, 9)),
+                            Fine(inspector_id="I002", timestamp=datetime(2025, 3, 3, 9)),
+                            Fine(inspector_id="I001", timestamp=datetime(2025, 3, 4, 9)),
+                            Fine(inspector_id="X001", timestamp=datetime(2025, 3, 4, 9))])
+        db.session.commit()
+        self.login()
+        board = self.client.get("/api/analytics/report?start=2025-03-01&end=2025-03-31").get_json()["leaderboard"]
+        self.assertEqual([(row["inspector_id"], row["fines"]) for row in board], [("I002", 2), ("I001", 1)])
+
+    def test_analytics_report_quarters_and_validation(self):
+        self.login()
+        quarters = self.client.get("/api/analytics/report?start=2025-02-01&end=2025-08-01&granularity=quarter").get_json()
+        self.assertEqual([row["period"] for row in quarters["timeline"]], ["2025-Q1", "2025-Q2", "2025-Q3"])
+        for query in ("start=nope", "start=2025-05-01&end=2025-01-01", "granularity=hour", "start=1990-01-01&end=2025-01-01"):
+            self.assertEqual(self.client.get(f"/api/analytics/report?{query}").status_code, 400, query)
+
+    def test_analytics_report_requires_admin(self):
+        self.assertEqual(self.client.get("/api/analytics/report").status_code, 401)
+        self.login("lior", role="inspector", inspector_id="I001")
+        self.assertEqual(self.client.get("/api/analytics/report").status_code, 401)
+
     def test_profile_update_syncs_inspector_name(self):
         self.login("lior", role="inspector", inspector_id="I001")
         self.assertEqual(self.client.post("/api/profile", json={"full_name": "Lior Cohen"}).status_code, 200)
@@ -217,6 +261,30 @@ class InspectorCrudTests(ApiTestCase):
         self.assertEqual([s["inspector_id"] for s in self.client.get("/api/staff").get_json()], ["I001"])
 
 
+class ResetPasswordTests(ApiTestCase):
+    def test_reset_gives_a_new_working_password_and_blocks_the_old_one(self):
+        user = User.query.filter_by(inspector_id="I001").one()
+        user.set_password("old-pass-1")
+        db.session.commit()
+        self.login()
+
+        response = self.client.post("/api/inspector/I001/reset_password")
+
+        self.assertEqual(response.status_code, 200)
+        fresh = response.get_json()["temporary_password"]
+        user = User.query.filter_by(inspector_id="I001").one()
+        self.assertTrue(user.check_password(fresh))
+        self.assertFalse(user.check_password("old-pass-1"))
+
+    def test_reset_is_limited_to_own_inspectors_and_admins(self):
+        self.assertEqual(self.client.post("/api/inspector/I001/reset_password").status_code, 401)
+        self.login()
+        self.assertEqual(self.client.post("/api/inspector/X001/reset_password").status_code, 404)
+        self.assertEqual(self.client.post("/api/inspector/NOPE/reset_password").status_code, 404)
+        self.login("lior", role="inspector", inspector_id="I001")
+        self.assertEqual(self.client.post("/api/inspector/I001/reset_password").status_code, 401)
+
+
 class TripEndpointTests(ApiTestCase):
     def test_invalid_parameters_are_rejected(self):
         self.login()
@@ -241,6 +309,48 @@ class TripEndpointTests(ApiTestCase):
             response = self.client.post("/api/find_best_trip", json={"lat": 32.1, "lon": 34.8, "radius": 500, "buffer": 2})
         self.assertEqual(response.get_json(), result)
         find.assert_called_once_with(lat=32.1, lon=34.8, buffer_minutes=2.0, radius_m=500.0)
+
+
+class DeclinedOfferTests(ApiTestCase):
+    def test_declined_offers_are_passed_to_the_search_as_pairs(self):
+        self.login()
+        with patch("app.api.trips.find_best_trip", return_value=None) as find:
+            self.client.post("/api/find_best_trip", json={"exclude": [{"route_id": 5, "stop_id": "A"}]})
+        self.assertEqual(find.call_args.kwargs["exclude"], {("5", "A")})
+
+    def test_malformed_exclude_lists_are_rejected(self):
+        self.login()
+        for exclude in ("x", [1], [{"route_id": 1}], [{"route_id": 1, "stop_id": 2}] * 51):
+            self.assertEqual(self.client.post("/api/find_best_trip", json={"exclude": exclude}).status_code, 400, exclude)
+
+
+class ArrivalsEndpointTests(ApiTestCase):
+    def test_requires_login(self):
+        self.assertEqual(self.client.get("/api/arrivals").status_code, 401)
+
+    def test_invalid_parameters_are_rejected(self):
+        self.login()
+        for query in ("lat=abc", "lat=123", "radius=999999", "limit=0", "limit=500"):
+            self.assertEqual(self.client.get(f"/api/arrivals?{query}").status_code, 400, query)
+
+    def test_returns_arrivals_with_freshness_metadata(self):
+        self.login()
+        arrivals = [{"route_num": "66", "minutes_until_arrival": 3.5, "is_live": True}]
+        with patch("app.api.trips.get_engine", return_value=make_engine()), \
+             patch("app.api.trips.list_live_arrivals", return_value=arrivals) as listing:
+            body = self.client.get("/api/arrivals?lat=32.1&lon=34.8&radius=500&limit=5").get_json()
+        self.assertEqual((body["arrivals"], body["source"]), (arrivals, "live"))
+        self.assertIn("fetched_at", body)
+        self.assertEqual((listing.call_args.kwargs["radius_m"], listing.call_args.kwargs["limit"]), (500.0, 5))
+
+    def test_missing_engine_or_siri_failure_degrades_to_empty_board(self):
+        self.login()
+        with patch("app.api.trips.get_engine", return_value=None):
+            self.assertEqual(self.client.get("/api/arrivals").get_json()["source"], "unavailable")
+        with patch("app.api.trips.get_engine", return_value=make_engine()), \
+             patch("app.api.trips.list_live_arrivals", side_effect=RuntimeError("boom")):
+            response = self.client.get("/api/arrivals")
+        self.assertEqual((response.status_code, response.get_json()["arrivals"], response.get_json()["source"]), (200, [], "error"))
 
 
 class AssignmentTests(ApiTestCase):

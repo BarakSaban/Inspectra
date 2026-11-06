@@ -1,486 +1,308 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ dir }}">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Inspectra — Admin Dashboard</title>
-  <!-- Google font -->
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <!-- Tailwind CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <style>
-    :root {
-      --inspectra-accent: #1f7bd1;
-      --inspectra-accent-2: #0ea5e9;
-    }
-
-    body {
-      font-family: "Montserrat", system-ui, sans-serif;
-      background: linear-gradient(180deg, #f8fbff 0%, #eef6fb 100%);
-      color: #0f172a;
-      margin: 0;
-      min-height: 100vh;
-      padding-top: 80px;
-    }
-
-    #sidebar-container {
-      width: 100%;
-      position: static;
-      top: 0;
-      left: 0;
-      z-index: 1200;
-    }
-
-    header.topbar {
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.85));
-      box-shadow: 0 2px 12px rgba(16, 24, 40, 0.06);
-      backdrop-filter: blur(6px);
-      position: relative;
-      z-index: 100;
-    }
-
-    .stat-card {
-      background-color: #ffffff;
-      border-radius: 14px;
-      padding: 20px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
-    }
-
-    .stat-icon {
-      width: 60px;
-      height: 60px;
-      border-radius: 12px;
-      background-color: #f1f5f9;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .stat-value {
-      font-weight: 700;
-      font-size: 1.6rem;
-    }
-
-    .stat-label {
-      font-size: 0.85rem;
-      color: #64748b;
-    }
-
-    .stat-sub {
-      font-size: 0.75rem;
-      color: #94a3b8;
-      margin-top: 4px;
-    }
-
-    .stat-trend {
-      font-size: 0.85rem;
-      color: #16a34a;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      margin-top: 6px;
-    }
-
-    .map-card,
-    .table-card,
-    .opt-card {
-      border-radius: 14px;
-      background: #ffffff;
-      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
-    }
-
-    .map-card {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-
-    #map {
-      flex: 1;
-      width: 100%;
-      border-radius: 14px;
-      min-height: 420px;
-    }
-
-    .table-card {
-      padding: 20px;
-      overflow-x: auto;
-    }
-
-    .table-row:hover {
-      background: rgba(31, 123, 209, 0.06);
-    }
-
-    .badge-available {
-      color: #065f46;
-      background: rgba(16, 185, 129, 0.12);
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 0.8rem;
-    }
-
-    .badge-busy {
-      color: #b45309;
-      background: rgba(245, 158, 11, 0.12);
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 0.8rem;
-    }
-
-    .opt-card {
-      padding: 18px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-    }
-
-    th,
-    td {
-      padding: 8px 12px;
-      text-align: left;
-      word-wrap: break-word;
-    }
-
-    thead th {
-      font-size: 0.85rem;
-      color: #64748b;
-      border-bottom: 1px solid #e6edf3;
-      white-space: nowrap; /* ✅ Prevent header text from splitting */
-    }
-
-    tbody tr:hover {
-      background: rgba(31, 123, 209, 0.04);
-      cursor: pointer;
-    }
-
-    @media (max-width: 768px) {
-      #map {
-        min-height: 300px;
-      }
-
-      .table-card {
-        font-size: 0.85rem;
-        padding: 14px;
-      }
-    }
-
-    /* ✅ Inspector table alignment fix */
-    .table-card table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-    }
-
-    .table-card th,
-    .table-card td {
-      padding: 10px 8px;
-      text-align: left;
-      vertical-align: middle;
-      font-size: 0.9rem;
-      overflow-wrap: break-word;
-      word-break: break-word;
-    }
-
-    /* ✅ Column sizing */
-    .table-card th:nth-child(1),
-    .table-card td:nth-child(1) {
-      width: 45%;
-      white-space: normal;
-    }
-
-    .table-card th:nth-child(2),
-    .table-card td:nth-child(2) {
-      width: 20%;
-      text-align: center;
-    }
-
-    .table-card th:nth-child(3),
-    .table-card td:nth-child(3),
-    .table-card th:nth-child(4),
-    .table-card td:nth-child(4) {
-      width: 17.5%;
-      text-align: center;
-    }
-
-    /* ✅ Name and ID stacked neatly */
-    #inspectorTableBody td:first-child {
-      line-height: 1.2rem;
-    }
-
-    #inspectorTableBody td:first-child br {
-      display: block;
-    }
-
-    /* ✅ Badge tweaks */
-    .badge-available,
-    .badge-busy {
-      display: inline-block;
-      min-width: 60px;
-      text-align: center;
-      padding: 3px 8px;
-      font-size: 0.75rem;
-      border-radius: 9999px;
-      white-space: nowrap;
-    }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title data-i18n="ad.pageTitle">Inspectra — Overview</title>
+  {% include "partials/admin_head.html" %}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 </head>
-
-
 <body>
-  <!-- Sidebar -->
-  <div id="sidebar-container">{% include "partials/sidebar.html" %}</div>
+  {% include "partials/sidebar.html" %}
 
-  <main class="max-w-6xl mx-auto px-6 py-6">
-<header class="mb-6">
-  <h1 class="text-3xl font-extrabold text-blue-900">Overview</h1>
-  <p class="text-sm text-gray-600 mb-3">Real persisted inspector activity and assignments</p>
-<!-- Admin Code Box -->
-<div id="adminCodeBox" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg shadow-sm bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200">
-  <i class="fas fa-id-card text-blue-600"></i>
-  <span class="text-sm font-semibold text-blue-800">
-    Admin Code: <span id="adminCodeValue" class="font-bold text-blue-900">{{ session.get('admin_code', '—') }}</span>
-  </span>
-</div>
+  <main class="page">
+    <div class="page__head">
+      <div>
+        <h1 data-i18n="ad.title"></h1>
+        <p data-i18n="ad.sub"></p>
+      </div>
+      <div class="chips">
+        <button type="button" class="btn btn--quiet" id="forceAssign"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i><span data-i18n="ad.force"></span></button>
+        <button type="button" class="btn" id="inviteBtn"><i class="fa-solid fa-user-plus" aria-hidden="true"></i><span data-i18n="inv.button"></span></button>
+        <bdi id="adminCodeValue" hidden>{{ session.get('admin_code') or '' }}</bdi>
+      </div>
+    </div>
 
-</header>
+    <div class="attention" id="attention" hidden role="status" aria-live="polite"></div>
 
+    <section class="card hidden" id="onboarding" style="margin-bottom:16px">
+      <h2 data-i18n="ob.title"></h2>
+      <ol class="steps">
+        <li><div><b data-i18n="ob.s1"></b><span data-i18n="ob.s1t"></span></div></li>
+        <li><div><b data-i18n="ob.s2"></b><span data-i18n="ob.s2t"></span></div></li>
+        <li><div><b data-i18n="ob.s3"></b><span data-i18n="ob.s3t"></span></div></li>
+      </ol>
+      <div class="dialog__actions" style="justify-content:flex-start"><button type="button" class="btn" id="obInvite" data-i18n="inv.button"></button><a class="btn btn--quiet" href="/staff" data-i18n="n.staff"></a></div>
+    </section>
 
+    <div class="kpis">
+      <div class="stat"><div class="stat__icon stat__icon--good"><i class="fa-solid fa-receipt" aria-hidden="true"></i></div>
+        <div><div class="stat__value" id="todayFines">—</div><div class="stat__label" data-i18n="ad.todayFines"></div></div></div>
+      <div class="stat"><div class="stat__icon"><i class="fa-solid fa-user-check" aria-hidden="true"></i></div>
+        <div><div class="stat__value" id="activeInspectors">—</div><div class="stat__label" data-i18n="ad.onShift"></div></div></div>
+      <div class="stat"><div class="stat__icon"><i class="fa-solid fa-route" aria-hidden="true"></i></div>
+        <div><div class="stat__value" id="assignedCount">—</div><div class="stat__label" data-i18n="ad.assigned"></div><div class="stat__sub" data-i18n="ad.assignedSub"></div></div></div>
+      <div class="stat"><div class="stat__icon stat__icon--warn"><i class="fa-solid fa-bullseye" aria-hidden="true"></i></div>
+        <div><div class="stat__value" id="avgEfficiency">—</div><div class="stat__label" data-i18n="ad.efficiency"></div></div></div>
+    </div>
+    <details class="more">
+      <summary data-i18n="ad.moreNumbers"></summary>
+      <div class="grid grid--stats">
+        <div class="stat"><div class="stat__icon"><i class="fa-solid fa-calendar-week" aria-hidden="true"></i></div>
+          <div><div class="stat__value" id="weeklyTotal">—</div><div class="stat__label" data-i18n="ad.weekly"></div></div></div>
+        <div class="stat"><div class="stat__icon stat__icon--bad"><i class="fa-solid fa-user-clock" aria-hidden="true"></i></div>
+          <div><div class="stat__value" id="unassignedCount">—</div><div class="stat__label" data-i18n="ad.unassigned"></div><div class="stat__sub" data-i18n="ad.unassignedSub"></div></div></div>
+        <div class="stat"><div class="stat__icon"><i class="fa-solid fa-stopwatch" aria-hidden="true"></i></div>
+          <div><div class="stat__value" id="avgCompletionMin">—</div><div class="stat__label" data-i18n="ad.completion"></div><div class="stat__sub" data-i18n="ad.completionSub"></div></div></div>
+      </div>
+    </details>
 
-    <!-- STAT CARDS -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-      <div class="stat-card">
-        <div class="stat-icon text-green-600">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor"
-            stroke-width="2" viewBox="0 0 24 24">
-            <path d="M12 1v22" />
-            <path d="M17 6H9.5a3.5 3.5 0 0 0 0 7H15a3.5 3.5 0 0 1 0 7H7" />
-          </svg>
-        </div>
-        <div>
-          <div class="stat-value" id="todayFines">—</div>
-          <div class="stat-label">Today's Fines</div>
-          <div class="stat-trend" id="finesTrend">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor"
-              stroke-width="2" viewBox="0 0 24 24">
-              <path d="M5 12l5 5L20 7" />
-            </svg>
-            Live
+    <div class="split">
+      <section class="card" aria-labelledby="mapTitle">
+        <h2 id="mapTitle" data-i18n="ad.map"></h2>
+        <div id="map" class="map"></div>
+        <div class="legend">
+          <span><i class="s-idle"></i><span data-i18n="ad.state.idle"></span></span>
+          <span><i class="s-offered"></i><span data-i18n="ad.state.offered"></span></span>
+          <span><i class="s-on_run"></i><span data-i18n="ad.state.on_run"></span></span>
+          <span><i class="s-break"></i><span data-i18n="ad.state.break"></span></span>
+          <span><i class="s-offline"></i><span data-i18n="ad.state.offline"></span></span>
+          <button type="button" class="btn btn--quiet btn--small mapmore" id="mapMore" style="margin-inline-start:auto" data-i18n="ad.mapBig"></button>
+          <button type="button" class="btn btn--quiet btn--small" id="fitAll" data-i18n="ad.fit"></button></div>
+        <p class="hint" id="updated"></p>
+      </section>
+      <div class="grid">
+        <section class="card" aria-labelledby="tblTitle">
+          <h2 id="tblTitle" data-i18n="ad.table"></h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th data-i18n="ad.th.inspector"></th><th data-i18n="ad.th.status"></th>
+                <th class="num" data-i18n="ad.th.fines"></th><th class="num" data-i18n="ad.th.trips"></th><th></th>
+              </tr></thead>
+              <tbody id="inspectorTableBody"></tbody>
+            </table>
           </div>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon text-blue-600">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor"
-            stroke-width="2" viewBox="0 0 24 24">
-            <path d="M16 11a4 4 0 1 0-8 0" />
-            <path d="M4 21v-2a4 4 0 0 1 4-4h3" />
-            <path d="M20 8l-3 3-2-2" />
-          </svg>
-        </div>
-        <div>
-          <div class="stat-value" id="activeInspectors">—</div>
-          <div class="stat-label">Active Inspectors</div>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon text-purple-600">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor"
-            stroke-width="2" viewBox="0 0 24 24">
-            <path d="M12 21s-6-5.4-6-10a6 6 0 1 1 12 0c0 4.6-6 10-6 10z" />
-            <circle cx="12" cy="11" r="2" />
-          </svg>
-        </div>
-        <div>
-          <div class="stat-value" id="weeklyTotal">—</div>
-          <div class="stat-label">Weekly Total</div>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon text-yellow-600">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor"
-            stroke-width="2" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="3.5" />
-            <path
-              d="M19.4 15a1.9 1.9 0 0 0 .2 2l.6.6-1 1-.6-.6a1.9 1.9 0 0 0-2 .2l-1 1-1-1a1.9 1.9 0 0 0-2 .2l-.6.6-1-1 .6-.6a1.9 1.9 0 0 0 .2-2l-1-1 1-1 1 1a1.9 1.9 0 0 0 2-.2l.6-.6 1 1" />
-          </svg>
-        </div>
-        <div>
-          <div class="stat-value" id="avgEfficiency">—</div>
-          <div class="stat-label">Avg Efficiency</div>
-        </div>
+        </section>
+        <section class="card">
+          <h2 data-i18n="ad.activeRuns"></h2>
+          <ul class="assign" id="activeRuns"></ul>
+        </section>
+        <section class="card" aria-labelledby="actTitle">
+          <h2 id="actTitle" data-i18n="ad.act.title"></h2>
+          <ul class="feed" id="activityFeed"></ul>
+        </section>
       </div>
     </div>
-
-    <!-- NEW: Assigned vs Unassigned + Avg completion -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-      <div class="stat-card">
-        <div class="stat-icon text-indigo-600">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor"
-            stroke-width="2" viewBox="0 0 24 24">
-            <path d="M3 7h18" />
-            <path d="M3 12h12" />
-            <path d="M3 17h6" />
-          </svg>
-        </div>
-        <div>
-          <div class="stat-value" id="assignedCount">—</div>
-          <div class="stat-label">Assigned Inspectors</div>
-          <div class="stat-sub">Inspectors with active assignments</div>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon text-red-600">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor"
-            stroke-width="2" viewBox="0 0 24 24">
-            <path d="M12 9v2" />
-            <path d="M12 15h.01" />
-            <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <div>
-          <div class="stat-value" id="unassignedCount">—</div>
-          <div class="stat-label">Unassigned Inspectors</div>
-          <div class="stat-sub">Inspectors without assignments</div>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon text-sky-600">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor"
-            stroke-width="2" viewBox="0 0 24 24">
-            <path d="M12 8v8" />
-            <path d="M8 12h8" />
-          </svg>
-        </div>
-        <div>
-          <div class="stat-value" id="avgCompletionMin">—</div>
-          <div class="stat-label">Avg completion (min)</div>
-          <div class="stat-sub">Avg accepted→closed (today)</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- MAP + TABLE -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div class="lg:col-span-2 map-card p-4">
-        <h3 class="text-lg font-semibold mb-3">Live Inspector Tracking</h3>
-        <div id="map"></div>
-      </div>
-      <div class="space-y-6">
-        <div class="table-card">
-          <h4 class="text-lg font-bold mb-3">Inspector Status</h4>
-          <table class="w-full text-left text-sm">
-            <thead>
-              <tr class="text-gray-500 border-b">
-                <th class="py-3">Inspector</th>
-                <th class="py-3">Status</th>
-                <th class="py-3">Fines</th>
-                <th class="py-3">Trips</th>
-              </tr>
-            </thead>
-            <tbody id="inspectorTableBody"></tbody>
-          </table>
-        </div>
-
-        <div class="opt-card">
-          <h4 class="text-lg font-bold mb-2">Optimization</h4>
-          <button id="forceAssign" class="w-full py-2 rounded-md text-white"
-            style="background:linear-gradient(90deg,var(--inspectra-accent), var(--inspectra-accent-2));">
-            Force Assignment Run
-          </button>
-        </div>
-      </div>
-    </div>
-
   </main>
 
-  <!-- Leaflet JS -->
+  {% include "partials/i18n_scripts.html" %}
+  <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script>
-    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    // Fix Leaflet icons
-    delete L.Icon.Default.prototype._getIconUrl;
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png'
+  (() => {
+    const { t } = window.I18n, { esc, toast, api, errorText } = window.Admin;
+    const $ = (id) => document.getElementById(id);
+    const REFRESH_MS = 30000;
+
+    const code = $('adminCodeValue').textContent.trim();
+    $('inviteBtn').addEventListener('click', () => window.Admin.inviteDialog(code));
+    $('obInvite').addEventListener('click', () => window.Admin.inviteDialog(code));
+
+    const map = L.map('map').setView([32.0853, 34.7818], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19 }).addTo(map);
+    const markerLayer = L.layerGroup().addTo(map);
+    const linkLayer = L.layerGroup().addTo(map);
+    let markers = {};
+    let staff = [];
+    let fitted = false;
+    let updatedAt = null;
+
+    const num = (v, fallback = '0') => (v === null || v === undefined ? fallback : Number(v).toLocaleString(window.I18n.lang));
+
+    const STALE_S = 180;   // a position older than this is drawn faded
+    const stateOf = (i) => i.state || (i.available ? 'idle' : 'offline');
+    const pin = (state, stale) => L.divIcon({ className: '', html: `<div class="pin pin--${state}${stale ? ' pin--stale' : ''}"></div>`, iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -28] });
+    const stopIcon = () => L.divIcon({ className: '', html: '<div class="stoppin"><i class="fa-solid fa-bus-simple" aria-hidden="true"></i></div>', iconSize: [24, 24], iconAnchor: [12, 12] });
+    const ago = (s) => (s == null ? '' : s < 60 ? t('ad.ago.s', { n: s }) : s < 3600 ? t('ad.ago.m', { n: Math.round(s / 60) }) : t('ad.ago.h', { n: Math.round(s / 3600) }));
+    const stateBadge = (state) => `<span class="badge badge--${state}">${esc(t('ad.state.' + state))}</span>`;
+    let events = [];
+    let points = [];
+    const fit = () => { if (points.length) map.fitBounds(points, { padding: [40, 40], maxZoom: 15 }); };
+    $('fitAll').addEventListener('click', fit);
+    $('mapMore').addEventListener('click', () => {
+      const open = $('map').classList.toggle('is-open');
+      $('mapMore').textContent = t(open ? 'ad.mapSmall' : 'ad.mapBig');
+      setTimeout(() => { map.invalidateSize(); fit(); }, 280);
     });
 
-    let map = L.map('map').setView([32.0853, 34.7818], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
-    let markerLayer = L.layerGroup().addTo(map);
-    let inspectorMarkers = {}; // inspector_id → marker
+    // ---- what needs the manager right now ----
+    const ATTN_ICON = { offer_unanswered: 'fa-hourglass-half', phone_silent: 'fa-signal', break_overrun: 'fa-mug-hot' };
+    function renderAttention(items) {
+      const box = $('attention');
+      box.hidden = !items.length;
+      box.innerHTML = items.slice(0, 5).map((a) => {
+        const mins = Math.max(1, Math.round(a.seconds / 60));
+        const cancel = a.kind === 'offer_unanswered' ? `<button type="button" class="btn btn--quiet btn--small" data-cancel="${a.run_id}" data-name="${esc(a.name)}">${esc(t('ad.cancelRun'))}</button>` : '';
+        return `<div class="attention__item${a.kind === 'offer_unanswered' ? ' attention__item--bad' : ''}"><i class="fa-solid ${ATTN_ICON[a.kind] || 'fa-circle-exclamation'}" aria-hidden="true"></i>
+          <span>${esc(t('ad.attn.' + a.kind, { name: a.name, n: mins }))}</span>${cancel}<a class="btn btn--quiet btn--small" href="/staff/${encodeURIComponent(a.inspector_id)}">${esc(t('st.profile'))}</a></div>`;
+      }).join('');
+    }
+    $('attention').addEventListener('click', async (e) => {
+      const b = e.target.closest('[data-cancel]');
+      if (!b) return;
+      const ok = await window.Admin.confirmDialog({ title: t('ad.cancelRunTitle'), text: t('ad.cancelRunText', { name: b.dataset.name }), okKey: 'ad.cancelRun' });
+      if (!ok) return;
+      const r = await api(`/api/admin/runs/${b.dataset.cancel}/cancel`, { method: 'POST' });
+      toast(r.ok ? t('ad.cancelled') : errorText(r), r.ok ? 'ok' : 'error');
+      load();
+    });
 
-    async function loadAnalytics() {
-      const res = await fetch('/api/analytics');
-      const data = await res.json();
-
-      document.getElementById('todayFines').innerText = data.totalFines || 0;
-      document.getElementById('activeInspectors').innerText = data.activeInspectors || 0;
-      document.getElementById('weeklyTotal').innerText = data.weeklyTotal || 0;
-      document.getElementById('avgEfficiency').innerText = (data.avgEfficiency || 0) + '%';
-
-      document.getElementById('assignedCount').innerText = data.assignedInspectors || 0;
-      document.getElementById('unassignedCount').innerText = data.unassignedInspectors || 0;
-      document.getElementById('avgCompletionMin').innerText = data.avgCompletionMin ?? '—';
-
-      // Inspector table + map markers
-      const staffRes = await fetch('/api/staff');
-      const staffData = await staffRes.json();
-
-      const tbody = document.getElementById('inspectorTableBody');
-      tbody.innerHTML = '';
-      markerLayer.clearLayers();
-      inspectorMarkers = {};
-
-      (staffData || []).forEach(i => {
-        // Table row
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${esc(i.name)} (${esc(i.inspector_id)})</td>
-                        <td>${i.available ? '<span class="badge-available">Active</span>' : '<span class="badge-busy">Offline</span>'}</td>
-                        <td>${i.total_fines}</td><td>${i.completed_trips}</td>`;
-        tr.addEventListener('click', () => {
-          const marker = inspectorMarkers[i.inspector_id];
-          if (marker) {
-            map.setView(marker.getLatLng(), 16);
-            marker.openPopup();
-          }
-        });
-        tbody.appendChild(tr);
-
-        // Map marker
-        if (i.latitude && i.longitude) {
-          const marker = L.marker([i.latitude, i.longitude]).addTo(markerLayer);
-          marker.bindPopup(`<b>${esc(i.name)}</b><br/>Fines: ${i.total_fines}<br/>Trips: ${i.completed_trips}`);
-          inspectorMarkers[i.inspector_id] = marker;
-        }
-      });
-
+    function renderRuns() {
+      const busy = staff.filter((i) => i.current_assignment);
+      $('activeRuns').innerHTML = busy.length
+        ? busy.map((i) => { const a = i.current_assignment; return `<li><span><a href="/staff/${encodeURIComponent(i.inspector_id)}">${esc(i.name)}</a>
+            <small>${esc(a.stop?.name || '')}${a.since_seconds != null ? ` · ${esc(ago(a.since_seconds))}` : ''}</small></span>
+            <span class="assign__end"><b>${esc(t('st.run.' + a.status))}</b>
+            <button type="button" class="btn btn--quiet btn--small" data-cancel="${a.run_id}" data-name="${esc(i.name)}">${esc(t('ad.cancelRun'))}</button></span></li>`; }).join('')
+        : `<li style="justify-content:center;color:var(--ink-faint)">${esc(t('ad.noRuns'))}</li>`;
     }
 
-    document.getElementById('forceAssign').addEventListener('click', async () => {
-      await fetch('/api/assign_runs', { method: 'POST' });
-      await loadAnalytics();
+    function renderFeed() {
+      const text = (e) => {
+        if (e.kind === 'cancelled') return t(e.was_accepted ? 'ad.act.cancelled' : 'ad.act.declined', { name: e.name });
+        return t('ad.act.' + e.kind, { name: e.name, n: e.fines ?? 0 });
+      };
+      const icon = { offered: 'fa-paper-plane', accepted: 'fa-person-walking', completed: 'fa-circle-check', cancelled: 'fa-ban' };
+      $('activityFeed').innerHTML = events.length
+        ? events.slice(0, 12).map((e) => `<li class="feed__${e.kind}"><i class="fa-solid ${icon[e.kind] || 'fa-circle'}" aria-hidden="true"></i><span>${esc(text(e))}</span><time>${esc(ago(e.seconds_ago))}</time></li>`).join('')
+        : `<li class="feed__empty">${esc(t('ad.act.empty'))}</li>`;
+    }
+
+    // ---- manual assignment: pick a live bus for one inspector ----
+    async function assignDialog(id) {
+      const ins = staff.find((i) => i.inspector_id === id);
+      if (!ins) return;
+      const dlg = window.Admin.openDialog(`<h3>${esc(t('ad.assign.title', { name: ins.name }))}</h3><p class="hint" style="margin:-6px 0 12px">${esc(t('ad.assign.hint'))}</p>
+        <ul class="options" id="optList"><li class="options__state">${esc(t('ad.assign.loading'))}</li></ul>
+        <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-close>${esc(t('c.close'))}</button></div>`, { label: t('ad.assign.title', { name: ins.name }) });
+      dlg.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) window.Admin.closeDialog(); });
+      const r = await api(`/api/admin/options?inspector_id=${encodeURIComponent(id)}`);
+      const list = dlg.querySelector('#optList');
+      if (!list) return;
+      if (!r.ok) { list.innerHTML = `<li class="options__state">${esc(errorText(r))}</li>`; return; }
+      const opts = r.data.options || [];
+      if (!opts.length) { list.innerHTML = `<li class="options__state">${esc(t('ad.assign.empty'))}</li>`; return; }
+      list.innerHTML = opts.map((o, n) => `<li><span class="route-badge">${esc(o.route_num)}</span>
+        <span class="options__main"><b>${esc(o.destination || '')}</b><small>${esc(o.stop_name || '')} · ${esc(t('ad.assign.eta', { n: Math.max(1, Math.round(o.minutes_until_arrival)) }))} · ${esc(t('ad.assign.fines', { n: o.potential_fines }))}</small></span>
+        <button type="button" class="btn btn--small" data-pick="${n}">${esc(t('ad.assign.send'))}</button></li>`).join('');
+      list.addEventListener('click', async (e) => {
+        const b = e.target.closest('[data-pick]');
+        if (!b) return;
+        const o = opts[Number(b.dataset.pick)];
+        b.disabled = true;
+        const res = await api('/api/admin/assign', { method: 'POST', body: { inspector_id: id, trip_id: o.trip_id, stop_id: o.stop_id, potential_fines: o.potential_fines } });
+        if (!res.ok) { b.disabled = false; toast(errorText(res), 'error'); return; }
+        window.Admin.closeDialog();
+        toast(t('ad.assign.sent', { name: ins.name }), 'ok');
+        load();
+      });
+    }
+
+    $('activeRuns').addEventListener('click', async (e) => {
+      const b = e.target.closest('[data-cancel]');
+      if (!b) return;
+      const ok = await window.Admin.confirmDialog({ title: t('ad.cancelRunTitle'), text: t('ad.cancelRunText', { name: b.dataset.name }), okKey: 'ad.cancelRun' });
+      if (!ok) return;
+      const r = await api(`/api/admin/runs/${b.dataset.cancel}/cancel`, { method: 'POST' });
+      toast(r.ok ? t('ad.cancelled') : errorText(r), r.ok ? 'ok' : 'error');
+      load();
     });
 
-    document.addEventListener('DOMContentLoaded', async () => {
-      await loadAnalytics();
+    function renderStaff() {
+      $('onboarding').classList.toggle('hidden', staff.length > 0);
+      renderRuns();
+      const body = $('inspectorTableBody');
+      markerLayer.clearLayers();
+      markers = {};
+      linkLayer.clearLayers();
+      if (!staff.length) {
+        body.innerHTML = `<tr><td colspan="5" class="empty">${esc(t('ad.empty'))}</td></tr>`;
+        return;
+      }
+      body.innerHTML = '';
+      points = [];
+      const ORDER = { offered: 0, on_run: 1, idle: 2, break: 3, offline: 4 };
+      [...staff].sort((a, b) => (ORDER[stateOf(a)] - ORDER[stateOf(b)]) || a.name.localeCompare(b.name)).forEach((i) => {
+        const tr = document.createElement('tr');
+        tr.className = 'clickable';
+        tr.tabIndex = 0;
+        const state = stateOf(i), stale = state !== 'offline' && i.last_seen_seconds != null && i.last_seen_seconds > STALE_S;
+        tr.innerHTML = `<td><a href="/staff/${encodeURIComponent(i.inspector_id)}">${esc(i.name)}</a><br><small class="ltr">${esc(i.inspector_id)}</small></td>
+          <td>${stateBadge(state)}${i.break_until ? `<br><small>${esc(t('i.break.until', { time: new Date(i.break_until).toLocaleTimeString(window.I18n.lang, { hour: '2-digit', minute: '2-digit' }) }))}</small>` : ''}${stale ? `<br><small class="stale">${esc(t('ad.stale'))}</small>` : ''}</td>
+          <td class="num">${num(i.total_fines)}</td><td class="num">${num(i.completed_trips)}</td>
+          <td>${state === 'idle' ? `<button type="button" class="btn btn--quiet btn--small" data-assign="${esc(i.inspector_id)}">${esc(t('ad.assign.btn'))}</button>` : ''}</td>`;
+        tr.querySelector('[data-assign]')?.addEventListener('click', (ev) => { ev.stopPropagation(); assignDialog(i.inspector_id); });
+        tr.querySelector('a').addEventListener('click', (ev) => ev.stopPropagation());
+        const focus = () => { const m = markers[i.inspector_id]; if (m) { map.setView(m.getLatLng(), 16); m.openPopup(); } };
+        tr.addEventListener('click', focus);
+        tr.addEventListener('keydown', (e) => { if (e.key === 'Enter') focus(); });
+        body.appendChild(tr);
+        if (i.latitude && i.longitude) {
+          const m = L.marker([i.latitude, i.longitude], { icon: pin(state, stale), title: i.name }).addTo(markerLayer);
+          const seen = i.last_seen_seconds == null ? t('ad.seenNever') : t('ad.seen', { ago: ago(i.last_seen_seconds) });
+          m.bindPopup(`<b>${esc(i.name)}</b><br>${esc(t('ad.state.' + state))}<br><small>${esc(seen)}</small><br>${esc(t('ad.th.fines'))}: ${num(i.total_fines)} · ${esc(t('ad.th.trips'))}: ${num(i.completed_trips)}`);
+          const stop = i.current_assignment?.stop;
+          if (stop && stop.latitude != null) {   // a line from the inspector to the stop they are heading to
+            L.polyline([[i.latitude, i.longitude], [stop.latitude, stop.longitude]], { color: state === 'offered' ? '#7a4fd1' : '#1f7bd1', weight: 3, dashArray: '4 8' }).addTo(linkLayer);
+            L.marker([stop.latitude, stop.longitude], { icon: stopIcon(), interactive: false, keyboard: false }).addTo(linkLayer);
+          }
+          markers[i.inspector_id] = m;
+          points.push([i.latitude, i.longitude]);
+        }
+      });
+      if (!fitted && points.length) { fit(); fitted = true; }
+    }
+
+    function renderStamp() {
+      $('updated').textContent = updatedAt ? t('c.updated', { time: updatedAt.toLocaleTimeString(window.I18n.lang) }) : '';
+    }
+
+    async function load() {
+      const [stats, list, feed, attn] = await Promise.all([api('/api/analytics'), api('/api/staff'), api('/api/activity?limit=12'), api('/api/attention')]);
+      if (attn.ok) renderAttention(attn.data.items || []);
+      if (feed.ok) { events = feed.data.events || []; renderFeed(); }
+      if (!stats.ok || !list.ok) { toast(errorText(stats.ok ? list : stats), 'error'); return; }
+      const d = stats.data;
+      $('todayFines').textContent = num(d.totalFines);
+      $('weeklyTotal').textContent = num(d.weeklyTotal);
+      $('avgEfficiency').textContent = `${num(d.avgEfficiency)}%`;
+      $('assignedCount').textContent = num(d.assignedInspectors);
+      $('unassignedCount').textContent = num(d.unassignedInspectors);
+      $('avgCompletionMin').textContent = num(d.avgCompletionMin, '—');
+      staff = list.data || [];
+      const working = staff.filter((i) => stateOf(i) !== 'offline').length;
+      $('activeInspectors').innerHTML = `<bdi dir="ltr">${num(working)} / ${num(staff.length)}</bdi>`;
+      renderStaff();
+      updatedAt = new Date();
+      renderStamp();
+    }
+
+    $('forceAssign').addEventListener('click', async () => {
+      const btn = $('forceAssign');
+      btn.disabled = true;
+      const r = await api('/api/assign_runs', { method: 'POST' });
+      btn.disabled = false;
+      toast(r.ok ? t('ad.forced') : errorText(r), r.ok ? 'ok' : 'error');
+      load();
     });
+
+    document.addEventListener('langchange', () => { renderStaff(); renderFeed(); renderStamp(); });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
+    load();
+    window.Admin.onLive(load);
+    setInterval(() => { if (!document.hidden) load(); }, REFRESH_MS);
+  })();
   </script>
 </body>
-
 </html>

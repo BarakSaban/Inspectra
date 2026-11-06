@@ -107,10 +107,29 @@ def seed_admin(password):
     logger.info("Default admin user created (username=admin).")
 
 
+def _add_missing_columns():
+    """`create_all` never alters existing tables, so columns added later are added here (older databases keep working)."""
+    from sqlalchemy import inspect, text
+    additions = {
+        "inspector_runs": [("fines_in_progress", "INTEGER NOT NULL DEFAULT 0")],
+        "inspectors": [("break_until", "DATETIME"), ("location_updated_at", "DATETIME")],
+        "users": [("former_manager_code", "VARCHAR(20)")],
+        "team_settings": [("max_break_minutes", "INTEGER NOT NULL DEFAULT 90")],
+    }
+    inspector = inspect(db.engine)
+    for table, columns in additions.items():
+        have = {c["name"] for c in inspector.get_columns(table)}
+        for name, ddl in columns:
+            if name not in have:
+                db.session.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {ddl}"))
+    db.session.commit()
+
+
 def bootstrap_database(app_config):
     """Create tables and seed data. A failure is logged and never prevents the app from starting."""
     try:
         db.create_all()
+        _add_missing_columns()
         seed_admin(app_config["ADMIN_PASSWORD"])
     except Exception:
         logger.exception("DB init/create_all failed")

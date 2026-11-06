@@ -58,6 +58,30 @@ class FactoryTests(unittest.TestCase):
         self.assertTrue(config.Config.SQLALCHEMY_DATABASE_URI.startswith("sqlite:///"))
 
 
+class PwaTests(ApiTestCase):
+    def test_the_manifest_makes_the_field_app_installable(self):
+        body = self.app.test_client().get("/manifest.webmanifest")
+        self.assertEqual(body.mimetype, "application/manifest+json")
+        data = body.get_json()
+        self.assertEqual((data["start_url"], data["display"]), ("/inspect", "standalone"))
+        sizes = {icon["sizes"] for icon in data["icons"]}
+        self.assertLessEqual({"192x192", "512x512"}, sizes)
+        for icon in data["icons"]:
+            self.assertEqual(self.app.test_client().get(icon["src"]).status_code, 200, icon["src"])
+
+    def test_the_service_worker_is_served_from_the_root_and_never_cached(self):
+        response = self.app.test_client().get("/sw.js")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers["Service-Worker-Allowed"], "/")
+        self.assertIn("no-cache", response.headers["Cache-Control"])
+        self.assertIn(b"/api/", response.data)   # it must know to leave the API alone
+        response.close()
+
+    def test_the_inspector_page_links_the_manifest(self):
+        self.login("lior", role="inspector", inspector_id="I001")
+        self.assertIn(b'rel="manifest"', self.client.get("/inspect").data)
+
+
 class PageTests(ApiTestCase):
     def test_public_pages_render(self):
         for url in ("/login", "/signup"):
@@ -75,19 +99,41 @@ class PageTests(ApiTestCase):
             self.assertEqual(self.client.get(url).status_code, 200, url)
         self.assertEqual(self.client.get("/").headers["Location"], "/admin")
 
-    def test_sidebar_is_rendered_on_the_server_with_greeting_and_active_link(self):
+    def test_nav_is_rendered_on_the_server_with_greeting_and_active_link(self):
         self.login()
         staff = self.client.get("/staff").get_data(as_text=True)
-        self.assertIn("Hi, admin admin", staff)
-        self.assertRegex(staff, r'id="staffLink" class="nav-link active"')
-        self.assertNotRegex(staff, r'id="adminLink" class="nav-link active"')
-        self.assertNotIn("/static/sidebar.html", staff)
+        self.assertIn("<bdi>admin</bdi>", staff)
+        self.assertRegex(staff, r'<a href="/staff" aria-current="page">')
+        self.assertNotRegex(staff, r'<a href="/admin" aria-current="page">')
 
     def test_log_out_link_logs_out(self):
         self.login()
         html = self.client.get("/admin").get_data(as_text=True)
-        self.assertRegex(html, r'<a href="/logout" id="logoutLink"')
+        self.assertIn('<a href="/logout">', html)
         self.assertNotIn('href="/signup"', html)
+
+    def test_nav_links_depend_on_role(self):
+        self.login()
+        admin_nav = self.client.get("/profile").get_data(as_text=True)
+        for href in ("/analytics", "/admin", "/staff", "/profile", "/logout"):
+            self.assertIn(f'<a href="{href}"', admin_nav)
+        self.assertNotIn('<a href="/inspect"', admin_nav)
+
+        inspector = self.app.test_client()
+        with inspector.session_transaction() as sess:
+            sess.update(user="lior", role="inspector", inspector_id="I001")
+        inspector_nav = inspector.get("/profile").get_data(as_text=True)
+        for href in ("/inspect", "/profile", "/logout"):
+            self.assertIn(f'<a href="{href}"', inspector_nav)
+        for href in ("/analytics", "/admin", "/staff"):
+            self.assertNotIn(f'<a href="{href}"', inspector_nav)
+
+    def test_unknown_pages_get_a_friendly_page_and_unknown_api_paths_json(self):
+        page = self.client.get("/no-such-page")
+        self.assertEqual(page.status_code, 404)
+        self.assertIn('data-i18n="e.404.title"', page.get_data(as_text=True))
+        api = self.client.get("/api/no-such-endpoint")
+        self.assertEqual((api.status_code, api.get_json()), (404, {"error": "not found"}))
 
     def test_inspector_page_renders_for_inspectors_only(self):
         self.login("lior", role="inspector", inspector_id="I001")

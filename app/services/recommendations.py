@@ -38,10 +38,11 @@ def is_winning_live_option(live_option, best):
     return live_option.get("minutes_until_arrival") == best.get("minutes_until_arrival")
 
 
-def find_best_trip(lat: float, lon: float, buffer_minutes: float = 3, radius_m: float = 666):
+def find_best_trip(lat: float, lon: float, buffer_minutes: float = 3, radius_m: float = 666, exclude=None):
     """
     The best next bus for an inspector at (lat, lon) as {best_option, stop_feature, shape_feature, data_source, ...},
-    or None when there is no engine (GTFS unavailable) or no trip is worth taking.
+    or None when there is no engine (GTFS unavailable) or no trip is worth taking. `exclude` holds (route_id, stop_id)
+    pairs the inspector declined, so the next offer is a different one.
     """
     engine = get_engine()
     if engine is None:
@@ -57,6 +58,7 @@ def find_best_trip(lat: float, lon: float, buffer_minutes: float = 3, radius_m: 
         buffer_minutes=buffer_minutes,
         radius_m=radius_m,
         live_options=live_options,
+        exclude=exclude,
     )
     if not best:
         return None
@@ -64,17 +66,49 @@ def find_best_trip(lat: float, lon: float, buffer_minutes: float = 3, radius_m: 
     live_option = next((option for option in live_options if is_winning_live_option(option, best)), None)
     if live_option:
         stop_feature, shape_feature = live_option["stop_feature"], live_option["shape_feature"]
+        vehicle_location = live_option.get("vehicle_location")
         source_name, live_status = "live", "live"
     else:
         if live_options:
             logger.info("Live SIRI candidates did not win scoring for lat=%s lon=%s; using static GTFS.", lat, lon)
         stop_feature = gtfs.stop_lookup.get(str(best["stop_id"]))
         shape_feature = gtfs.shape_lookup.get(gtfs.shape_key(best["trip_id"]))
+        vehicle_location = None
         source_name, live_status = "static", "fallback"
 
     result = {
         "best_option": best,
         "stop_feature": stop_feature,
         "shape_feature": trim_shape_to_stop(shape_feature, stop_feature),
+        "vehicle_location": vehicle_location,  # the approaching bus, when live data has its position
     }
     return _attach_result_metadata(result, source_name, live_status)
+
+
+def describe_run(trip_id, stop_id):
+    """
+    Map-ready details of a stored run (route number, destination, stop, shape) so a resumed or admin-assigned run
+    can be shown like a fresh recommendation. None when GTFS is unavailable or the trip is unknown.
+    """
+    engine = get_engine()
+    if engine is None or trip_id is None:
+        return None
+    gtfs = engine.gtfs
+
+    candidates = [str(trip_id)]
+    if str(trip_id).isdigit():
+        candidates.append(int(trip_id))  # GTFS trip ids are numbers in the real feed, strings in a run row
+    key = next((c for c in candidates if gtfs.route_id_of(c) is not None), None)
+    if key is None:
+        return None
+
+    route_id = gtfs.route_id_of(key)
+    stop_feature = gtfs.stop_lookup.get(str(stop_id)) if stop_id is not None else None
+    shape_feature = gtfs.shape_lookup.get(gtfs.shape_key(key))
+    return {
+        "route_id": route_id,
+        "route_num": gtfs.route_label(route_id) or str(route_id),
+        "destination": gtfs.headsign(trip_id=key, route_id=route_id),
+        "stop_feature": stop_feature,
+        "shape_feature": trim_shape_to_stop(shape_feature, stop_feature) if shape_feature else None,
+    }

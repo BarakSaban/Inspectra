@@ -1,615 +1,307 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="{{ lang }}" dir="{{ dir }}">
 <head>
   <meta charset="utf-8" />
-  <title>Inspector Map</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="i.pageTitle">Inspectra Field</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1f7bd1">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Inspectra">
 
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-
-  <!-- AwesomeMarkers CSS -->
-  <link rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.awesome-markers/2.0.4/leaflet.awesome-markers.css" />
-
-  <!-- FontAwesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <style>
-    /* Fullscreen map */
-    #map {
-      height: 100vh;
-      width: 100%;
-    }
-
-    /* Floating Action Buttons Container */
-    .map-controls {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      z-index: 1001;
-    }
-
-    /* Stylish Buttons */
-    .map-btn {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background-color: #1f7bd1;
-      color: white;
-      font-weight: 600;
-      border: none;
-      border-radius: 12px;
-      padding: 10px 16px;
-      box-shadow: 0 4px 12px rgba(31, 123, 209, 0.3);
-      cursor: pointer;
-      transition: all 0.25s ease;
-      font-size: 0.9rem;
-    }
-
-    .map-btn i {
-      font-size: 1.1rem;
-    }
-
-    .map-btn:hover {
-      background-color: #0e68c4;
-      transform: translateY(-2px);
-    }
-
-    .map-btn:disabled {
-      background-color: #94a3b8;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    /* Mobile view: move buttons to bottom bar */
-    @media (max-width: 768px) {
-      .map-controls {
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-        bottom: 20px;
-        top: auto;
-        right: 0;
-        left: 0;
-      }
-
-      .map-btn {
-        flex: 1;
-        border-radius: 30px;
-        padding: 12px 10px;
-        font-size: 0.9rem;
-      }
-
-      .map-btn i {
-        font-size: 1rem;
-      }
-    }
-
-    .ride-panel {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: #ffffff;
-      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
-      border-top-left-radius: 16px;
-      border-top-right-radius: 16px;
-      padding: 16px;
-      transform: translateY(70%);
-      transition: transform 0.3s ease-in-out;
-      z-index: 1200;
-      touch-action: none;
-    }
-
-    .ride-panel.open {
-      transform: translateY(0%);
-    }
-
-    .grab-bar {
-      width: 40px;
-      height: 5px;
-      background: #cbd5e1;
-      border-radius: 3px;
-      margin: 0 auto 10px;
-      cursor: grab;
-    }
-
-    #ride-content {
-      text-align: center;
-      font-family: "Inter", "Montserrat", system-ui, sans-serif;
-      padding: 0 8px;
-    }
-
-    #ride-status-title {
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: #0f172a;
-      margin-bottom: 6px;
-      letter-spacing: -0.3px;
-    }
-
-    #ride-desc {
-      color: #475569;
-      font-size: 1rem;
-      line-height: 1.4;
-      margin-bottom: 18px;
-      max-width: 320px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .ride-btn {
-      background: #1f7bd1;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 16px;
-      font-size: 1rem;
-      width: 100%;
-      transition: all 0.2s ease;
-    }
-
-    .ride-btn:hover {
-      background: #0ea5e9;
-    }
-
-    /* Completed state flash */
-    .ride-panel.completed {
-      background: #ecfdf5;
-      transition: background 0.3s ease;
-    }
-
-
-    /* Availability Toggle */
-    .availability-toggle {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(255, 255, 255, 0.95);
-      padding: 8px 14px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
-      z-index: 1002;
-      font-family: "Montserrat", system-ui, sans-serif;
-      font-weight: 600;
-      color: #1f2937;
-    }
-
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 46px;
-      height: 26px;
-    }
-
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #94a3b8;
-      transition: 0.3s;
-      border-radius: 26px;
-    }
-
-    .slider::before {
-      position: absolute;
-      content: "";
-      height: 20px;
-      width: 20px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: 0.3s;
-      border-radius: 50%;
-    }
-
-    input:checked+.slider {
-      background-color: #1f7bd1;
-    }
-
-    input:checked+.slider::before {
-      transform: translateX(20px);
-    }
-  </style>
+  {% include "partials/i18n_head.html" %}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/inspector.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/inspector-flow.css') }}">
 </head>
 
-<body>
-  <!-- Map -->
-  <div id="map"></div>
+<body data-available="{{ 'true' if available else 'false' }}" data-name="{{ (user.full_name or user.username) if user else '' }}" data-inspector-id="{{ inspector_id or '' }}">
 
-  <!-- Ride Control Panel -->
-  <div id="ride-panel" class="ride-panel">
-    <div class="grab-bar"></div>
-    <div id="ride-content">
-      <h3 id="ride-status-title">No Ride Assigned</h3>
-      <p id="ride-desc">Press below to get your next assignment.</p>
-      <button id="ride-action-btn" class="ride-btn">Get Ride</button>
+  <!-- Loading screen -->
+  <div id="splash" class="splash" role="status" aria-live="polite">
+    <div class="splash__glow" aria-hidden="true"></div>
+    <img class="splash__logo" src="{{ url_for('static', filename='img/inspectra-logo.png') }}" alt="INSPECTRA" width="320" height="239">
+    <p class="splash__tag" data-i18n="i.splash.tag">Smart fare inspection</p>
+    <div class="splash__bar" aria-hidden="true"><span></span></div>
+  </div>
+
+  <main id="app" class="app is-offline" data-mode="offline">
+    <div id="netBanner" class="netbar" role="status" aria-live="polite" hidden><i class="fa-solid fa-wifi-slash" aria-hidden="true"></i><span id="netText"></span></div>
+    <div id="map" role="application" data-i18n-attr="aria-label:i.map.aria" aria-label="Map"></div>
+
+    <!-- Top status bar -->
+    <header class="topbar">
+      <div id="statusPill" class="pill pill--off" role="status">
+        <span class="pill__dot" aria-hidden="true"></span>
+        <span id="statusText" data-i18n="i.status.offline">Offline</span>
+      </div>
+
+      <div id="liveChip" class="chip chip--idle" role="status" aria-live="polite" hidden>
+        <span class="chip__dot" aria-hidden="true"></span>
+        <span id="liveChipText"></span>
+      </div>
+
+      <button id="menuBtn" class="icon-btn" type="button" data-i18n-attr="aria-label:i.menu.open; title:i.menu.open" aria-haspopup="true" aria-expanded="false">
+        <i class="fa-solid fa-bars" aria-hidden="true"></i>
+      </button>
+    </header>
+
+    <!-- Map controls -->
+    <div class="map-tools">
+      <button id="recenterBtn" class="icon-btn icon-btn--lg" type="button" data-i18n-attr="aria-label:i.recenter; title:i.recenter">
+        <i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i>
+      </button>
     </div>
-  </div>
-  <div id="data-source-banner" style="position:absolute;top:18px;right:18px;z-index:1100;background:rgba(17,24,39,.82);color:white;padding:8px 12px;border-radius:999px;font:12px sans-serif;display:none;">Data source: unavailable</div>
 
-  <!-- Availability Toggle -->
-  <div class="availability-toggle">
-    <label class="switch">
-      <input type="checkbox" id="availabilitySwitch" checked>
-      <span class="slider"></span>
-    </label>
-    <span id="availabilityLabel">Available</span>
-  </div>
+    <!-- Bottom sheet / side panel -->
+    <section id="sheet" class="sheet" data-i18n-attr="aria-label:i.sheet.aria">
+      <button id="sheetHandle" class="sheet__handle" type="button" data-i18n-attr="aria-label:i.sheet.toggle" aria-expanded="true"><span></span></button>
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.awesome-markers/2.0.4/leaflet.awesome-markers.js"></script>
+      <div class="sheet__head">
+        <!-- OFFLINE: swipe to go online -->
+        <div id="modeOffline" class="mode">
+          <h1 class="sheet__title" data-i18n="i.off.title">You're offline</h1>
+          <p class="sheet__desc" data-i18n="i.off.desc">Swipe to go online and start receiving assignments.</p>
+          <div id="swipe" class="swipe swipe--on" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-i18n-attr="aria-label:i.swipe.aria">
+            <span class="swipe__fill" aria-hidden="true"></span>
+            <span class="swipe__label"><span data-i18n="i.swipe.label">Swipe to go online</span>
+              <i class="fa-solid fa-angles-right swipe__chev" aria-hidden="true"></i></span>
+            <span class="swipe__thumb"><i class="fa-solid fa-power-off" aria-hidden="true"></i></span>
+          </div>
+        </div>
 
-  <script>
-    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    // ---------------- CONFIG ----------------
-    const SEARCH_RADIUS_METERS = 666;
-    const BUS_ICON_URL = '/static/img/bus-stop.png';
-    // ---------------- END CONFIG ----------------
+        <!-- SEARCHING -->
+        <div id="modeSearching" class="mode" hidden>
+          <div class="radar" aria-hidden="true"><span></span><span></span><span></span><i class="fa-solid fa-magnifying-glass"></i></div>
+          <h1 class="sheet__title" data-i18n="i.srch.title">Looking for your next assignment</h1>
+          <p class="sheet__desc" data-i18n="i.srch.desc">Stay close. We'll alert you as soon as a good bus is found.</p>
+          <div id="swipeEnd" class="swipe swipe--off" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-i18n-attr="aria-label:i.swipe.endAria">
+            <span class="swipe__fill" aria-hidden="true"></span>
+            <span class="swipe__label"><span data-i18n="i.swipe.end">Swipe to end shift</span>
+              <i class="fa-solid fa-angles-right swipe__chev" aria-hidden="true"></i></span>
+            <span class="swipe__thumb"><i class="fa-solid fa-moon" aria-hidden="true"></i></span>
+          </div>
+          <button id="breakBtn" class="btn btn--ghost btn--block daybtn" type="button"><i class="fa-solid fa-mug-hot" aria-hidden="true"></i> <span data-i18n="i.break.btn">Take a break</span></button>
+        </div>
 
-    let map, inspectorMarker = null, userLatLng = null;
-    let currentRunId = null;
+        <!-- BREAK -->
+        <div id="modeBreak" class="mode" hidden>
+          <div class="breakring" aria-hidden="true"><i class="fa-solid fa-mug-hot"></i></div>
+          <h1 class="sheet__title" data-i18n="i.break.now.title">You're on a break</h1>
+          <p class="sheet__desc" data-i18n="i.break.now.desc">You won't get assignments until the break ends.</p>
+          <p id="breakLeft" class="breakleft" aria-live="off"></p>
+          <p id="breakUntil" class="set-hint breakuntil"></p>
+          <div class="sheet__actions">
+            <button id="breakExtend" class="btn btn--ghost" type="button">+10</button>
+            <button id="breakBack" class="btn btn--primary" type="button" data-i18n="i.break.back">Back to work</button>
+          </div>
+        </div>
 
-    // Small JSON helper for the run/status endpoints. Never throws: persistence problems must not stop the ride flow.
-    async function api(path, method, body) {
-      try {
-        const resp = await fetch(path, {
-          method,
-          headers: { "Content-Type": "application/json" },
-          body: body ? JSON.stringify(body) : undefined,
-        });
-        return { ok: resp.ok, status: resp.status, data: await resp.json().catch(() => ({})) };
-      } catch (err) {
-        console.warn("Request failed:", path, err);
-        return { ok: false, status: 0, data: {} };
-      }
-    }
+        <!-- RIDE -->
+        <div id="modeRide" class="mode" hidden>
+          <ol id="stepper" class="stepper" data-i18n-attr="aria-label:i.step.aria">
+            <li data-step="enroute" data-i18n="i.step.stop">To stop</li>
+            <li data-step="waiting" data-i18n="i.step.wait">Waiting</li>
+            <li data-step="onride" data-i18n="i.step.bus">On bus</li>
+          </ol>
+          <h1 id="rideTitle" class="sheet__title"></h1>
+          <p id="rideDesc" class="sheet__desc"></p>
 
-    // Taking the recommended ride creates an accepted run (or resumes the one that is already active).
-    async function startRun(option, stopFeature) {
-      const created = await api("/api/runs", "POST", {
-        trip_id: option.trip_id,
-        stop_id: stopFeature?.properties?.stop_id ?? option.stop_id,
-        potential_fines: option.potential_fines,
-      });
-      if (created.ok) return created.data.id;
-      if (created.status === 409) {
-        const current = await api("/api/runs/current", "GET");
-        return current.data.run ? current.data.run.id : null;
-      }
-      console.warn("Could not save the run:", created.data.error);
-      return null;
-    }
-    let currentDisplayed = { stopLayer: null, shapeLayer: null, walkLayer: null };
+          <!-- live guidance: walking distance, bus tracker -->
+          <div id="rideLive" class="ridelive" hidden>
+            <div class="ridelive__row">
+              <span id="rideLiveLabel" class="ridelive__label"></span>
+              <strong id="rideLiveValue" class="ridelive__value"></strong>
+            </div>
+            <div class="ridelive__bar" aria-hidden="true"><span id="rideLiveBar"></span></div>
+            <p id="rideLiveNote" class="ridelive__note" aria-live="polite"></p>
+          </div>
 
-    function initMap() {
-      map = L.map('map').setView([32.0853, 34.7818], 13);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(map);
-      map.zoomControl.remove();
-    }
+          <!-- fine counter, saved on the run -->
+          <div id="fineCounter" class="fcount" hidden>
+            <div class="fcount__text">
+              <span class="fcount__label" data-i18n="i.counter.label">Fines issued</span>
+              <span class="fcount__hint" data-i18n="i.counter.hint">The count is saved even if you reload.</span>
+            </div>
+            <div class="fcount__ctl" dir="ltr">
+              <button id="fineLess" type="button" class="fcount__btn" data-i18n-attr="aria-label:i.counter.less"><i class="fa-solid fa-minus" aria-hidden="true"></i></button>
+              <output id="fineValue" class="fcount__value" aria-live="polite">0</output>
+              <button id="fineMore" type="button" class="fcount__btn fcount__btn--plus" data-i18n-attr="aria-label:i.counter.more"><i class="fa-solid fa-plus" aria-hidden="true"></i></button>
+            </div>
+          </div>
 
-    function createBusIcon() {
-      try {
-        return L.AwesomeMarkers.icon({
-          icon: 'bus',
-          prefix: 'fa',
-          markerColor: 'blue',
-          iconColor: 'white'
-        });
-      } catch {
-        return L.icon({
-          iconUrl: BUS_ICON_URL,
-          iconSize: [28, 28],
-          iconAnchor: [14, 28],
-          popupAnchor: [0, -28]
-        });
-      }
-    }
+          <div id="navLinks" class="navlinks" hidden>
+            <span class="navlinks__title" data-i18n="i.nav.title">Walking directions</span>
+            <a id="navGoogle" class="navlinks__a" target="_blank" rel="noopener"><i class="fa-brands fa-google" aria-hidden="true"></i> <span data-i18n="i.nav.google">Google Maps</span></a>
+            <a id="navWaze" class="navlinks__a" target="_blank" rel="noopener"><i class="fa-solid fa-car-side" aria-hidden="true"></i> <span data-i18n="i.nav.waze">Waze</span></a>
+          </div>
 
-    const busIcon = createBusIcon();
-    const inspectorIcon = L.icon({
-      iconUrl: 'https://cdn-icons-png.flaticon.com/512/64/64572.png',
-      iconSize: [28, 28],
-      iconAnchor: [14, 14],
-      popupAnchor: [0, -14]
-    });
+          <div class="sheet__actions">
+            <button id="actionBtn" class="btn btn--primary" type="button"></button>
+            <button id="cancelBtn" class="btn btn--ghost" type="button" hidden data-i18n="i.ride.cancel">Cancel run</button>
+          </div>
+        </div>
+      </div>
 
-    function startGeolocation() {
-      if (!navigator.geolocation) {
-        alert('Geolocation not supported.');
-        return;
-      }
+      <div class="sheet__body">
+        <div class="board__head">
+          <h2 class="board__title" data-i18n="i.board.title">Live arrivals nearby</h2>
+          <span id="boardMeta" class="board__meta"></span>
+        </div>
+        <ul id="board" class="board" aria-live="polite" aria-relevant="additions removals"></ul>
+      </div>
+    </section>
 
-      navigator.geolocation.watchPosition(pos => {
-        const lat = 32.0880; // pos.coords.latitude
-        const lon = 34.7898; // pos.coords.longitude
-        userLatLng = [lat, lon];
+    <!-- Menu: everything that is not the job itself lives one tap away -->
+    <div id="menu" class="overlay overlay--menu" hidden>
+      <nav class="menu" aria-labelledby="menuBtn">
+        <a class="menu__item" href="/inspect/stats"><i class="fa-solid fa-chart-column" aria-hidden="true"></i><span data-i18n="i.menu.stats">My stats</span></a>
+        <button id="menuSettings" class="menu__item" type="button"><i class="fa-solid fa-sliders" aria-hidden="true"></i><span data-i18n="i.menu.settings">Settings</span></button>
+        <a class="menu__item menu__item--danger" href="/logout"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i><span data-i18n="i.settings.logout">Log out</span></a>
+      </nav>
+    </div>
 
-        if (!inspectorMarker) {
-          inspectorMarker = L.marker(userLatLng, { icon: inspectorIcon }).addTo(map);
-          inspectorMarker.bindPopup('You (Inspector)').openPopup();
-        } else inspectorMarker.setLatLng(userLatLng);
-      }, err => console.error(err), { enableHighAccuracy: true });
-    }
+    <!-- Assignment offer: the map stays visible on top, the card carries the decision -->
+    <div id="offer" class="offer" hidden>
+      <section id="offerCard" class="offer__card" role="dialog" aria-modal="true" aria-labelledby="offerTitle">
+        <header class="offer__head">
+          <div class="offer__headtext">
+            <h2 id="offerTitle" class="offer__title" data-i18n="i.offer.title">New assignment</h2>
+            <p id="offerSource" class="offer__source"></p>
+          </div>
+          <div class="offer__timer">
+            <svg viewBox="0 0 48 48" aria-hidden="true"><circle class="t-bg" cx="24" cy="24" r="21"/><circle id="offerRing" class="t-fg" cx="24" cy="24" r="21" pathLength="100"/></svg>
+            <span id="offerSecs">30</span>
+          </div>
+        </header>
 
-    function clearDisplayed() {
-      for (let k of Object.keys(currentDisplayed)) {
-        if (currentDisplayed[k]) {
-          map.removeLayer(currentDisplayed[k]);
-          currentDisplayed[k] = null;
-        }
-      }
-    }
+        <div class="offer__route">
+          <span id="offerLine" class="route-badge route-badge--xl"></span>
+          <div class="offer__dest"><span id="offerDest"></span><small id="offerStop"></small></div>
+        </div>
 
-    async function safeJsonFetch(url, options) {
-      const resp = await fetch(url, options);
-      if (!resp.ok) throw new Error(`Network error ${resp.status}`);
-      return resp.json();
-    }
+        <p id="offerVerdict" class="verdict" hidden><i id="offerVerdictIcon" class="fa-solid" aria-hidden="true"></i><span id="offerVerdictText"></span></p>
 
-    // ------------------- AVAILABILITY TOGGLE -------------------
-    const availabilitySwitch = document.getElementById("availabilitySwitch");
-    const availabilityLabel = document.getElementById("availabilityLabel");
+        <dl class="offer__facts">
+          <div><dt data-i18n="i.offer.walk">Walk to stop</dt><dd id="offerWalk">—</dd></div>
+          <div><dt data-i18n="i.offer.bus">Bus arrives in</dt><dd id="offerBus">—</dd></div>
+          <div class="offer__fines"><dt data-i18n="i.offer.fines">Expected fines</dt><dd id="offerFines">—</dd></div>
+        </dl>
 
-    availabilitySwitch.addEventListener("change", () => {
-      if (availabilitySwitch.checked) {
-        availabilityLabel.textContent = "Available";
-        availabilityLabel.style.color = "#16a34a"; // green
-        api("/api/me/status", "PUT", { available: true });
-      } else {
-        availabilityLabel.textContent = "Unavailable";
-        availabilityLabel.style.color = "#dc2626"; // red
-        api("/api/me/status", "PUT", { available: false });
-      }
-    });
+        <div class="offer__actions">
+          <button id="offerDecline" class="btn btn--ghost" type="button" data-i18n="i.offer.decline">Decline</button>
+          <button id="offerAccept" class="btn btn--primary btn--accept" type="button"><span class="btn__fill" aria-hidden="true"></span><span class="btn__text" data-i18n="i.offer.accept">Accept</span></button>
+        </div>
+      </section>
+    </div>
 
-    (async function main() {
-      initMap();
-      startGeolocation();
-    })();
+    <!-- Fines entry -->
+    <div id="finesOverlay" class="overlay" hidden>
+      <form id="finesForm" class="dialog" role="dialog" aria-modal="true" aria-labelledby="finesTitle">
+        <h2 id="finesTitle" data-i18n="i.fines.title">How many fines did you issue?</h2>
+        <div class="stepper-input" dir="ltr">
+          <button type="button" id="finesMinus" class="icon-btn icon-btn--lg" data-i18n-attr="aria-label:i.fines.less">
+            <i class="fa-solid fa-minus" aria-hidden="true"></i></button>
+          <input id="finesInput" type="number" inputmode="numeric" min="0" step="1" value="0" data-i18n-attr="aria-label:i.fines.count">
+          <button type="button" id="finesPlus" class="icon-btn icon-btn--lg" data-i18n-attr="aria-label:i.fines.more">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i></button>
+        </div>
+        <div class="dialog__actions">
+          <button type="button" id="finesCancel" class="btn btn--ghost" data-i18n="i.fines.back">Back</button>
+          <button type="submit" class="btn btn--primary" data-i18n="i.fines.save">Save &amp; complete</button>
+        </div>
+      </form>
+    </div>
 
-    // ------------------- INSPECTOR RIDE FLOW -------------------
-    const ridePanel = document.getElementById("ride-panel");
-    const grabBar = document.querySelector(".grab-bar");
-    const actionBtn = document.getElementById("ride-action-btn");
-    const statusTitle = document.getElementById("ride-status-title");
-    const rideDesc = document.getElementById("ride-desc");
+    <!-- Break length: the inspector decides, within the manager's limit -->
+    <div id="breakOverlay" class="overlay" hidden>
+      <div class="dialog dialog--break" role="dialog" aria-modal="true" aria-labelledby="breakTitle">
+        <h2 id="breakTitle" data-i18n="i.break.title">How long a break?</h2>
+        <div id="breakChoices" class="seg" role="radiogroup" data-i18n-attr="aria-label:i.break.title"></div>
+        <div class="bstep" dir="ltr">
+          <button type="button" id="breakLess" class="icon-btn icon-btn--lg" data-i18n-attr="aria-label:i.break.less"><i class="fa-solid fa-minus" aria-hidden="true"></i></button>
+          <output id="breakValue" class="bstep__value" aria-live="polite"></output>
+          <button type="button" id="breakMore" class="icon-btn icon-btn--lg" data-i18n-attr="aria-label:i.break.more"><i class="fa-solid fa-plus" aria-hidden="true"></i></button>
+        </div>
+        <p id="breakCap" class="set-hint bstep__hint"></p>
+        <div id="breakReasons" class="seg" role="radiogroup" data-i18n-attr="aria-label:i.break.reason"></div>
+        <div class="dialog__actions">
+          <button type="button" id="breakCancel" class="btn btn--ghost" data-i18n="i.break.cancel">Cancel</button>
+          <button type="button" id="breakStart" class="btn btn--primary" data-i18n="i.break.start">Start break</button>
+        </div>
+      </div>
+    </div>
 
-    let startY, currentY, dragging = false;
-    let currentState = "idle"; // possible: idle, assigned, onride, completed
-    let currentTripData = null;
 
-    // slide toggle on click
-    grabBar.addEventListener("click", () => {
-      ridePanel.classList.toggle("open");
-    });
+    <div id="sessionOverlay" class="overlay" hidden>
+      <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="sessionTitle">
+        <h2 id="sessionTitle" data-i18n="i.session.title">Session expired</h2>
+        <p class="set-hint" data-i18n="i.session.desc">Please log in again to continue. Your current ride is safe.</p>
+        <div class="dialog__actions"><a class="btn btn--primary" href="/login" data-i18n="i.session.btn">Log in</a></div>
+      </div>
+    </div>
 
-    // swipe gesture
-    grabBar.addEventListener("touchstart", (e) => {
-      startY = e.touches[0].clientY;
-      dragging = true;
-    });
+    <!-- Settings -->
+    <div id="settings" class="overlay overlay--side" hidden>
+      <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <header class="drawer__head">
+          <h2 id="settingsTitle" data-i18n="i.settings.title">Settings</h2>
+          <button id="settingsClose" class="icon-btn" type="button" data-i18n-attr="aria-label:i.settings.close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+        </header>
 
-    window.addEventListener("touchmove", (e) => {
-      if (!dragging) return;
-      currentY = e.touches[0].clientY;
-      const delta = currentY - startY;
-      if (delta > 0) {
-        ridePanel.style.transform = `translateY(${Math.min(70, delta / 4)}%)`;
-      }
-    });
+        <div class="drawer__body">
+          <section class="set-group" aria-labelledby="setLangT">
+            <h3 id="setLangT" data-i18n="i.settings.language">Language</h3>
+            <div id="langSeg" class="seg seg--2" role="radiogroup" data-i18n-attr="aria-label:i.settings.language"></div>
+          </section>
 
-    window.addEventListener("touchend", (e) => {
-      if (!dragging) return;
-      dragging = false;
-      const delta = currentY - startY;
-      if (delta > 50) {
-        ridePanel.classList.remove("open");
-        ridePanel.style.transform = "translateY(70%)";
-      } else {
-        ridePanel.classList.add("open");
-        ridePanel.style.transform = "translateY(0%)";
-      }
-    });
+          <section class="set-group" aria-labelledby="setRadT">
+            <h3 id="setRadT" data-i18n="i.settings.radius">Search radius</h3>
+            <div id="radiusSeg" class="seg" role="radiogroup" data-i18n-attr="aria-label:i.settings.radius"></div>
+            <p class="set-hint" data-i18n="i.settings.radiusHint">How far from you we look for stops.</p>
+          </section>
 
-    // state transitions
-    actionBtn.addEventListener("click", async () => {
-      switch (currentState) {
-        case "idle":
-          await assignRide();
-          break;
-        case "assigned":
-          goEnRoute();
-          break;
-        case "enroute":
-          goWaiting();
-          break;
-        case "waiting":
-          confirmOnRide();
-          break;
-        case "onride":
-          completeRide();
-          break;
-        case "completed":
-          resetToIdle();
-          break;
-      }
-    });
+          <section class="set-group" aria-labelledby="setAlertT">
+            <h3 id="setAlertT" data-i18n="i.settings.alerts">Alerts</h3>
+            <label class="set-row"><span data-i18n="i.settings.sound">Sound on new assignment</span>
+              <span class="switch"><input type="checkbox" id="setSound"><span class="switch__track"></span></span></label>
+            <label class="set-row"><span data-i18n="i.settings.vibrate">Vibrate on new assignment</span>
+              <span class="switch"><input type="checkbox" id="setVibrate"><span class="switch__track"></span></span></label>
+            <label class="set-row"><span data-i18n="i.settings.awake">Keep screen on while online</span>
+              <span class="switch"><input type="checkbox" id="setAwake"><span class="switch__track"></span></span></label>
+          </section>
 
-    // ---------- State Handlers ----------
-    async function assignRide() {
-      if (!Array.isArray(userLatLng) || userLatLng.length !== 2 || !userLatLng.every(Number.isFinite)) {
-        alert("Waiting for your location. Please try again in a moment.");
-        return;
-      }
+          <section class="set-group" aria-labelledby="setComfT">
+            <h3 id="setComfT" data-i18n="i.settings.comfort">Comfort</h3>
+            <p class="set-hint" data-i18n="i.settings.textSize">Text size</p>
+            <div id="sizeSeg" class="seg" role="radiogroup" data-i18n-attr="aria-label:i.settings.textSize"></div>
+            <label class="set-row"><span data-i18n="i.settings.contrast">High contrast (for sunlight)</span>
+              <span class="switch"><input type="checkbox" id="setContrast"><span class="switch__track"></span></span></label>
+            <p class="set-hint" data-i18n="i.settings.goal">Daily fines goal</p>
+            <div id="goalSeg" class="seg" role="radiogroup" data-i18n-attr="aria-label:i.settings.goal"></div>
+            <div id="installRow" class="set-row" hidden><span data-i18n="i.settings.install">Install the app on this phone</span>
+              <button id="installBtn" class="btn btn--ghost" type="button" data-i18n="i.settings.installBtn">Install</button></div>
+          </section>
 
-      try {
-        const btn = actionBtn;
-        btn.disabled = true;
-        btn.textContent = "Finding...";
+          <section class="set-group" aria-labelledby="setAccT">
+            <h3 id="setAccT" data-i18n="i.settings.account">Account</h3>
+            <p id="accountName" class="acc__name"></p>
+            <div class="acc__links">
+              <a class="btn btn--ghost" href="/profile" data-i18n="i.settings.profile">Profile</a>
+              <a class="btn btn--ghost btn--danger" href="/logout" data-i18n="i.settings.logout">Log out</a>
+            </div>
+          </section>
+        </div>
+      </aside>
+    </div>
 
-        const [lat, lon] = userLatLng;
-        const json = await safeJsonFetch("/api/find_best_trip", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ lat, lon, buffer: 3, radius: 666 }),
-        });
+    <div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+  </main>
 
-        clearDisplayed();
-        const banner = document.getElementById('data-source-banner');
-        const sourceLabel = json.source_label || (json.is_live ? 'Live SIRI data' : 'Static GTFS fallback');
-        if (banner) {
-          banner.textContent = `Data source: ${sourceLabel}`;
-          banner.style.display = 'block';
-          banner.style.background = json.is_live ? 'rgba(22,101,52,.85)' : 'rgba(30,41,59,.82)';
-        }
-
-        if (!json.best_option) {
-          alert("No reachable trip found.");
-          btn.disabled = false;
-          btn.textContent = "Get Ride";
-          return;
-        }
-
-        // display walking path to stop
-        if (json.best_option.route_geometry) {
-          currentDisplayed.walkLayer = L.geoJSON(json.best_option.route_geometry, {
-            style: { color: "black", weight: 4, dashArray: "8,6" },
-          }).addTo(map);
-        }
-
-        // Relevant stop to take line
-        if (json.stop_feature) {
-          currentDisplayed.stopLayer = L.geoJSON(json.stop_feature, {
-            pointToLayer: (f, latlng) => L.marker(latlng, { icon: busIcon }),
-          })
-            .addTo(map)
-            .bindPopup(json.stop_feature.properties?.stop_name || "")
-            .openPopup();
-        }
-
-        // store ride data
-        console.log("🚍 best_option data:", json.best_option);
-        console.log("🛑 stop_feature:", json.stop_feature);
-        console.log("// shape_feature:", json.stop_feature);
-
-        currentTripData = {
-          line: json.best_option.route_num || "Unknown",
-          stop_id: json.stop_feature?.properties?.stop_code || "?",
-          stop_name: json.stop_feature?.properties?.stop_name || "Unknown Stop",
-          destination: json.best_option.destination || "Destination Unknown",
-          shape_feature: json.shape_feature
-        };
-
-        currentRunId = await startRun(json.best_option, json.stop_feature);
-
-        // update UI
-        currentState = "assigned";
-        statusTitle.textContent = "Ride Assigned!";
-        rideDesc.innerHTML = `
-          <b>Line:</b> ${esc(currentTripData.line)} → ${esc(currentTripData.destination)}<br>
-          <b>Stop:</b> ${esc(currentTripData.stop_name)} (${esc(currentTripData.stop_id)})<br>
-          <small>Confirm to view route to stop.</small>
-        `;
-        actionBtn.textContent = "View Route to Stop";
-      } catch (err) {
-        alert("Error: " + err.message);
-      } finally {
-        actionBtn.disabled = false;
-      }
-    }
-
-    function goEnRoute() {
-      currentState = "enroute";
-      statusTitle.textContent = "En Route to Stop";
-      rideDesc.innerHTML = `
-        Head to <b>${esc(currentTripData.stop_name)}</b> (Stop ID: ${esc(currentTripData.stop_id)})<br>
-        Follow the black dashed route on the map.
-      `;
-      actionBtn.textContent = "I’ve Arrived at Stop";
-    }
-
-    function goWaiting() {
-      currentState = "waiting";
-      statusTitle.textContent = "Waiting for Bus";
-      rideDesc.innerHTML = `
-        Wait for <b>Line ${esc(currentTripData.line)}</b> → ${esc(currentTripData.destination)}.<br>
-        Confirm once you're on the bus.
-      `;
-      actionBtn.textContent = "On Bus";
-
-      if (currentDisplayed.walkLayer) {
-        map.removeLayer(currentDisplayed.walkLayer);
-        currentDisplayed.walkLayer = null;
-      }
-
-      // Add bus line
-      if (currentTripData.shape_feature) {
-        currentDisplayed.busLayer = L.geoJSON(currentTripData.shape_feature, {
-          style: { color: "green", weight: 4 },
-        }).addTo(map);
-      }
-    }
-
-    function confirmOnRide() {
-      currentState = "onride";
-      statusTitle.textContent = "On Ride";
-      rideDesc.textContent =
-        "Ride ongoing. Confirm once your inspection is complete.";
-      actionBtn.textContent = "Complete Ride";
-    }
-
-    async function completeRide() {
-      const answer = prompt("How many fines did you issue on this ride?", "0");
-      const fines = Math.max(0, parseInt(answer, 10) || 0);
-      if (currentRunId) {
-        const done = await api(`/api/runs/${currentRunId}/complete`, "POST", { actual_fines: fines });
-        if (!done.ok) alert("The ride could not be saved: " + (done.data.error || "server error"));
-        currentRunId = null;
-      }
-      currentState = "completed";
-      statusTitle.textContent = "Ride Completed 🎉";
-      rideDesc.textContent =
-        "Good job! Ride report saved. Press below for next assignment.";
-      actionBtn.textContent = "Get New Ride";
-      ridePanel.classList.add("completed");
-      try {
-        await clearDisplayed();
-      } catch (err) {
-        alert("Error: " + err.message);
-      }
-    }
-
-    function resetToIdle() {
-      currentState = "idle";
-      currentTripData = null;
-      statusTitle.textContent = "No Ride Assigned";
-      rideDesc.textContent = "Press below to get your next assignment.";
-      actionBtn.textContent = "Get Ride";
-      ridePanel.classList.remove("completed");
-    }
-  </script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  {% include "partials/i18n_scripts.html" %}
+  <script src="{{ url_for('static', filename='js/inspector.js') }}"></script>
 </body>
-
 </html>

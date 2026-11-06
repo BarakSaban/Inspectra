@@ -2,7 +2,6 @@
 from app.models import Inspector, User
 
 # Where a new inspector is placed until they report a position (central Tel Aviv)
-DEFAULT_LAT, DEFAULT_LON = 32.0853, 34.7818
 
 
 def get_admin_inspector_users(admin_code):
@@ -32,3 +31,34 @@ def find_owned_inspector(admin_code, inspector_id):
         return None
     inspector = Inspector.query.filter_by(inspector_id=inspector_id).first()
     return (user, inspector) if inspector is not None else None
+
+
+STALE_POSITION_SECONDS = 180
+
+
+def is_connected(inspector, now=None):
+    """Available AND the phone reported a position recently. Someone who closed the app is not reachable, whatever the flag says."""
+    from app.utils.clock import now_local
+    if inspector is None or not inspector.available or inspector.location_updated_at is None:
+        return False
+    return ((now or now_local()) - inspector.location_updated_at).total_seconds() <= STALE_POSITION_SECONDS
+
+
+def inspector_state(inspector, run=None, now=None):
+    """What an inspector is doing right now: on_run | offered | break | idle | offline."""
+    from app.utils.clock import now_local
+    now = now or now_local()
+    if run is not None and run.status == "accepted":
+        return "on_run"
+    if run is not None and run.status == "assigned":
+        return "offered"
+    if inspector is None:
+        return "idle"
+    if inspector.break_until and inspector.break_until > now:
+        return "break"
+    return "idle" if is_connected(inspector, now) else "offline"
+
+
+def seconds_since(moment, now=None):
+    from app.utils.clock import now_local
+    return None if moment is None else max(0, int(((now or now_local()) - moment).total_seconds()))

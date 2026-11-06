@@ -1,252 +1,50 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang }}" dir="{{ dir }}">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Inspectra — Login</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <style>
-    :root{
-      --accent:#1f7bd1;
-      --accent-2:#0ea5e9;
-      --bg-start:#f7faff;
-      --bg-end:#ecf4fb;
-    }
-    html,body{height:100%}
-    body{
-      font-family:"Montserrat",sans-serif;
-      background: linear-gradient(180deg,var(--bg-start),var(--bg-end));
-      -webkit-font-smoothing:antialiased;
-    }
-    .card{
-      background:white;
-      border:1px solid #eef2f7;
-      border-radius:18px;
-      box-shadow:0 10px 30px rgba(20,30,60,0.06);
-    }
-    .fade-in{animation:fadeIn .5s ease both}
-    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none}}
-    input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(31,123,209,0.06)}
-    .progress-wrap{position:fixed;left:0;right:0;bottom:0;height:3px;background:transparent;z-index:9998}
-    .progress-bar{height:3px;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .25s linear}
-    .progress-success{background:#16a34a!important}
-    .progress-error{background:#ef4444!important}
-
-    #toast{
-      position:fixed;
-      bottom:68px;
-      left:50%;
-      transform:translateX(-50%);
-      background:white;
-      border:1px solid #e6edf7;
-      padding:10px 14px;
-      border-radius:12px;
-      box-shadow:0 8px 20px rgba(20,30,60,0.07);
-      display:flex;
-      gap:10px;
-      align-items:center;
-      z-index:9999;
-      min-width:180px;
-      max-width:90%;
-      font-weight:600;
-      color:#0f172a;
-      visibility:hidden;
-      opacity:0;
-      transition:opacity .25s, visibility .25s, transform .25s;
-    }
-    #toast.show{visibility:visible;opacity:1;transform:translateY(0)}
-  </style>
+  <title data-i18n="a.login.pageTitle">Inspectra — Login</title>
+  {% include "partials/i18n_head.html" %}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
 </head>
-<body class="min-h-screen flex items-center justify-center p-6">
+<body>
+  <main class="auth">
+    <div class="auth__top">
+      <img class="brand" src="{{ url_for('static', filename='img/inspectra-logo.png') }}" alt="Inspectra" width="132" height="99">
+      <div data-lang-switcher></div>
+    </div>
+    <h1 data-i18n="a.login.title">Welcome back</h1>
+    <p class="auth__sub" data-i18n="a.login.sub">Log in to your Inspectra account</p>
 
-  <main class="w-full max-w-md card p-8 fade-in">
-    <div class="text-center mb-6">
-      <div class="flex items-center justify-center mb-3">
-        <i data-lucide="log-in" class="text-[36px] text-[#1f7bd1]"></i>
-      </div>
-      <h1 class="text-2xl font-extrabold text-[#0b3b63]">Welcome Back</h1>
-      <p class="text-gray-500 text-sm mt-1">Log in to your Inspectra account</p>
+    <div class="roles" role="radiogroup" data-i18n-attr="aria-label:a.role.aria">
+      <button type="button" role="radio" data-role="inspector" aria-checked="true"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><span data-i18n="a.role.inspector">Inspector</span></button>
+      <button type="button" role="radio" data-role="admin" aria-checked="false"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span data-i18n="a.role.admin">Admin</span></button>
     </div>
 
-    <div class="flex justify-center gap-3 mb-4">
-      <button id="role-inspector" class="role-btn flex items-center gap-2 px-4 py-2 rounded-lg font-semibold bg-[#1f7bd1] text-white transition">
-        <i data-lucide="search"></i> Inspector
-      </button>
-      <button id="role-admin" class="role-btn flex items-center gap-2 px-4 py-2 rounded-lg font-semibold bg-gray-100 text-gray-700 transition">
-        <i data-lucide="shield"></i> Admin
-      </button>
-    </div>
-
-    <form id="loginForm" class="space-y-4">
+    <form id="loginForm" novalidate>
       <input type="hidden" id="role" value="inspector">
-
-      <div>
-        <label class="block text-sm text-gray-700 mb-1">Phone or Email / Manager Code</label>
-        <div class="flex items-center border rounded-md p-2">
-          <i data-lucide="mail" class="w-4 h-4 text-gray-400 mr-2"></i>
-          <input id="contact" type="text" class="w-full" placeholder="+972 50 123 4567 / john@mail.com / manager_code" required>
-        </div>
+      <div class="field">
+        <label for="contact" data-i18n="a.f.contact">Phone, email or manager code</label>
+        <div class="input"><i class="fa-regular fa-user" aria-hidden="true"></i>
+          <input id="contact" type="text" autocomplete="username" required dir="ltr" placeholder="050-1234567"></div>
       </div>
-
-      <div>
-        <label class="block text-sm text-gray-700 mb-1">Password</label>
-        <div class="flex items-center border rounded-md p-2">
-          <i data-lucide="lock" class="w-4 h-4 text-gray-400 mr-2"></i>
-          <input id="password" type="password" class="w-full" placeholder="••••••••" required>
-          <i id="togglePassword" data-lucide="eye" class="w-5 h-5 text-gray-500 cursor-pointer"></i>
-        </div>
+      <div class="field">
+        <label for="password" data-i18n="a.f.password">Password</label>
+        <div class="input"><i class="fa-solid fa-lock" aria-hidden="true"></i>
+          <input id="password" type="password" autocomplete="current-password" required dir="ltr" placeholder="••••••••">
+          <button type="button" id="togglePassword" data-i18n-attr="aria-label:a.f.show"><i class="fa-regular fa-eye" aria-hidden="true"></i></button></div>
       </div>
-
-      <p class="text-right text-xs text-[#1f7bd1] mt-1 cursor-pointer hover:underline" id="forgotPassword">Forgot password?</p>
-
-      <button id="loginBtn" type="submit"
-        class="w-full py-2.5 rounded-md text-white font-semibold text-base shadow-md"
-        style="background:linear-gradient(90deg,var(--accent),var(--accent-2));">
-        <span class="btn-content"><i data-lucide="check-circle" class="inline-block w-5 h-5 mr-1"></i> Log In</span>
-      </button>
+      <div class="row-end"><button type="button" class="link" id="forgotPassword" data-i18n="a.login.forgot">Forgot password?</button></div>
+      <button class="submit" type="submit" data-i18n="a.login.btn">Log in</button>
     </form>
-
-    <p class="text-center text-sm text-gray-600 mt-5">
-      Don't have an account? <a href="/signup" class="text-[#1f7bd1] font-semibold hover:underline">Sign up</a>
-    </p>
+    <p class="switch-line"><span data-i18n="a.login.noAcc">Don't have an account?</span> <a href="/signup" data-i18n="a.login.signup">Sign up</a></p>
   </main>
 
-  <!-- Toast -->
-  <div id="toast" aria-live="polite">
-    <i data-lucide="info" class="w-4 h-4"></i>
-    <span class="msg" id="toast-msg">Processing...</span>
-  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"><span id="toastMsg"></span></div>
+  <div class="bar" aria-hidden="true"><span id="barFill"></span></div>
 
-  <!-- Bottom progress -->
-  <div class="progress-wrap" aria-hidden="true">
-    <div id="progressBar" class="progress-bar"></div>
-  </div>
-
-  <script>
-    lucide.createIcons();
-
-    const toast = document.getElementById('toast');
-    const toastMsg = document.getElementById('toast-msg');
-    const progressBar = document.getElementById('progressBar');
-    const loginForm = document.getElementById('loginForm');
-    const loginBtn = document.getElementById('loginBtn');
-
-    function showToast(message, icon='info', color='text-blue-600'){
-      if(!toast) return;
-      let svg = toast.querySelector('svg');
-      if(!svg){
-        toast.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4 ${color}"></i><span class="msg" id="toast-msg"></span>`;
-        lucide.createIcons();
-      }
-      toastMsg.textContent = message;
-      svg = toast.querySelector('svg');
-      if(svg){
-        svg.setAttribute('data-lucide', icon);
-        svg.setAttribute('class', `w-4 h-4 ${color}`);
-        lucide.createIcons();
-      }
-      toast.classList.add('show');
-      clearTimeout(toast._hideTimer);
-      toast._hideTimer = setTimeout(()=> toast.classList.remove('show'), 2800);
-    }
-
-    // progress helpers
-    function startProgress(){
-      progressBar.style.transition = 'none';
-      progressBar.style.width = '2%';
-      requestAnimationFrame(()=> {
-        progressBar.style.transition = 'width 900ms linear';
-        progressBar.style.width = '60%';
-      });
-    }
-    function finishProgress(success=true){
-      progressBar.style.transition = 'width 300ms ease';
-      progressBar.style.width = '100%';
-      if(success){
-        progressBar.classList.remove('progress-error');
-        progressBar.classList.add('progress-success');
-      } else {
-        progressBar.classList.remove('progress-success');
-        progressBar.classList.add('progress-error');
-      }
-      setTimeout(()=> {
-        progressBar.style.width = '0%';
-        progressBar.classList.remove('progress-success','progress-error');
-      }, 700);
-    }
-
-    function toggleRoleButtons(active){
-      document.querySelectorAll('.role-btn').forEach(b=>{
-        b.classList.remove('bg-[#1f7bd1]','text-white');
-        b.classList.add('bg-gray-100','text-gray-700');
-      });
-      const el = document.getElementById(active);
-      if(el) { el.classList.add('bg-[#1f7bd1]','text-white'); el.classList.remove('bg-gray-100','text-gray-700'); }
-    }
-
-    document.getElementById('role-inspector').addEventListener('click', ()=>{
-      document.getElementById('role').value='inspector';
-      toggleRoleButtons('role-inspector');
-    });
-    document.getElementById('role-admin').addEventListener('click', ()=>{
-      document.getElementById('role').value='admin';
-      toggleRoleButtons('role-admin');
-    });
-
-    document.getElementById('togglePassword').addEventListener('click', ()=>{
-      const p = document.getElementById('password');
-      p.type = p.type === 'password' ? 'text' : 'password';
-    });
-
-    document.getElementById('forgotPassword').addEventListener('click', ()=>{
-      const contact = document.getElementById('contact').value.trim();
-      if(!contact) return showToast('Enter phone or email first','alert-circle','text-red-600');
-      showToast('Password reset link sent if account exists','mail','text-blue-600');
-    });
-
-    loginForm.addEventListener('submit', async e=>{
-      e.preventDefault();
-
-      const payload = {
-        contact: document.getElementById('contact').value.trim(),
-        password: document.getElementById('password').value,
-        role: document.getElementById('role').value
-      };
-
-      // UI
-      loginBtn.disabled = true;
-      loginBtn.classList.add('btn-loading');
-      startProgress();
-      showToast('Logging in...','loader','text-gray-500');
-
-      try {
-        const res = await fetch('/api/login', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-
-        if(res.ok && data.success){
-          showToast('Logged in successfully!','check-circle','text-green-600');
-          finishProgress(true);
-          setTimeout(()=> window.location.href = data.redirect || '/', 650);
-        } else {
-          showToast(data.message || 'Invalid credentials','alert-circle','text-red-600');
-          finishProgress(false);
-        }
-      } catch(err){
-        showToast('Network error','wifi-off','text-red-600');
-        finishProgress(false);
-      } finally {
-        loginBtn.disabled = false;
-        loginBtn.classList.remove('btn-loading');
-      }
-    });
-  </script>
+  {% include "partials/i18n_scripts.html" %}
+  <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 </body>
 </html>

@@ -5,7 +5,6 @@ from flask import Blueprint, jsonify, request, session
 
 from app.extensions import db
 from app.models import Inspector, User
-from app.services.inspectors import DEFAULT_LAT, DEFAULT_LON
 from app.utils.auth import generate_manager_code, get_request_data
 from app.utils.ratelimit import login_limiter
 
@@ -108,12 +107,12 @@ def api_register():
 
         # The account and (for inspectors) their inspector record are created in one transaction.
         if role == 'inspector':
+            manager_code = (manager_code or "").strip().upper() or None   # people type it by hand, in any case
             if manager_code and not User.query.filter_by(manager_code=manager_code, role='admin').first():
                 return fail("Invalid manager code", 400)
             inspector_id = _new_inspector_id(phone)
             if inspector_id:
-                db.session.add(Inspector(inspector_id=inspector_id, name=display_name,
-                                         latitude=DEFAULT_LAT, longitude=DEFAULT_LON, available=True))
+                db.session.add(Inspector(inspector_id=inspector_id, name=display_name, available=False))
             user = User(username=username, role=role, inspector_id=inspector_id,
                         manager_code=manager_code, full_name=display_name)
         else:

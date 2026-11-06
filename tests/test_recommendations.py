@@ -34,6 +34,12 @@ class FindBestTripTests(unittest.TestCase):
         self.assertEqual((result["best_option"]["stop_id"], result["best_option"]["route_id"], result["best_option"]["AvgDontPay"]), ("stop_1", "101", 12))
         self.assertEqual(result["shape_feature"]["geometry"]["coordinates"][0], [34.7898, 32.088])
 
+    def test_live_recommendation_carries_the_approaching_bus_position(self):
+        bus = {"lat": 32.0885, "lon": 34.7902}
+        live = self.run_find(engine_with_shapes(), [live_option(vehicle_location=bus)])
+        self.assertEqual(live["vehicle_location"], bus)
+        self.assertIsNone(self.run_find(engine_with_shapes(), [])["vehicle_location"])
+
     def test_without_live_data_the_schedule_is_the_fallback(self):
         result = self.run_find(engine_with_shapes(), [])
         self.assertEqual((result["data_source"], result["source_label"], result["live_status"]), ("static", "Static GTFS fallback", "fallback"))

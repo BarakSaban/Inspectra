@@ -126,6 +126,88 @@ class RunApiTests(ApiTestCase):
         self.assertEqual((inspector.available, inspector.latitude), (False, 32.1))
         self.assertTrue(self.client.put("/api/me/status", json={"available": True}).get_json()["available"])
 
+    def test_me_summarises_the_inspector_and_todays_work(self):
+        me = self.client.get("/api/me").get_json()
+        self.assertEqual((me["inspector_id"], me["name"], me["today_runs"], me["today_fines"]), ("I001", "Lior", 0, 0))
+        run_id = self.client.post("/api/runs", json={"trip_id": "t1"}).get_json()["id"]
+        self.assertEqual(self.client.get("/api/me").get_json()["today_runs"], 0)  # not finished yet
+        self.client.post(f"/api/runs/{run_id}/complete", json={"actual_fines": 3})
+        me = self.client.get("/api/me").get_json()
+        self.assertEqual((me["today_runs"], me["today_fines"], me["total_fines"], me["total_runs"]), (1, 3, 3, 1))
+
+    def test_run_details_describe_the_stored_trip_or_degrade_to_none(self):
+        from unittest.mock import patch
+
+        from tests.helpers import make_engine
+        run_id = self.client.post("/api/runs", json={"trip_id": "trip_101", "stop_id": "stop_1"}).get_json()["id"]
+        with patch("app.services.recommendations.get_engine", return_value=make_engine()):
+            body = self.client.get(f"/api/runs/{run_id}/details").get_json()
+        self.assertEqual(body["run"]["id"], run_id)
+        self.assertEqual((body["details"]["route_num"], body["details"]["destination"]), ("101", "Terminal"))
+        self.assertEqual(body["details"]["stop_feature"]["properties"]["stop_id"], "stop_1")
+
+        with patch("app.services.recommendations.get_engine", return_value=None):
+            self.assertIsNone(self.client.get(f"/api/runs/{run_id}/details").get_json()["details"])
+        self.assertEqual(self.client.get("/api/runs/99999/details").status_code, 404)
+
+    def test_the_fine_counter_is_saved_while_the_ride_is_running(self):
+        run_id = self.client.post("/api/runs", json={"trip_id": "t1"}).get_json()["id"]
+        self.assertEqual(self.client.get("/api/runs/current").get_json()["run"]["fines_in_progress"], 0)
+        saved = self.client.patch(f"/api/runs/{run_id}/progress", json={"fines": 4})
+        self.assertEqual((saved.status_code, saved.get_json()["fines_in_progress"]), (200, 4))
+        self.assertEqual(self.client.get("/api/runs/current").get_json()["run"]["fines_in_progress"], 4)
+        for bad in (-1, "x", runs.MAX_FINES_PER_RUN + 1):
+            self.assertEqual(self.client.patch(f"/api/runs/{run_id}/progress", json={"fines": bad}).status_code, 400)
+        self.assertEqual(db.session.get(InspectorRun, run_id).fines_in_progress, 4)
+        self.client.post(f"/api/runs/{run_id}/complete", json={"actual_fines": 4})
+        self.assertEqual(self.client.patch(f"/api/runs/{run_id}/progress", json={"fines": 1}).status_code, 409)
+        self.assertEqual(self.client.patch("/api/runs/99999/progress", json={"fines": 1}).status_code, 404)
+
+    def test_a_timed_break_makes_the_inspector_unavailable_until_it_ends(self):
+        started = self.client.put("/api/me/status", json={"break_minutes": 15})
+        self.assertEqual((started.status_code, started.get_json()["available"]), (200, False))
+        me = self.client.get("/api/me").get_json()
+        self.assertEqual((me["on_break"], me["available"]), (True, False))
+        self.assertIsNotNone(me["break_until"])
+
+        self.client.put("/api/me/status", json={"break_minutes": 0})  # back from the break
+        me = self.client.get("/api/me").get_json()
+        self.assertEqual((me["on_break"], me["available"], me["break_until"]), (False, True, None))
+
+        for bad in (3, 500, "x", -5):
+            self.assertEqual(self.client.put("/api/me/status", json={"break_minutes": bad}).status_code, 400)
+
+    def test_an_expired_break_closes_itself(self):
+        from datetime import timedelta
+
+        from app.utils.clock import now_local
+        inspector = Inspector.query.filter_by(inspector_id="I001").one()
+        inspector.available, inspector.break_until = False, now_local() - timedelta(minutes=1)
+        db.session.commit()
+        me = self.client.get("/api/me").get_json()
+        self.assertEqual((me["on_break"], me["available"]), (False, True))
+
+    def test_no_break_during_a_run_and_going_online_ends_a_break(self):
+        self.client.put("/api/me/status", json={"break_minutes": 30})
+        self.client.put("/api/me/status", json={"available": True})
+        self.assertFalse(self.client.get("/api/me").get_json()["on_break"])
+        self.client.post("/api/runs", json={"trip_id": "t1"})
+        self.assertEqual(self.client.put("/api/me/status", json={"break_minutes": 15}).status_code, 409)
+
+    def test_history_groups_finished_rides_by_day(self):
+        for fines in (2, 3):
+            run_id = self.client.post("/api/runs", json={"trip_id": "t1", "stop_id": "s1"}).get_json()["id"]
+            self.client.post(f"/api/runs/{run_id}/complete", json={"actual_fines": fines})
+        body = self.client.get("/api/me/history?days=3").get_json()
+        self.assertEqual(len(body["days"]), 3)
+        self.assertEqual((body["days"][-1]["rides"], body["days"][-1]["fines"]), (2, 5))
+        self.assertEqual(sorted(r["fines"] for r in body["rides"]), [2, 3])
+        self.assertEqual(self.client.get("/api/me/history?days=x").status_code, 400)
+        self.assertEqual(self.app.test_client().get("/api/me/history").status_code, 401)
+
+    def test_me_requires_an_inspector(self):
+        self.assertEqual(self.app.test_client().get("/api/me").status_code, 401)
+
     def test_bad_status_updates_change_nothing(self):
         for body in ({"latitude": 999, "longitude": 34.8}, {"latitude": "x", "longitude": 1}, {"latitude": 32.0}):
             self.assertEqual(self.client.put("/api/me/status", json=body).status_code, 400, body)

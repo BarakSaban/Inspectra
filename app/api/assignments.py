@@ -4,9 +4,10 @@ from flask import Blueprint, jsonify, session
 
 from app.extensions import db
 from app.models import Inspector, InspectorRun
-from app.services.inspectors import get_admin_inspector_users, get_inspector_ids
+from app.services.inspectors import get_admin_inspector_users, get_inspector_ids, is_connected
 from app.services.recommendations import fetch_live_options
 from app.services.routing import InspectorLocation, get_engine
+from app.services.team import audit, get_settings
 from app.services.runs import ACTIVE_STATUSES
 from app.utils.auth import admin_required_api
 from app.utils.clock import now_local
@@ -32,7 +33,7 @@ def assign_and_persist_runs(buffer_minutes=3, radius_m=666, max_walk_minutes=8, 
         query = Inspector.query.filter(Inspector.available.is_(True))
         if admin_code:
             query = query.filter(Inspector.inspector_id.in_(get_inspector_ids(get_admin_inspector_users(admin_code))))
-        rows = [i for i in query.all() if i.latitude is not None and i.longitude is not None]
+        rows = [i for i in query.all() if i.latitude is not None and i.longitude is not None and is_connected(i)]
 
         busy = {
             inspector_id for (inspector_id,) in
@@ -86,5 +87,9 @@ def assign_and_persist_runs(buffer_minutes=3, radius_m=666, max_walk_minutes=8, 
 @assignments_api.route('/api/assign_runs', methods=['POST'])
 @admin_required_api
 def api_assign_runs():
-    results = assign_and_persist_runs(admin_code=session.get('admin_code'))
+    code = session.get('admin_code')
+    team = get_settings(code)
+    results = assign_and_persist_runs(buffer_minutes=team["buffer_minutes"], radius_m=team["radius_m"],
+                                      max_walk_minutes=team["max_walk_minutes"], admin_code=code)
+    audit(code, session.get('user'), "assignment_run", None, f"{len(results)} assigned")
     return jsonify({"assigned_count": len(results), "results_preview": results[:10]})

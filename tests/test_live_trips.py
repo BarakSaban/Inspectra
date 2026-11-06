@@ -7,6 +7,7 @@ from app import config
 from app.services.live_trips import (
     build_live_trip_option,
     get_live_trip_options,
+    list_live_arrivals,
     match_route_entry,
     stops_within_radius,
 )
@@ -175,6 +176,45 @@ class NearbyOptionsTests(unittest.TestCase):
 
         with patch("app.services.live_trips.fetch_live_stop_visits", side_effect=fetch):
             self.assertEqual(len(get_live_trip_options(32.088, 34.7898, self.gtfs)), 1)
+
+
+class ArrivalsBoardTests(unittest.TestCase):
+    def setUp(self):
+        self.gtfs = stub_gtfs(
+            stop_routes=route_index(route_entry("A", 2532, "66", trip_id="t1")),
+            stops={"A": ("1001", 32.088, 34.7898)},
+        )
+
+    def board(self, visits, **kwargs):
+        with patch("app.services.live_trips.fetch_live_stop_visits", return_value=visits):
+            return list_live_arrivals(32.088, 34.7898, self.gtfs, **kwargs)
+
+    def test_rows_are_sorted_soonest_first_with_vehicle_and_stop_details(self):
+        rows = self.board([
+            visit(line_ref="2532", line_name="66", vehicle_ref="late", expected_arrival_time=in_minutes(12)),
+            visit(line_ref="2532", line_name="66", vehicle_ref="soon", expected_arrival_time=in_minutes(3),
+                  latitude=32.09, longitude=34.79, bearing=90, velocity=7),
+            visit(line_ref="2532", line_name="66", vehicle_ref="gone", expected_arrival_time=in_minutes(-2)),
+        ])
+        self.assertEqual([r["vehicle_ref"] for r in rows], ["soon", "late"])
+        soon = rows[0]
+        self.assertEqual((soon["route_num"], soon["stop_code"], soon["stop_distance_m"], soon["is_live"]), ("66", "1001", 0, True))
+        self.assertEqual((soon["vehicle_location"], soon["bearing"], soon["velocity"]), ({"lat": 32.09, "lon": 34.79}, 90, 7))
+        self.assertNotIn("shape_feature", soon)
+        arrival_at = datetime.fromisoformat(soon["arrival_at"])
+        self.assertIsNotNone(arrival_at.tzinfo)
+        self.assertAlmostEqual((arrival_at - datetime.now(timezone.utc)).total_seconds() / 60, 3, delta=0.2)
+
+    def test_limit_and_unmatched_lines(self):
+        visits = [visit(line_ref="2532", line_name="66", vehicle_ref=str(i), expected_arrival_time=in_minutes(2 + i)) for i in range(5)]
+        visits.append(visit(line_ref="9", line_name="9"))
+        self.assertEqual(len(self.board(visits, limit=3)), 3)
+        self.assertEqual(len(self.board(visits)), 5)
+
+    def test_no_nearby_stops_gives_empty_board_without_siri_calls(self):
+        with patch("app.services.live_trips.fetch_live_stop_visits") as fetch:
+            self.assertEqual(list_live_arrivals(10.0, 10.0, self.gtfs), [])
+        fetch.assert_not_called()
 
 
 if __name__ == "__main__":

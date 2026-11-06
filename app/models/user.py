@@ -13,6 +13,7 @@ class User(db.Model):
     inspector_id = db.Column(db.String(100), nullable=True)
     manager_code = db.Column(db.String(20), nullable=True)
     full_name = db.Column(db.String(200), nullable=True)
+    former_manager_code = db.Column(db.String(20), nullable=True)  # set while an inspector is deactivated, so the manager can reactivate them
 
     def set_password(self, raw):
         self.password_hash = generate_password_hash(raw)

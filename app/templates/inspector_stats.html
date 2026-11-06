@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ dir }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1f7bd1">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <title data-i18n="s.pageTitle">My stats</title>
+  {% include "partials/i18n_head.html" %}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/inspector-stats.css') }}">
+</head>
+<body>
+  <header class="bar">
+    <a class="bar__back" href="/inspect" data-i18n-attr="aria-label:s.back"><i class="fa-solid fa-arrow-left-long flip" aria-hidden="true"></i></a>
+    <h1 data-i18n="s.pageTitle">My stats</h1>
+    <div data-lang-switcher></div>
+  </header>
+
+  <main class="wrap">
+    <div id="periods" class="seg seg--4" role="tablist" data-i18n-attr="aria-label:s.pageTitle"></div>
+
+    <div class="rangenav">
+      <button id="prev" class="icon-btn" type="button" data-i18n-attr="aria-label:s.prev"><i class="fa-solid fa-chevron-left flip" aria-hidden="true"></i></button>
+      <strong id="rangeLabel" aria-live="polite"></strong>
+      <button id="next" class="icon-btn" type="button" data-i18n-attr="aria-label:s.next"><i class="fa-solid fa-chevron-right flip" aria-hidden="true"></i></button>
+    </div>
+
+    <section class="hero" aria-live="polite">
+      <div class="hero__main">
+        <output id="heroNum" class="hero__num">—</output>
+        <span class="hero__unit" data-i18n="s.fines">fines</span>
+        <p id="heroDelta" class="hero__delta"></p>
+      </div>
+      <div id="goal" class="goal" hidden>
+        <div id="goalRing" class="goal__ring" style="--p:0"><strong id="goalNum">0</strong></div>
+        <span id="goalText" class="goal__text"></span>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="chartTitle">
+      <h2 id="chartTitle" data-i18n="s.chart">Fines over time</h2>
+      <div id="bars" class="bars" role="img"></div>
+      <p id="barTip" class="tip" aria-live="polite"></p>
+    </section>
+
+    <section class="card" aria-labelledby="qualityTitle">
+      <h2 id="qualityTitle" data-i18n="s.quality">How the work went</h2>
+      <dl id="quality" class="quality"></dl>
+    </section>
+
+    <section class="card" aria-labelledby="ridesTitle">
+      <h2 id="ridesTitle" data-i18n="s.rides">Rides</h2>
+      <ul id="rides" class="ridelist"></ul>
+    </section>
+  </main>
+
+  <div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+  {% include "partials/i18n_scripts.html" %}
+  <script src="{{ url_for('static', filename='js/inspector-stats.js') }}"></script>
+</body>
+</html>

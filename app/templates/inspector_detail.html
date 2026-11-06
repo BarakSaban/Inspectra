@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ dir }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title data-i18n="dt.pageTitle">Inspectra — Inspector</title>
+  {% include "partials/admin_head.html" %}
+</head>
+<body>
+  {% include "partials/sidebar.html" %}
+
+  <main class="page">
+    <a class="back" href="/staff"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span data-i18n="dt.back">All staff</span></a>
+    <div class="page__head">
+      <div>
+        <h1 id="name">…</h1>
+        <div class="facts" id="facts"></div>
+      </div>
+      <div class="chips">
+        <button type="button" class="btn btn--quiet" id="resetBtn"><i class="fa-solid fa-key" aria-hidden="true"></i><span data-i18n="st.reset"></span></button>
+      </div>
+    </div>
+
+    <div class="chips no-print" id="periods" role="group" style="margin-bottom:14px"></div>
+
+    <div class="grid grid--stats">
+      <div class="stat"><div class="stat__icon stat__icon--good"><i class="fa-solid fa-receipt" aria-hidden="true"></i></div>
+        <div><div class="stat__value" id="totalFines">—</div><div class="stat__label" data-i18n="dt.total"></div></div></div>
+      <div class="stat"><div class="stat__icon"><i class="fa-solid fa-route" aria-hidden="true"></i></div>
+        <div><div class="stat__value" id="rideCount">—</div><div class="stat__label" data-i18n="dt.rides"></div></div></div>
+      <div class="stat"><div class="stat__icon stat__icon--warn"><i class="fa-solid fa-bullseye" aria-hidden="true"></i></div>
+        <div><div class="stat__value" id="eff">—</div><div class="stat__label" data-i18n="dt.eff"></div><div class="stat__sub" data-i18n="dt.effHint"></div></div></div>
+    </div>
+
+    <div class="grid grid--stats">
+      <div class="stat"><div class="stat__icon"><i class="fa-solid fa-clock" aria-hidden="true"></i></div>
+        <div><div class="stat__value" id="shiftHours">—</div><div class="stat__label" data-i18n="s.q.shift"></div></div></div>
+      <div class="stat"><div class="stat__icon stat__icon--warn"><i class="fa-solid fa-mug-hot" aria-hidden="true"></i></div>
+        <div><div class="stat__value" id="breakHours">—</div><div class="stat__label" data-i18n="s.q.breaks"></div></div></div>
+      <div class="stat"><div class="stat__icon"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i></div>
+        <div><div class="stat__value" id="perHour">—</div><div class="stat__label" data-i18n="s.q.perHour"></div></div></div>
+    </div>
+
+    <div class="split">
+      <section class="card" aria-labelledby="chartTitle">
+        <h2 id="chartTitle" data-i18n="dt.chart"></h2>
+        <div class="bars" id="bars" role="img"></div>
+        <h2 style="margin-top:22px" data-i18n="dt.logs"></h2>
+        <ul class="audit" id="logList"></ul>
+        <h2 style="margin-top:22px" data-i18n="dt.current"></h2>
+        <p id="current" class="hint" style="margin:0"></p>
+      </section>
+      <section class="card" aria-labelledby="runsTitle">
+        <h2 id="runsTitle" data-i18n="dt.runs"></h2>
+        <ul class="runlist" id="runs"></ul>
+      </section>
+    </div>
+  </main>
+
+  {% include "partials/i18n_scripts.html" %}
+  <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+  <script>
+  (() => {
+    const { t } = window.I18n, { esc, toast, api, errorText, openDialog, closeDialog, copy } = window.Admin;
+    const $ = (id) => document.getElementById(id);
+    const id = decodeURIComponent(location.pathname.split('/').filter(Boolean).pop());
+    let data = null;
+    let stats = null;
+    let period = 'week';
+    const PERIODS = ['today', 'week', 'month', 'year'];
+
+    const ago = (s) => (s == null ? '' : s < 60 ? t('ad.ago.s', { n: s }) : s < 3600 ? t('ad.ago.m', { n: Math.round(s / 60) }) : t('ad.ago.h', { n: Math.round(s / 3600) }));
+    const num = (v) => Number(v ?? 0).toLocaleString(window.I18n.lang);
+
+    function render() {
+      if (!data) return;
+      $('name').textContent = data.name;
+      const seen = data.last_seen_seconds == null ? t('ad.seenNever') : t('ad.seen', { ago: ago(data.last_seen_seconds) });
+      $('facts').innerHTML = `<span class="badge badge--${data.state}">${esc(t('ad.state.' + data.state))}</span><span class="ltr">${esc(data.inspector_id)}</span>${data.email ? `<span class="ltr">${esc(data.email)}</span>` : ''}<span>${esc(seen)}</span>`;
+      $('totalFines').textContent = num(data.total_fines);
+      $('rideCount').textContent = num(data.completed_runs);
+      $('eff').textContent = data.efficiency == null ? '—' : `${data.efficiency}%`;
+
+      renderStats();
+
+      const run = data.current_run;
+      $('current').textContent = run ? `${t('st.run.' + run.status)} · ${t('dt.expected', { n: run.potential_fines })}` : t('dt.noCurrent');
+
+    }
+
+    function label(key) {
+      const L = window.I18n.lang;
+      if (stats.range.kind === 'hour') return String(key).padStart(2, '0');
+      if (stats.range.kind === 'month') return new Intl.DateTimeFormat(L, { month: 'short' }).format(new Date(`${key}-15T12:00:00`));
+      const d = new Date(`${key}T12:00:00`);
+      return period === 'week' ? new Intl.DateTimeFormat(L, { weekday: 'short' }).format(d) : String(d.getDate());
+    }
+    const hhmm = (iso) => (iso ? new Date(iso).toLocaleTimeString(window.I18n.lang, { hour: '2-digit', minute: '2-digit' }) : '…');
+    const dayOf = (iso) => new Date(iso).toLocaleDateString(window.I18n.lang, { day: 'numeric', month: 'numeric' });
+
+    function renderStats() {
+      $('periods').innerHTML = PERIODS.map((p) => `<button type="button" class="chip" data-p="${p}" aria-pressed="${p === period}">${esc(t('s.p.' + p))}</button>`).join('');
+      if (!stats) return;
+      const tot = stats.totals;
+      $('totalFines').textContent = num(tot.fines);
+      $('rideCount').textContent = num(tot.rides);
+      $('shiftHours').textContent = t('s.hours', { n: num(tot.shift_hours) });
+      $('breakHours').textContent = t('s.hours', { n: num(tot.break_hours) });
+      $('perHour').textContent = tot.fines_per_hour == null ? '—' : num(tot.fines_per_hour);
+      const max = Math.max(1, ...stats.series.map((b) => b.fines));
+      $('bars').innerHTML = stats.series.map((b, n) => `<div class="${n === stats.series.length - 1 && !stats.offset ? 'is-today' : ''}"><b>${b.fines || ''}</b><i style="height:${Math.round((b.fines / max) * 100)}px"></i><span>${esc(stats.range.kind === 'hour' && n % 3 ? '' : label(b.key))}</span></div>`).join('');
+      $('bars').setAttribute('aria-label', stats.series.map((b) => `${b.key}: ${b.fines}`).join(', '));
+      const logs = [
+        ...(stats.shifts || []).map((x) => ({ at: x.started_at, text: t('dt.log.shift', { day: dayOf(x.started_at), from: hhmm(x.started_at), to: hhmm(x.ended_at) }) })),
+        ...(stats.breaks || []).map((b) => ({ at: b.started_at, text: t('dt.log.break', { day: dayOf(b.started_at), from: hhmm(b.started_at), n: b.planned_minutes + b.extended_minutes, why: b.reason ? t('i.break.r.' + b.reason) : '—' }) })),
+      ].sort((a, b) => (a.at < b.at ? 1 : -1)).slice(0, 12);
+      $('logList').innerHTML = logs.length ? logs.map((l) => `<li><span><bdi>${esc(l.text)}</bdi></span></li>`).join('') : `<li style="color:var(--ink-faint)">${esc(t('dt.noLogs'))}</li>`;
+      $('runs').innerHTML = stats.rides.length ? stats.rides.map((r) => `<li>
+          <span class="route-badge">${esc(r.route_num || '·')}</span>
+          <span class="runlist__main"><span>${r.destination ? `<bdi>${esc(r.destination)}</bdi>` : esc(t('s.line', { line: r.route_num || '?' }))}</span>
+            <small>${r.stop_name ? `<bdi>${esc(r.stop_name)}</bdi> · ` : ''}${esc(dayOf(r.finished_at))} ${esc(hhmm(r.finished_at))}</small></span>
+          <span class="runlist__fines">${esc(t('s.fines.n', { n: r.fines }))}</span></li>`).join('')
+        : `<li style="justify-content:center;color:var(--ink-faint)">${esc(t('s.noRides'))}</li>`;
+    }
+
+    async function loadStats() {
+      const r = await api(`/api/inspector/${encodeURIComponent(id)}/stats?period=${period}`);
+      if (r.ok) { stats = r.data; renderStats(); }
+    }
+    $('periods').addEventListener('click', (e) => { const b = e.target.closest('[data-p]'); if (b) { period = b.dataset.p; loadStats(); } });
+
+    async function load() {
+      const r = await api(`/api/inspector/${encodeURIComponent(id)}/detail`);
+      if (!r.ok) { $('name').textContent = t('dt.notFound'); toast(errorText(r), 'error'); return; }
+      data = r.data;
+      render();
+      loadStats();
+    }
+
+    $('resetBtn').addEventListener('click', async () => {
+      const ok = await window.Admin.confirmDialog({ title: t('st.resetTitle', { name: data?.name || id }), text: t('st.resetText'), okKey: 'st.resetOk', danger: false });
+      if (!ok) return;
+      const r = await api(`/api/inspector/${encodeURIComponent(id)}/reset_password`, { method: 'POST' });
+      if (!r.ok) { toast(errorText(r), 'error'); return; }
+      const dlg = openDialog(`<h3>${esc(t('st.resetDone', { name: data?.name || id }))}</h3><div class="pw"><span class="ltr">${esc(r.data.temporary_password)}</span>
+        <button type="button" class="btn btn--quiet btn--small" data-act="copy">${esc(t('c.copy'))}</button></div>
+        <div class="dialog__actions"><button type="button" class="btn" data-act="close">${esc(t('c.close'))}</button></div>`);
+      dlg.addEventListener('click', (e) => { const a = e.target.closest('[data-act]')?.dataset.act; if (a === 'copy') copy(r.data.temporary_password); if (a === 'close') closeDialog(); });
+    });
+
+    document.addEventListener('langchange', () => { render(); renderStats(); });
+    load();
+    window.Admin.onLive(load);
+    setInterval(() => { if (!document.hidden) load(); }, 30000);
+  })();
+  </script>
+</body>
+</html>

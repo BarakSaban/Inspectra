@@ -125,13 +125,8 @@ def stops_within_radius(lat, lon, stop_lookup, radius_m):
     return sorted(nearby, key=lambda item: item[2])
 
 
-def get_live_trip_options(lat, lon, gtfs, radius_m=666):
-    """All valid upcoming live options near (lat, lon), soonest first. Stops are queried in parallel."""
-    stops = stops_within_radius(lat, lon, gtfs.stop_lookup, radius_m)
-    if not stops:
-        logger.info("No GTFS stops within SIRI search radius %.1fm", float(radius_m))
-        return []
-
+def _fetch_stop_visits(stops):
+    """[(stop_id, stop_code, distance_m, visits)] for the stops, queried in parallel within the request budget."""
     pool = ThreadPoolExecutor(max_workers=max(1, min(config.SIRI_MAX_PARALLEL_FETCHES, len(stops))))
     futures = [pool.submit(fetch_live_stop_visits, stop_code) for _stop_id, stop_code, _distance in stops]
     done, pending = wait(futures, timeout=config.SIRI_REQUEST_BUDGET_SECONDS)
@@ -140,9 +135,22 @@ def get_live_trip_options(lat, lon, gtfs, radius_m=666):
         logger.warning("SIRI: %s of %s stops did not answer within %.1fs; continuing without them",
                        len(pending), len(futures), config.SIRI_REQUEST_BUDGET_SECONDS)
 
-    options, visits_received = [], 0
-    for (stop_id, _stop_code, _distance), future in zip(stops, futures):
+    results = []
+    for (stop_id, stop_code, distance), future in zip(stops, futures):
         visits = future.result() if future in done and future.exception() is None else []
+        results.append((stop_id, stop_code, distance, visits))
+    return results
+
+
+def get_live_trip_options(lat, lon, gtfs, radius_m=666):
+    """All valid upcoming live options near (lat, lon), soonest first. Stops are queried in parallel."""
+    stops = stops_within_radius(lat, lon, gtfs.stop_lookup, radius_m)
+    if not stops:
+        logger.info("No GTFS stops within SIRI search radius %.1fm", float(radius_m))
+        return []
+
+    options, visits_received = [], 0
+    for stop_id, _stop_code, _distance, visits in _fetch_stop_visits(stops):
         visits_received += len(visits)
         for visit in visits:
             option = build_live_trip_option(visit, stop_id, gtfs)
@@ -152,3 +160,44 @@ def get_live_trip_options(lat, lon, gtfs, radius_m=666):
     options.sort(key=lambda option: option["minutes_until_arrival"])
     logger.info("SIRI: %s nearby stops, %s visits, %s matched to GTFS and upcoming", len(stops), visits_received, len(options))
     return options
+
+
+def _arrival_instant(visit):
+    """The visit's expected arrival as an unambiguous UTC ISO string (the raw SIRI string may be zone-less)."""
+    arrival_dt = visit.get("arrival_dt") or parse_iso_datetime(visit.get("expected_arrival_time"))
+    return arrival_dt.astimezone(timezone.utc).isoformat() if arrival_dt else None
+
+
+def list_live_arrivals(lat, lon, gtfs, radius_m=666, limit=30):
+    """
+    Lightweight live arrivals board near (lat, lon), soonest first: one row per upcoming bus at a nearby stop,
+    with the bus position/bearing/speed for the map. Unlike `get_live_trip_options` it carries no shape/stop
+    geometry, so it is cheap to poll.
+    """
+    stops = stops_within_radius(lat, lon, gtfs.stop_lookup, radius_m)
+    arrivals = []
+    for stop_id, stop_code, distance, visits in _fetch_stop_visits(stops) if stops else []:
+        stop_props = (gtfs.stop_lookup.get(stop_id) or {}).get("properties") or {}
+        for visit in visits:
+            option = build_live_trip_option(visit, stop_id, gtfs)
+            if option is None or option["minutes_until_arrival"] <= 0:
+                continue
+            arrivals.append({
+                "route_id": option["route_id"],
+                "route_num": option["route_num"],
+                "destination": option["destination"],
+                "stop_id": stop_id,
+                "stop_code": stop_code,
+                "stop_name": stop_props.get("stop_name"),
+                "stop_distance_m": round(distance),
+                "arrival_time": option["arrival_time"],
+                "arrival_at": _arrival_instant(visit),
+                "minutes_until_arrival": option["minutes_until_arrival"],
+                "vehicle_ref": option["vehicle_ref"],
+                "vehicle_location": option["vehicle_location"],
+                "bearing": visit.get("bearing"),
+                "velocity": visit.get("velocity"),
+                "is_live": True,
+            })
+    arrivals.sort(key=lambda arrival: arrival["minutes_until_arrival"])
+    return arrivals[:max(1, int(limit))]

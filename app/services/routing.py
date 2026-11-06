@@ -153,6 +153,15 @@ class RoutingEngine:
         ride = ride[ride > 0]
         return round(float(ride.median()), 1) if not ride.empty else None
 
+    def estimate_potential_fines(self, route_id, stop_id, fallback_minutes=0):
+        """Expected fines for boarding `route_id` at `stop_id` now (0 when nothing can be fined)."""
+        ride = self.estimate_ride_minutes(route_id, stop_id)
+        minutes = ride if ride is not None else float(fallback_minutes or 0)
+        avg_dont_pay = self.gtfs.dontpay(route_id, now_israel().hour)
+        if minutes <= 0 or avg_dont_pay is None:
+            return 0
+        return max(0, min(int(minutes // MINUTES_PER_FINE), int(avg_dont_pay)))
+
     def _score_option(self, row, time_on_board, route_id, walk_time, arrival_time):
         """A scored option, or None when nothing can be fined (no time on board, unknown or zero DontPay)."""
         if time_on_board <= 0:
@@ -259,13 +268,19 @@ class RoutingEngine:
     # --------------------------
     # Public API
     # --------------------------
-    def find_best_fine_trip(self, inspector, buffer_minutes=3, radius_m=666, max_walk_minutes=8, live_options=None):
-        """Best trip for fines potential. A scored live bus beats any timetable-only trip; static is the fallback."""
+    def find_best_fine_trip(self, inspector, buffer_minutes=3, radius_m=666, max_walk_minutes=8, live_options=None, exclude=None):
+        """
+        Best trip for fines potential. A scored live bus beats any timetable-only trip; static is the fallback.
+        `exclude` is a set of (route_id, stop_id) string pairs the inspector already declined.
+        """
         if not inspector.available:
             logger.info("Inspector %s unavailable", inspector.inspector_id)
             return None
 
         scored = self._score_candidates(inspector, buffer_minutes, radius_m, max_walk_minutes, live_options)
+        if exclude:
+            scored = [(identity, option) for identity, option in scored
+                      if (str(option.get('route_id')), str(option.get('stop_id'))) not in exclude]
         if not scored:
             logger.info("No fine-able trips for inspector at (%s, %s)", inspector.lat, inspector.lon)
             return None

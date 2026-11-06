@@ -1,173 +1,34 @@
-{# Top navigation bar. Included by the admin pages; `user` and `request` come from the page context. #}
-<nav class="inspectra-topbar">
-  <div class="nav-content">
-    <!-- LEFT: Logo + Greeting -->
-    <div class="nav-logo" style="display:flex; align-items:center; gap:12px;">
-      <img src="/static/img/INSPECTRA_NEW.png" alt="Inspectra Logo" class="logo-img" />
-      <span id="userGreeting" style="font-weight:600; color:#334155; font-size:0.95rem;">{% set display_name = ((user.full_name or user.username or "").split() or [""])[0] if user else "" %}{% if display_name %}Hi, {{ user.role }} {{ display_name }}{% else %}Hi!{% endif %}</span>
-    </div>
-
-    <!-- CENTER: Navigation -->
-    <ul class="nav-menu">
-      <li>
-        <a href="/analytics" id="analyticsLink" class="nav-link{% if request.path.startswith('/analytics') %} active{% endif %}">
-          <i class="fas fa-chart-line"></i>
-          <span>Analytics</span>
-        </a>
-      </li>
-      <li>
-        <a href="/admin" id="adminLink" class="nav-link{% if request.path.startswith('/admin') %} active{% endif %}">
-          <i class="fas fa-tachometer-alt"></i>
-          <span>Overview</span>
-        </a>
-      </li>
-      <li>
-        <a href="/staff" id="staffLink" class="nav-link{% if request.path.startswith('/staff') %} active{% endif %}">
-          <i class="fas fa-users"></i>
-          <span>Staff Management</span>
-        </a>
-      </li>
-      <li>
-        <a href="/profile" id="profileLink" class="nav-link{% if request.path.startswith('/profile') %} active{% endif %}">
-          <i class="fas fa-user-circle"></i>
-          <span>Profile</span>
-        </a>
-      </li>
-      <li>
-        <a href="/logout" id="logoutLink" class="nav-link">
-          <i class="fas fa-sign-out-alt"></i>
-          <span>Log Out</span>
-        </a>
-      </li>
+{# Top navigation. Needs `user` and `request`; links depend on the role. Styles live in css/admin.css. #}
+{% set is_admin = user and user.role == 'admin' %}
+{% set first_name = ((user.full_name or user.username or "").split() or [""])[0] if user else "" %}
+<header class="topbar">
+  <div class="topbar__in">
+    <a class="brand" href="/" aria-label="Inspectra"><img src="{{ url_for('static', filename='img/inspectra-mark.png') }}" alt="" width="44" height="44"></a>
+    {% if first_name %}<span class="greet"><span data-i18n="n.hi"></span> <bdi>{{ first_name }}</bdi></span>{% endif %}
+    <button type="button" class="burger" id="navToggle" aria-expanded="false" aria-controls="mainNav" data-i18n-attr="aria-label:n.menu">
+      <i class="fa-solid fa-bars" aria-hidden="true"></i>
+    </button>
+    <ul class="nav" id="mainNav">
+      {% if is_admin %}
+      <li><a href="/analytics"{% if request.path.startswith('/analytics') %} aria-current="page"{% endif %}><i class="fa-solid fa-chart-line" aria-hidden="true"></i><span data-i18n="n.analytics"></span></a></li>
+      <li><a href="/admin"{% if request.path.startswith('/admin') %} aria-current="page"{% endif %}><i class="fa-solid fa-gauge-high" aria-hidden="true"></i><span data-i18n="n.overview"></span></a></li>
+      <li><a href="/staff"{% if request.path.startswith('/staff') %} aria-current="page"{% endif %}><i class="fa-solid fa-users" aria-hidden="true"></i><span data-i18n="n.staff"></span></a></li>
+      {% else %}
+      <li><a href="/inspect"><i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i><span data-i18n="n.field"></span></a></li>
+      {% endif %}
+      <li><a href="/profile"{% if request.path.startswith('/profile') %} aria-current="page"{% endif %}><i class="fa-solid fa-circle-user" aria-hidden="true"></i><span data-i18n="n.profile"></span></a></li>
+      <li><a href="/logout"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i><span data-i18n="n.logout"></span></a></li>
     </ul>
+    <button type="button" class="themebtn" id="themeToggle" data-i18n-attr="aria-label:n.theme; title:n.theme"><i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i></button>
+    <div data-lang-switcher></div>
   </div>
+</header>
+{% if is_admin %}
+{# Phones: the four places a manager goes, always under the thumb. The desktop top bar stays as it is. #}
+<nav class="tabbar" aria-label="Inspectra">
+  <a href="/admin"{% if request.path.startswith('/admin') %} aria-current="page"{% endif %}><i class="fa-solid fa-gauge-high" aria-hidden="true"></i><span data-i18n="n.overview"></span></a>
+  <a href="/staff"{% if request.path.startswith('/staff') %} aria-current="page"{% endif %}><i class="fa-solid fa-users" aria-hidden="true"></i><span data-i18n="n.staff"></span></a>
+  <a href="/analytics"{% if request.path.startswith('/analytics') %} aria-current="page"{% endif %}><i class="fa-solid fa-chart-line" aria-hidden="true"></i><span data-i18n="n.analytics"></span></a>
+  <button type="button" id="tabMore" aria-expanded="false" aria-controls="mainNav"><i class="fa-solid fa-ellipsis" aria-hidden="true"></i><span data-i18n="n.more"></span></button>
 </nav>
-
-<link
-  rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-/>
-
-<style>
-  .inspectra-topbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background: rgba(255, 255, 255, 0.96);
-    backdrop-filter: blur(12px);
-    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.1);
-    z-index: 1200;
-  }
-
-  .nav-content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    padding: 10px 24px;
-  }
-
-  .nav-logo {
-    position: absolute;
-    left: 24px;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-
-  .logo-img {
-    height: 44px;
-    object-fit: contain;
-  }
-
-  .nav-menu {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 2.5rem;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .nav-link {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #334155;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.95rem;
-    padding: 8px 16px;
-    border-radius: 30px;
-    transition: all 0.25s ease;
-  }
-
-  .nav-link:hover,
-  .nav-link.active {
-    background-color: rgba(31, 123, 209, 0.1);
-    color: #1f7bd1;
-    transform: translateY(-1px);
-  }
-
-  .nav-link i {
-    color: #1f7bd1;
-    font-size: 1rem;
-  }
-
-  .nav-user {
-    position: absolute;
-    right: 24px;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-
-  .user-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-    background-color: #1f7bd1;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 999px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: background 0.25s ease;
-  }
-
-  .user-btn:hover {
-    background-color: #1667b8;
-  }
-
-  .user-btn small {
-    font-weight: 400;
-    font-size: 0.75rem;
-    color: #D0E6FF;
-    line-height: 1.1;
-    display: block;
-    transition: opacity 0.2s ease;
-  }
-
-  @media (max-width: 600px) {
-    .nav-content {
-      flex-direction: column;
-    }
-
-    .nav-logo,
-    .nav-user {
-      position: static;
-      transform: none;
-      margin-bottom: 8px;
-    }
-
-    .nav-menu {
-      flex-direction: column;
-      gap: 0.8rem;
-    }
-
-    .logo-img {
-      height: 36px;
-    }
-  }
-</style>
+{% endif %}
