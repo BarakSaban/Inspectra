@@ -19,9 +19,11 @@ const LOCAL_ASSETS = [
   '/static/img/inspectra-logo.png', '/static/img/inspectra-mark.png', '/static/img/icon-192.png',
 ];
 const CDN_ASSETS = [
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css',
+  '/static/vendor/leaflet/leaflet.css' + V,
+  '/static/vendor/leaflet/leaflet.js' + V,
+  '/static/vendor/fontawesome/css/all.min.css' + V,
+  '/static/vendor/fontawesome/webfonts/fa-solid-900.woff2',
+  '/static/vendor/fontawesome/webfonts/fa-regular-400.woff2',
 ];
 
 self.addEventListener('install', (event) => {
@@ -94,7 +96,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   const cacheable = url.origin === location.origin ? url.pathname.startsWith('/static/')
-    : /(unpkg\.com|cdnjs\.cloudflare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)$/.test(url.hostname);
+    : /(fonts\.googleapis\.com|fonts\.gstatic\.com)$/.test(url.hostname);
   if (!cacheable) return;
   event.respondWith((async () => {
     const cache = await caches.open(SHELL);

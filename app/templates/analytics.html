@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title data-i18n="an.pageTitle">Inspectra — Analytics</title>
   {% include "partials/admin_head.html" %}
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}?v={{ build_id }}">
+  <script src="{{ url_for('static', filename='vendor/chart.umd.min.js') }}?v={{ build_id }}"></script>
 </head>
 <body>
   {% include "partials/sidebar.html" %}
@@ -95,7 +95,7 @@
 
   {% include "partials/i18n_scripts.html" %}
   <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}?v={{ build_id }}"></script>
   <script>
   (() => {
     const { t } = window.I18n, { esc, toast, api, errorText } = window.Admin;

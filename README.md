@@ -62,23 +62,52 @@ cp .env.example .env               # then edit it (at least INSPECTRA_SECRET and
 python run.py                      # http://localhost:5000  (log in as `admin`)
 ```
 
-The first start creates `inspectra.db`, an `admin` account and (for an empty database) demo inspectors.
+The first start creates `inspectra.db` and an `admin` account. If `INSPECTRA_ADMIN_PW` is not set, a random password is
+generated and printed once in the log; with `INSPECTRA_DEBUG=1` the old default is used for convenience. A signing key
+for the session cookie is generated into `.secret_key` unless `INSPECTRA_SECRET` is set.
 Configuration is documented in [`.env.example`](.env.example). The first live recommendation downloads the street
 network for the area from OpenStreetMap and caches it in `cache/`.
 
 ## Tests
 
 ```bash
-python -m unittest discover -s tests -t .
+pip install -r requirements-dev.txt
+python -m pytest -q
 ```
 
 The suite needs no network: SIRI and OpenStreetMap are simulated. `tests/helpers.py` has the shared fixtures
 (a tiny GTFS feed, an in-memory database per test). Lint with `ruff check app tools tests run.py` (settings in
-`pyproject.toml`). The same two commands run in CI (`.github/workflows/ci.yml`).
+`pyproject.toml`). CI (`.github/workflows/ci.yml`) runs lint, the tests with coverage and a dependency audit on pull
+requests and on `main`.
 
 For production use a real WSGI server instead of `python run.py`, for example `gunicorn run:app` (Linux) or
 `waitress-serve run:app` (Windows), set `INSPECTRA_SECRET` and `INSPECTRA_ADMIN_PW`, and keep the default
 `INSPECTRA_DEBUG=0`. Login rate limiting is per process (see `app/utils/ratelimit.py`).
+
+## Accounts and security
+
+- **Managers** can register at `/signup`, but cannot sign in until the owner (the `admin` account) approves them under
+  *Staff → Manager requests*. **Inspectors** join with their manager's code, or are added by the manager.
+- Passwords need 8 characters or more. A temporary password (new inspector, reset) must be replaced at the first sign-in,
+  and changing a password asks for the current one and signs out every other device.
+- Every write request must come from the same site (Origin check), responses carry a content-security-policy and other
+  protective headers, and `/api/*` is never cached. Logging out is a POST.
+- The invite code can be replaced in the invite dialog; the old code stops working at once.
+- Behind a reverse proxy set `INSPECTRA_TRUST_PROXY=1` so the client address (used by the login rate limit) is correct.
+- Third-party scripts, styles and icons are vendored in `app/static/vendor/`; only the map tiles (OpenStreetMap) and the
+  Google Fonts stylesheet are loaded from outside.
+
+## Push notifications (optional)
+
+Phones can be woken for a new offer or the end of a break even when the app is closed. Create a key pair once:
+
+```bash
+python -m tools.vapid
+```
+
+and put `INSPECTRA_VAPID_PUBLIC_KEY`, `INSPECTRA_VAPID_PRIVATE_KEY` and `INSPECTRA_VAPID_SUBJECT` (a `mailto:` address) in
+`.env`. Inspectors then see an *Alerts when the app is closed* switch in the field app's settings. Push needs HTTPS or
+localhost. Without keys the switch is hidden and the app keeps its in-page sound and vibration.
 
 ## Inviting inspectors
 
@@ -129,9 +158,12 @@ visits fall back to matching by public bus number.
 | `POST /api/admin/runs/<id>/cancel` | admin | takes back an offer or stops a ride of an own inspector |
 | `GET /api/inspector/<id>/detail` | admin | state, totals, efficiency, fines per day and recent rides of one inspector (page: `/staff/<id>`) |
 | `GET /api/staff/deactivated`, `POST /api/inspector/<id>/reactivate` | admin | removed inspectors who have history, and bringing one back |
-| `GET/PUT /api/team/settings` | admin | safety buffer (0-30 min), search radius (100-2000 m), max walk (1-20 min), longest break (15-180 min, default 90); used by assignment. Edited on the *Manage team* page (`/staff`), `/settings` redirects there |
+| `GET/PUT /api/team/settings` | admin | safety buffer (0-30 min), search radius (100-2000 m), max walk (1-20 min), longest break (15-180 min, default 90); used by assignment. Edited on the *Staff* page (`/staff`) |
 | `GET /api/audit?limit=` | admin | log of sensitive manager actions (password resets, removals, assignments, settings, bulk changes) |
-| `POST /api/staff/bulk` | admin | `{action: online\|offline, inspector_ids: [...]}`; only the manager's own inspectors are touched |
+| `POST /api/staff/bulk` | admin | `{action: online\|offline\|deactivate, inspector_ids: [...]}`; only the manager's own inspectors are touched |
+| `GET /api/approvals`, `POST /api/approvals/<username>/approve\|reject` | owner | manager sign-ups waiting for approval |
+| `POST /api/admin/code/rotate` | admin | replaces the manager (invite) code |
+| `GET /api/push/key`, `POST /api/push/subscribe\|unsubscribe` | logged in | Web Push set-up for the field app |
 | `GET /api/analytics/insights?start&end` | admin | fines vs the previous period of equal length, top stops (with coordinates for the hotspot map) and top lines |
 | `GET /api/events` | any signed-in user | Server-Sent Events: sends `change` when the user's data changes so pages refresh at once; polling remains as the fallback |
 | `GET /api/me/stats?period=today\|week\|month\|year&offset=` | inspector | totals, change vs the previous period, bucketed series, best hour, streak, shift and break hours, rides (page: `/inspect/stats`) |
@@ -149,7 +181,7 @@ The inspector page is a PWA: open `/inspect` on a phone and use *Install* in Set
 
 ## Manager conveniences
 
-The manager pages have a light/dark toggle (remembered in the browser), a QR code in the invite dialog (loaded from a CDN on demand; the code and link work without it), bulk online/offline on the staff table, editable team settings, an audit log, and a printable analytics report (Print button). `/api/events` holds a connection open for up to 55 s per request, so run the app with a threaded server (for example gunicorn `--worker-class gthread`); with a single sync worker the pages simply fall back to polling.
+The manager pages have a light/dark toggle (remembered in the browser), a QR code in the invite dialog, bulk online/offline/deactivate/export on the staff table, edit, deactivate and CSV on a person's page, editable team settings, an audit log, and a printable analytics report (Print button). `/api/events` holds a connection open for up to 55 s per request, so run the app with a threaded server (for example gunicorn `--worker-class gthread`); with a single sync worker the pages simply fall back to polling.
 
 ## Real data only
 
@@ -157,7 +189,7 @@ A fresh database contains just the `admin` account: no demo inspectors, runs or 
 
 ## Breaks, shifts and stats
 
-An inspector picks any break length from 5 minutes up to the cap the manager sets under *Manage team* (default 90), with a reason (lunch, rest, other). When the time is up the phone alerts and the inspector is available again; +10 minutes extends it within the cap. Every shift (from going available until offline or the phone going dark) and every break is logged, so hours are measured and never inflated: an unfinished shift is closed at the last time the phone was heard. The inspector sees only the map, the swipe and the lines on the main page; numbers over time live on `/inspect/stats`. The manager's dashboard opens with an attention strip, four key numbers and the live map; on phones it has a bottom tab bar. The manager's view of one inspector reuses the same stats and adds the shift and break logs, and Analytics adds date presets and an hours-and-breaks table per inspector.
+An inspector picks any break length from 5 minutes up to the cap the manager sets under *Staff* (default 90), with a reason (lunch, rest, other). When the time is up the phone alerts and the inspector is available again; +10 minutes extends it within the cap. Every shift (from going available until offline or the phone going dark) and every break is logged, so hours are measured and never inflated: an unfinished shift is closed at the last time the phone was heard. The inspector sees only the map, the swipe and the lines on the main page; numbers over time live on `/inspect/stats`. The manager's dashboard opens with an attention strip, four key numbers and the live map; on phones it has a bottom tab bar. The manager's view of one inspector reuses the same stats and adds the shift and break logs, and Analytics adds date presets and an hours-and-breaks table per inspector.
 
 ## Demo accounts
 

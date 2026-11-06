@@ -128,7 +128,7 @@
     if (window.QRCode) return Promise.resolve();
     qrLoading = qrLoading || new Promise((resolve, reject) => {
       const s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+      s.src = '/static/vendor/qrcode.min.js';
       s.onload = resolve; s.onerror = () => { qrLoading = null; reject(new Error('qr')); };
       document.head.appendChild(s);
     });

@@ -8,7 +8,7 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <title data-i18n="s.pageTitle">My stats</title>
   {% include "partials/i18n_head.html" %}
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/fontawesome/css/all.min.css') }}?v={{ build_id }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/inspector-stats.css') }}?v={{ build_id }}">
 </head>
 <body>
