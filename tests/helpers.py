@@ -12,11 +12,10 @@ import app.services.siri as siri
 from app import create_app
 from app.extensions import db
 from app.models import Inspector, User
-from app.utils.clock import now_local
 from app.services.gtfs import DONTPAY_SLOTS, GtfsData
 from app.services.routing import RoutingEngine
 from app.services.walking import WalkingNetwork
-from app.utils.clock import now_israel
+from app.utils.clock import now_israel, now_local
 from app.utils.ratelimit import login_limiter
 
 # Password hashing is deliberately slow; every fixture user shares one hash of "pw123456" computed once.

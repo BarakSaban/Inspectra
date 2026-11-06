@@ -116,7 +116,8 @@ def inspect_stats_page():
 @views_bp.route('/manifest.webmanifest')
 def manifest():
     from flask import jsonify
-    icon = lambda name, size, purpose='any': {"src": url_for('static', filename=f'img/{name}'), "sizes": f"{size}x{size}", "type": "image/png", "purpose": purpose}
+    def icon(name, size, purpose='any'):
+        return {"src": url_for('static', filename=f'img/{name}'), "sizes": f"{size}x{size}", "type": "image/png", "purpose": purpose}
     response = jsonify({
         "name": "Inspectra Field", "short_name": "Inspectra", "id": "/inspect", "start_url": "/inspect", "scope": "/",
         "display": "standalone", "lang": "he", "dir": "auto", "categories": ["navigation", "productivity"],
@@ -132,6 +133,7 @@ def manifest():
 def service_worker():
     """Served from the root so it can control every page; never cached so a new version is picked up at once."""
     from flask import Response, current_app
+
     from app import _build_id
     source = (Path(current_app.static_folder) / 'sw.js').read_text(encoding='utf-8').replace('__BUILD__', _build_id())
     response = Response(source, mimetype='application/javascript')

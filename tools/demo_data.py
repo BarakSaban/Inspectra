@@ -14,7 +14,8 @@ import argparse
 import random
 import sys
 import time
-from datetime import datetime, time as dtime, timedelta
+from datetime import datetime, timedelta
+from datetime import time as dtime
 
 from app import create_app
 from app.extensions import db

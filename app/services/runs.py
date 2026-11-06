@@ -41,7 +41,7 @@ def create_run(message="this inspector already has an active run", **fields):
         with db.session.begin_nested():
             db.session.add(run)
     except IntegrityError:
-        raise RunError(message, 409)
+        raise RunError(message, 409) from None
     return run
 
 
@@ -173,7 +173,7 @@ def set_break(inspector, minutes=None, reason=None, extend=None):
         try:
             extend = int(extend)
         except (TypeError, ValueError):
-            raise RunError("break_extend must be a number")
+            raise RunError("break_extend must be a number") from None
         log = shifts.current_break(iid)
         if inspector.break_until is None or log is None:     # (a break that just ran out can still be lengthened until the phone returns to work)
             raise RunError("you are not on a break", 409)
@@ -189,7 +189,7 @@ def set_break(inspector, minutes=None, reason=None, extend=None):
     try:
         minutes = int(minutes)
     except (TypeError, ValueError):
-        raise RunError("break_minutes must be a number")
+        raise RunError("break_minutes must be a number") from None
     if minutes == 0:
         inspector.break_until = None
         inspector.available = True

@@ -4,12 +4,12 @@ from flask import Blueprint, jsonify, session
 
 from app.extensions import db
 from app.models import Inspector, InspectorRun
-from app.services.inspectors import get_admin_inspector_users, get_inspector_ids, is_connected
 from app.services import push as push_service
+from app.services.inspectors import get_admin_inspector_users, get_inspector_ids, is_connected
 from app.services.recommendations import fetch_live_options
 from app.services.routing import InspectorLocation, get_engine
-from app.services.team import audit, get_settings
 from app.services.runs import ACTIVE_STATUSES, RunError, create_run
+from app.services.team import audit, get_settings
 from app.utils.auth import admin_required_api
 from app.utils.clock import now_local
 

@@ -9,12 +9,17 @@ from app.services import push as push_service
 from app.services import runs as run_service
 from app.services.activity import inspector_detail, recent_activity
 from app.services.inspectors import (
-    STALE_POSITION_SECONDS, find_owned_inspector, get_admin_inspector_users, get_inspector_ids, inspector_state, seconds_since,
+    STALE_POSITION_SECONDS,
+    find_owned_inspector,
+    get_admin_inspector_users,
+    get_inspector_ids,
+    inspector_state,
+    seconds_since,
 )
 from app.services.live_trips import get_live_trip_options
 from app.services.recommendations import describe_run
-from app.services.team import audit, get_settings, recent_audit, update_settings
 from app.services.routing import get_engine
+from app.services.team import audit, get_settings, recent_audit, update_settings
 from app.utils.auth import admin_required_api
 from app.utils.clock import now_local
 from app.utils.serialization import to_serializable

@@ -10,8 +10,8 @@ from app.services.inspectors import (
     get_admin_inspector_users,
     get_inspector_ids,
     get_inspectors_by_id,
-    is_connected,
     inspector_state,
+    is_connected,
     seconds_since,
 )
 from app.services.runs import ACTIVE_STATUSES

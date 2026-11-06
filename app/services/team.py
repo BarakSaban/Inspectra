@@ -22,7 +22,7 @@ def update_settings(admin_code, values):
         try:
             number = int(values[key])
         except (TypeError, ValueError):
-            raise ValueError(f"{key} must be a number")
+            raise ValueError(f"{key} must be a number") from None
         if not low <= number <= high:
             raise ValueError(f"{key} must be between {low} and {high}")
         clean[key] = number

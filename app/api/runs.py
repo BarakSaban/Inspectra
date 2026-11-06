@@ -6,8 +6,8 @@ from flask import Blueprint, jsonify, request
 from app.extensions import db
 from app.models import Inspector, InspectorRun
 from app.services import runs, shifts
-from app.services.stats import inspector_stats
 from app.services.recommendations import describe_run
+from app.services.stats import inspector_stats
 from app.utils.auth import current_inspector_id, inspector_required_api
 from app.utils.clock import now_local
 from app.utils.serialization import to_serializable

@@ -274,8 +274,8 @@ def api_analytics_people():
             return jsonify({"people": []})
 
         from app.models import BreakLog, ShiftLog
-        from app.services.stats import _bounds, _overlap_hours
         from app.services.shifts import reconcile
+        from app.services.stats import _bounds, _overlap_hours
         lo, hi = _bounds(start, end)
         now = now_local()
         people = get_inspectors_by_id(ids)

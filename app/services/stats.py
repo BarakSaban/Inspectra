@@ -147,7 +147,8 @@ def inspector_logs(inspector_id, period="week", offset=0):
     """The raw shifts and breaks of a period (for the manager's view of one inspector)."""
     start, end, _ = period_range(period, max(0, min(int(offset), MAX_OFFSET)))
     lo, hi = _bounds(start, end)
-    iso = lambda v: v.isoformat() if v else None
+    def iso(v):
+        return v.isoformat() if v else None
     shifts = ShiftLog.query.filter(ShiftLog.inspector_id == inspector_id, ShiftLog.started_at < hi).filter(
         (ShiftLog.ended_at.is_(None)) | (ShiftLog.ended_at > lo)).order_by(ShiftLog.started_at.desc()).limit(30).all()
     breaks = BreakLog.query.filter(BreakLog.inspector_id == inspector_id, BreakLog.started_at < hi).filter(

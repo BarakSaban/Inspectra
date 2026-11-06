@@ -110,8 +110,8 @@ def _register_blueprints(app):
     from app.api.analytics import analytics_api
     from app.api.approvals import approvals_api
     from app.api.assignments import assignments_api
-    from app.api.events import events_api
     from app.api.auth import auth_api
+    from app.api.events import events_api
     from app.api.inspectors import inspectors_api
     from app.api.profile import profile_api
     from app.api.push import push_api

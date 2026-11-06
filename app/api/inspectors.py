@@ -6,7 +6,7 @@ from app.extensions import db
 from app.models import Fine, Inspector, InspectorRun, User
 from app.services.inspectors import find_owned_inspector
 from app.services.team import audit
-from app.utils.auth import admin_required_api, generate_temp_password, clean_text
+from app.utils.auth import admin_required_api, clean_text, generate_temp_password
 
 logger = logging.getLogger(__name__)
 
