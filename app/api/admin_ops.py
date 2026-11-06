@@ -257,18 +257,22 @@ def audit_log():
 @admin_ops_api.route('/api/staff/bulk', methods=['POST'])
 @admin_required_api
 def bulk_staff():
-    """Take several of the manager's inspectors online or offline at once."""
+    """Take several of the manager's inspectors online or offline, or deactivate them, at once."""
     code = session.get('admin_code')
     body = request.get_json(silent=True) or {}
     action, ids = body.get("action"), body.get("inspector_ids")
-    if action not in ("online", "offline") or not isinstance(ids, list) or not ids or len(ids) > 200:
-        return jsonify({"error": "action must be online or offline, with a list of inspector_ids"}), 400
-    own = set(get_inspector_ids(get_admin_inspector_users(code)))
-    chosen = [i for i in ids if i in own]
+    if action not in ("online", "offline", "deactivate") or not isinstance(ids, list) or not ids or len(ids) > 200:
+        return jsonify({"error": "action must be online, offline or deactivate, with a list of inspector_ids"}), 400
+    users = {u.inspector_id: u for u in get_admin_inspector_users(code)}
+    chosen = [i for i in ids if isinstance(i, str) and i in users]
     changed = 0
     for inspector in Inspector.query.filter(Inspector.inspector_id.in_(chosen)).all() if chosen else []:
         inspector.available = action == "online"
         inspector.break_until = None
+        if action == "deactivate":
+            user = users[inspector.inspector_id]
+            user.former_manager_code, user.manager_code = user.manager_code, None
+            user.end_sessions()
         changed += 1
     db.session.commit()
     if changed:

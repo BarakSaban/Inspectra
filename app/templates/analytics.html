@@ -108,8 +108,21 @@
 
     const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     const today = new Date();
-    $('endDate').value = iso(today);
-    $('startDate').value = iso(new Date(today.getFullYear(), today.getMonth(), today.getDate() - 89));
+    // The range lives in the address, so a link or a refresh shows the same view.
+    const fromUrl = new URLSearchParams(location.search);
+    const validDay = (v) => /^\d{4}-\d{2}-\d{2}$/.test(v || '');
+    $('endDate').value = validDay(fromUrl.get('end')) ? fromUrl.get('end') : iso(today);
+    $('startDate').value = validDay(fromUrl.get('start')) ? fromUrl.get('start') : iso(new Date(today.getFullYear(), today.getMonth(), today.getDate() - 89));
+    if (['day', 'month', 'quarter', 'year'].includes(fromUrl.get('granularity'))) $('granularity').value = fromUrl.get('granularity');
+    function markPreset() {
+      const end = $('endDate').value === iso(today);
+      const days = Math.round((new Date($('endDate').value) - new Date($('startDate').value)) / 86400000);
+      const month = $('startDate').value === iso(new Date(today.getFullYear(), today.getMonth(), 1));
+      document.querySelectorAll('#presets [data-d]').forEach((b) => {
+        const on = end && (b.dataset.d === 'month' ? month : Number(b.dataset.d) === days && !month);
+        b.setAttribute('aria-pressed', String(on));
+      });
+    }
 
     const loc = () => window.I18n.lang;
     const weekdayLabels = () => {
@@ -125,7 +138,7 @@
     }
 
     const css = getComputedStyle(document.documentElement);
-    const accent = css.getPropertyValue('--accent').trim() || '#1b74c4';
+    const accentNow = () => getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#1b74c4';
     const gridColor = () => (document.documentElement.dataset.theme === 'dark' ? 'rgba(255,255,255,.08)' : 'rgba(15,27,45,.06)');
     const baseOptions = () => ({
       responsive: true, maintainAspectRatio: false,
@@ -136,16 +149,18 @@
       },
     });
     function draw(id, type, labels, values, extra = {}) {
+      if (typeof Chart === 'undefined') return;           // the chart library did not load: the numbers below still work
+      const accent = accentNow();
       charts[id]?.destroy();
       charts[id] = new Chart($(id), {
         type, options: baseOptions(),
-        data: { labels, datasets: [{ label: t('an.totalFines'), data: values, borderColor: accent, backgroundColor: type === 'bar' ? accent : 'rgba(31,123,209,.16)', borderRadius: 6, fill: type === 'line', tension: .3, pointRadius: values.length > 40 ? 0 : 3, ...extra }] },
+        data: { labels, datasets: [{ label: t('an.totalFines'), data: values, borderColor: accent, backgroundColor: type === 'bar' ? accent : `color-mix(in srgb, ${accent} 16%, transparent)`, borderRadius: 6, fill: type === 'line', tension: .3, pointRadius: values.length > 40 ? 0 : 3, ...extra }] },
       });
     }
 
     function render() {
       if (!report) return;
-      Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+      if (typeof Chart !== 'undefined') Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
       const n = (v) => Number(v).toLocaleString(loc());
       const total = report.totals.fines;
       $('totalFines').textContent = n(total);
@@ -213,6 +228,9 @@
     }
 
     async function load() {
+      if ($('startDate').value > $('endDate').value) { toast(t('an.badRange'), 'error'); return; }
+      history.replaceState(null, '', `?start=${$('startDate').value}&end=${$('endDate').value}&granularity=${$('granularity').value}`);
+      markPreset();
       const q = new URLSearchParams({ start: $('startDate').value, end: $('endDate').value, granularity: $('granularity').value });
       $('applyRange').disabled = true;
       const range = `start=${$('startDate').value}&end=${$('endDate').value}`;
@@ -238,15 +256,13 @@
     });
     $('exportCsv').addEventListener('click', () => {
       if (!report) return;
-      const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
       const rows = [['period', 'fines'], ...report.timeline.map((r) => [r.period, r.fines]), [], ['inspector', 'fines'], ...report.leaderboard.map((r) => [r.name, r.fines])];
-      const url = URL.createObjectURL(new Blob(['\ufeff' + rows.map((r) => r.map(q).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' }));
-      const a = Object.assign(document.createElement('a'), { href: url, download: `inspectra-fines-${report.range.start}_${report.range.end}.csv` });
-      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+      window.Admin.downloadCsv(`inspectra-fines-${report.range.start}_${report.range.end}.csv`, rows);
     });
     $('filters').addEventListener('submit', (e) => { e.preventDefault(); load(); });
     $('printBtn').addEventListener('click', () => window.print());
     document.addEventListener('langchange', () => { render(); renderInsights(); renderPeople(); });
+    new MutationObserver(() => render()).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });   // charts follow the theme
     load();
   })();
   </script>

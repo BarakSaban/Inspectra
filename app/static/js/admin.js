@@ -43,9 +43,10 @@
       document.body.appendChild(toastEl);
     }
     toastEl.className = `toast show${kind ? ` toast--${kind}` : ''}`;
+    toastEl.setAttribute('role', kind === 'error' ? 'alert' : 'status');
     toastEl.textContent = message;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3400);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), kind === 'error' ? 6500 : 3400);
   }
 
   // ----- dialogs -----
@@ -56,7 +57,15 @@
     lastFocus?.focus?.();
   }
   function onKey(e) {
-    if (e.key === 'Escape') closeDialog();
+    const root = document.getElementById('dialogRoot');
+    if (!root) return;
+    if (e.key === 'Escape') { if (!root.dataset.dirty || window.confirm(t('c.discard'))) closeDialog(); return; }
+    if (e.key !== 'Tab') return;
+    const focusable = [...root.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])')].filter((n) => n.offsetParent !== null);
+    if (!focusable.length) return;
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   }
   /** Opens a modal. `html` is trusted markup built with esc(); returns the dialog element. */
   function openDialog(html, { label } = {}) {
@@ -66,7 +75,8 @@
     root.id = 'dialogRoot';
     root.className = 'overlay';
     root.innerHTML = `<div class="dialog" role="dialog" aria-modal="true" aria-label="${esc(label || '')}">${html}</div>`;
-    root.addEventListener('mousedown', (e) => { if (e.target === root) closeDialog(); });
+    root.addEventListener('input', () => { root.dataset.dirty = '1'; });
+    root.addEventListener('mousedown', (e) => { if (e.target === root && !root.dataset.dirty) closeDialog(); });
     document.body.appendChild(root);
     document.addEventListener('keydown', onKey);
     window.I18n.apply(root);
@@ -133,12 +143,12 @@
     const dlg = openDialog(`
       <h3>${esc(t('inv.title'))}</h3>
       <p>${esc(t('inv.text'))}</p>
-      <div class="pw" style="margin-bottom:6px"><span>${esc(code)}</span>
+      <div class="pw pw--gap"><span>${esc(code)}</span>
         <button type="button" class="btn btn--quiet btn--small" data-act="code">${esc(t('inv.copyCode'))}</button></div>
-      <div class="pw" style="font-size:.8125rem;letter-spacing:0;font-weight:600"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(link)}</span>
+      <div class="pw pw--link"><span>${esc(link)}</span>
         <button type="button" class="btn btn--quiet btn--small" data-act="link">${esc(t('inv.copyLink'))}</button></div>
       <div class="qrbox"><div class="qr" id="inviteQr" aria-hidden="true"></div><p>${esc(t('inv.qr'))}</p></div>
-      <div class="dialog__actions" style="justify-content:flex-start">
+      <div class="dialog__actions dialog__actions--start">
         ${canShare ? `<button type="button" class="btn" data-act="share"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i>${esc(t('inv.share'))}</button>` : ''}
         <a class="btn ${canShare ? 'btn--quiet' : ''}" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(message)}"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i>WhatsApp</a>
         <button type="button" class="btn btn--quiet" data-act="message">${esc(t('inv.copyMessage'))}</button>
@@ -165,5 +175,65 @@
     });
   }
 
-  window.Admin = { esc, toast, openDialog, closeDialog, confirmDialog, api, errorText, copy, inviteDialog, onLive };
+  /** Cells starting with = + - @ would run as formulas in Excel; a leading apostrophe keeps them as text. */
+  const csvCell = (v) => {
+    let s = String(v ?? '');
+    if (/^[=+\-@\t\r]/.test(s) && Number.isNaN(Number(s))) s = `'${s}`;
+    return `"${s.replace(/"/g, '""')}"`;
+  };
+  /** Saves rows (arrays of cells) as a UTF-8 CSV that Excel opens correctly, Hebrew and Arabic included. */
+  function downloadCsv(name, rows) {
+    const url = URL.createObjectURL(new Blob(['\ufeff' + rows.map((r) => r.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' }));
+    const a = Object.assign(document.createElement('a'), { href: url, download: name });
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  }
+
+  /** "5 min", "3 h", "2 d", then the date. */
+  function timeAgo(seconds) {
+    const s = Math.max(0, Math.round(seconds));
+    if (s < 60) return t('ad.ago.s', { n: s });
+    if (s < 3600) return t('ad.ago.m', { n: Math.round(s / 60) });
+    if (s < 86400) return t('ad.ago.h', { n: Math.round(s / 3600) });
+    if (s < 7 * 86400) return t('ad.ago.d', { n: Math.round(s / 86400) });
+    return new Date(Date.now() - s * 1000).toLocaleDateString(window.I18n.lang);
+  }
+
+  /** The temporary password is only returned once, so the manager has to see it. `titleKey` takes {name}. */
+  function showPassword(ins, titleKey = 'st.createdTitle') {
+    const dlg = openDialog(`<h3>${esc(t(titleKey, { name: ins.name }))}</h3>
+      <p>${esc(t('st.createdText'))}</p>
+      <p class="hint hint--gap">${esc(t('st.createdLogin'))}: <bdi class="ltr">${esc(ins.inspector_id)}</bdi></p>
+      <div class="pw"><span id="tmpPw">${esc(ins.temporary_password)}</span>
+        <button type="button" class="btn btn--quiet btn--small" data-act="copy">${esc(t('c.copy'))}</button></div>
+      <p class="hint hint--gap">${esc(t('st.shareHint'))}</p>
+      <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-act="login">${esc(t('st.copyLogin'))}</button><button type="button" class="btn" data-act="close">${esc(t('c.done'))}</button></div>`, { label: ins.name });
+    dlg.addEventListener('click', (e) => {
+      const act = e.target.closest('[data-act]')?.dataset.act;
+      if (act === 'copy') copy(ins.temporary_password);
+      if (act === 'login') copy(t('st.loginMessage', { id: ins.inspector_id, pw: ins.temporary_password, url: `${location.origin}/login` }));
+      if (act === 'close') closeDialog();
+    });
+  }
+
+  /** Reset a person's password after confirming, then show the new temporary one. */
+  async function resetPassword(id, name) {
+    const ok = await confirmDialog({ title: t('st.resetTitle', { name: name || id }), text: t('st.resetText'), okKey: 'st.resetOk', danger: false });
+    if (!ok) return false;
+    const r = await api(`/api/inspector/${encodeURIComponent(id)}/reset_password`, { method: 'POST' });
+    if (!r.ok) { toast(errorText(r), 'error'); return false; }
+    showPassword(r.data, 'st.resetDone');
+    return true;
+  }
+
+  /** Deactivate (people with history) or delete (without) after confirming. Resolves true when it happened. */
+  async function removePerson(id, name) {
+    const ok = await confirmDialog({ title: t('st.delTitle', { name: name || id }), text: t('st.delText') });
+    if (!ok) return false;
+    const r = await api(`/api/inspector/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (!r.ok) { toast(errorText(r), 'error'); return false; }
+    toast(t(r.data.deactivated ? 'st.deactivated' : 'st.deleted'), 'ok');
+    return true;
+  }
+
+  window.Admin = { esc, toast, openDialog, closeDialog, confirmDialog, api, errorText, copy, inviteDialog, onLive, downloadCsv, timeAgo, showPassword, resetPassword, removePerson };
 })();

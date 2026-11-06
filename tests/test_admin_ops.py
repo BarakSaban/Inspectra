@@ -238,6 +238,15 @@ class TeamSettingsAndAuditTests(ApiTestCase):
         for bad in ({"action": "nuke", "inspector_ids": ["I001"]}, {"action": "online", "inspector_ids": []}, {"action": "online"}):
             self.assertEqual(self.client.post("/api/staff/bulk", json=bad).status_code, 400)
 
+    def test_bulk_deactivate_detaches_and_ends_sessions(self):
+        self.login()
+        done = self.client.post("/api/staff/bulk", json={"action": "deactivate", "inspector_ids": ["I001", "X001"]})
+        self.assertEqual(done.get_json(), {"changed": 1})
+        user = User.query.filter_by(inspector_id="I001").one()
+        self.assertIsNone(user.manager_code)
+        self.assertEqual(user.former_manager_code, "ADM001")
+        self.assertFalse(Inspector.query.filter_by(inspector_id="I001").one().available)
+
 
 class InsightsTests(ApiTestCase):
     def test_insights_compare_periods_and_rank_stops_and_lines(self):

@@ -17,7 +17,10 @@
         <div class="facts" id="facts"></div>
       </div>
       <div class="chips">
+        <a class="btn btn--quiet" id="editBtn" href="#"><i class="fa-solid fa-pen" aria-hidden="true"></i><span data-i18n="st.edit"></span></a>
         <button type="button" class="btn btn--quiet" id="resetBtn"><i class="fa-solid fa-key" aria-hidden="true"></i><span data-i18n="st.reset"></span></button>
+        <button type="button" class="btn btn--quiet" id="exportBtn"><i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i><span data-i18n="c.csv"></span></button>
+        <button type="button" class="btn btn--quiet btn--danger-text" id="removeBtn"><i class="fa-regular fa-trash-can" aria-hidden="true"></i><span data-i18n="st.delete"></span></button>
       </div>
     </div>
 
@@ -134,15 +137,13 @@
       loadStats();
     }
 
-    $('resetBtn').addEventListener('click', async () => {
-      const ok = await window.Admin.confirmDialog({ title: t('st.resetTitle', { name: data?.name || id }), text: t('st.resetText'), okKey: 'st.resetOk', danger: false });
-      if (!ok) return;
-      const r = await api(`/api/inspector/${encodeURIComponent(id)}/reset_password`, { method: 'POST' });
-      if (!r.ok) { toast(errorText(r), 'error'); return; }
-      const dlg = openDialog(`<h3>${esc(t('st.resetDone', { name: data?.name || id }))}</h3><div class="pw"><span class="ltr">${esc(r.data.temporary_password)}</span>
-        <button type="button" class="btn btn--quiet btn--small" data-act="copy">${esc(t('c.copy'))}</button></div>
-        <div class="dialog__actions"><button type="button" class="btn" data-act="close">${esc(t('c.close'))}</button></div>`);
-      dlg.addEventListener('click', (e) => { const a = e.target.closest('[data-act]')?.dataset.act; if (a === 'copy') copy(r.data.temporary_password); if (a === 'close') closeDialog(); });
+    $('editBtn').href = `/staff?edit=${encodeURIComponent(id)}`;
+    $('resetBtn').addEventListener('click', () => window.Admin.resetPassword(id, data?.name));
+    $('removeBtn').addEventListener('click', async () => { if (await window.Admin.removePerson(id, data?.name)) location.href = '/staff'; });
+    $('exportBtn').addEventListener('click', () => {
+      if (!stats) return;
+      window.Admin.downloadCsv(`inspectra-${id}-rides.csv`, [['finished_at', 'line', 'destination', 'stop', 'fines']].concat(
+        stats.rides.map((r) => [r.finished_at, r.route_num, r.destination, r.stop_name, r.fines])));
     });
 
     document.addEventListener('langchange', () => { render(); renderStats(); });

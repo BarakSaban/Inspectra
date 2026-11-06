@@ -413,3 +413,12 @@ td a:hover, .assign a:hover { color: var(--accent-strong); text-decoration: unde
 .notice-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; padding: 14px 18px; border: 1px solid #e6c36a; border-radius: var(--radius, 12px); background: #fdf4dc; color: #5c4200; font-weight: 600; }
 .notice-bar i { color: #b97a00; }
 :root[data-theme="dark"] .notice-bar { background: #2a2210; border-color: #6b5313; color: #f0d58a; }
+
+/* ---------- small dialog helpers (replace inline styles) ---------- */
+.hint--gap { margin-top: 12px; }
+.pw--gap { margin-bottom: 6px; }
+.pw--link { font-size: .8125rem; letter-spacing: 0; font-weight: 600; }
+.pw--link > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dialog__actions--start { justify-content: flex-start; }
+
+.btn--danger-text { color: var(--bad); }

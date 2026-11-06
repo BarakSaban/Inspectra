@@ -49,6 +49,8 @@
         <span id="bulkCount"></span>
         <button type="button" class="btn btn--small" data-bulk="online"><i class="fa-solid fa-toggle-on" aria-hidden="true"></i><span data-i18n="bk.online"></span></button>
         <button type="button" class="btn btn--quiet btn--small" data-bulk="offline"><i class="fa-solid fa-toggle-off" aria-hidden="true"></i><span data-i18n="bk.offline"></span></button>
+        <button type="button" class="btn btn--quiet btn--small" data-bulk="export"><i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i><span data-i18n="bk.export"></span></button>
+        <button type="button" class="btn btn--quiet btn--small btn--danger-text" data-bulk="deactivate"><i class="fa-solid fa-user-slash" aria-hidden="true"></i><span data-i18n="bk.deactivate"></span></button>
       </div>
       <div class="table-wrap">
         <table id="staffTable" class="table--cards">
@@ -118,12 +120,9 @@
     let shown = [];
     const picked = new Set();
     const ADMIN_CODE = {{ (admin_code or '')|tojson }};
-    function downloadCsv(name, rows) {
-      const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-      const url = URL.createObjectURL(new Blob(['\ufeff' + rows.map((r) => r.map(q).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' }));
-      const a = Object.assign(document.createElement('a'), { href: url, download: name });
-      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-    }
+    const { downloadCsv, timeAgo, showPassword } = window.Admin;
+    const staffRows = (list) => [['inspector_id', 'name', 'email', 'online', 'trips_today', 'fines_7_days']].concat(
+      list.map((i) => [i.inspector_id, i.name, i.email, i.available ? 'yes' : 'no', i.today_trips, i.weekly_fines]));
 
 
     const num = (v) => Number(v ?? 0).toLocaleString(window.I18n.lang);
@@ -154,11 +153,16 @@
       removed = gone.ok ? gone.data || [] : [];
       render();
       renderRemoved();
+      const wanted = new URLSearchParams(location.search).get('edit');
+      if (wanted && staff.some((i) => i.inspector_id === wanted)) {
+        history.replaceState(null, '', location.pathname);
+        editInspector(wanted);
+      }
     }
 
     function renderRemoved() {
       $('removedCard').classList.toggle('hidden', !removed.length);
-      $('removedList').innerHTML = removed.map((i) => `<li><span>${esc(i.name)}<small class="ltr">${esc(i.inspector_id)}</small></span>
+      $('removedList').innerHTML = removed.map((i) => `<li><span><a href="/staff/${encodeURIComponent(i.inspector_id)}">${esc(i.name)}</a><small class="ltr">${esc(i.inspector_id)}</small></span>
         <button type="button" class="btn btn--quiet btn--small" data-reactivate="${esc(i.inspector_id)}">${esc(t('st.reactivate'))}</button></li>`).join('');
     }
     $('removedList').addEventListener('click', async (e) => {
@@ -194,6 +198,8 @@
     $('bulkBar').addEventListener('click', async (e) => {
       const b = e.target.closest('[data-bulk]');
       if (!b) return;
+      if (b.dataset.bulk === 'export') { downloadCsv('inspectra-staff-selected.csv', staffRows(staff.filter((i) => picked.has(i.inspector_id)))); return; }
+      if (b.dataset.bulk === 'deactivate' && !(await confirmDialog({ title: t('bk.deactivate'), text: t('bk.deactivateAsk', { n: picked.size }) }))) return;
       const r = await api('/api/staff/bulk', { method: 'POST', body: { action: b.dataset.bulk, inspector_ids: [...picked] } });
       if (!r.ok) { toast(errorText(r), 'error'); return; }
       toast(t('bk.done', { n: r.data.changed }), 'ok');
@@ -220,7 +226,7 @@
       toast(t('ts.saved'), 'ok');
       loadAudit();
     });
-    const ago = (s) => (s < 60 ? t('ad.ago.s', { n: s }) : s < 3600 ? t('ad.ago.m', { n: Math.round(s / 60) }) : s < 86400 ? t('ad.ago.h', { n: Math.round(s / 3600) }) : new Date(Date.now() - s * 1000).toLocaleDateString(window.I18n.lang));
+    const ago = timeAgo;
     function renderAudit() {
       $('auditList').innerHTML = audit.length ? audit.map((a) => {
         const key = `au.${a.action}`;
@@ -313,18 +319,9 @@
       render();
     });
     $('inviteBtn').addEventListener('click', () => (ADMIN_CODE ? window.Admin.inviteDialog(ADMIN_CODE) : toast(tm('no admin code in session'), 'error')));
-    $('exportCsv').addEventListener('click', () => downloadCsv('inspectra-staff.csv',
-      [['inspector_id', 'name', 'email', 'online', 'trips_today', 'fines_7_days']].concat(
-        shown.map((i) => [i.inspector_id, i.name, i.email, i.available ? 'yes' : 'no', i.today_trips, i.weekly_fines]))));
+    $('exportCsv').addEventListener('click', () => downloadCsv('inspectra-staff.csv', staffRows(shown)));
 
-    async function resetPassword(id) {
-      const ins = staff.find((i) => i.inspector_id === id);
-      const ok = await confirmDialog({ title: t('st.resetTitle', { name: ins ? ins.name : id }), text: t('st.resetText'), okKey: 'st.resetOk', danger: false });
-      if (!ok) return;
-      const r = await api(`/api/inspector/${encodeURIComponent(id)}/reset_password`, { method: 'POST' });
-      if (!r.ok) { toast(errorText(r), 'error'); return; }
-      showPassword(r.data, 'st.resetDone');
-    }
+    const resetPassword = (id) => window.Admin.resetPassword(id, staff.find((i) => i.inspector_id === id)?.name);
     document.addEventListener('langchange', () => { render(); renderRemoved(); renderAudit(); });
 
     // ----- map picker used by the dialogs -----
@@ -397,32 +394,7 @@
       };
     };
 
-    // The temporary password is only returned once, so the manager has to see it.
-    function showPassword(ins, titleKey = 'st.createdTitle') {
-      const dlg = openDialog(`<h3>${esc(t(titleKey, { name: ins.name }))}</h3>
-        <p>${esc(t('st.createdText'))}</p>
-        <p class="hint" style="margin-top:12px">${esc(t('st.createdLogin'))}: <bdi class="ltr">${esc(ins.inspector_id)}</bdi></p>
-        <div class="pw"><span id="tmpPw">${esc(ins.temporary_password)}</span>
-          <button type="button" class="btn btn--quiet btn--small" id="copyPw">${esc(t('c.copy'))}</button></div>
-        <p class="hint" style="margin-top:10px">${esc(t('st.shareHint'))}</p>
-        <div class="dialog__actions"><button type="button" class="btn btn--quiet" id="shareLogin">${esc(t('st.copyLogin'))}</button><button type="button" class="btn" data-close>${esc(t('c.done'))}</button></div>`, { label: ins.name });
-      dlg.querySelector('#shareLogin').onclick = () => window.Admin.copy(t('st.loginMessage', { id: ins.inspector_id, pw: ins.temporary_password, url: location.origin + '/login' }));
-      dlg.querySelector('[data-close]').onclick = closeDialog;
-      dlg.querySelector('#copyPw').onclick = async () => {
-        try { await navigator.clipboard.writeText(ins.temporary_password); toast(t('c.copied'), 'ok'); }
-        catch (e) { toast(ins.temporary_password); }
-      };
-    }
-
-    async function removeInspector(id) {
-      const ins = staff.find((i) => i.inspector_id === id);
-      const ok = await confirmDialog({ title: t('st.delTitle', { name: ins ? ins.name : id }), text: t('st.delText') });
-      if (!ok) return;
-      const r = await api(`/api/inspector/${encodeURIComponent(id)}`, { method: 'DELETE' });
-      if (!r.ok) { toast(errorText(r), 'error'); return; }
-      toast(t(r.data.deactivated ? 'st.deactivated' : 'st.deleted'), 'ok');
-      load();
-    }
+    const removeInspector = async (id) => { if (await window.Admin.removePerson(id, staff.find((i) => i.inspector_id === id)?.name)) load(); };
 
     load();
     loadSettings();

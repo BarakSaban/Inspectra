@@ -138,9 +138,11 @@
 
     // ---- what needs the manager right now ----
     const ATTN_ICON = { offer_unanswered: 'fa-hourglass-half', phone_silent: 'fa-signal', break_overrun: 'fa-mug-hot' };
+    const baseTitle = document.title;
     function renderAttention(items) {
       const box = $('attention');
       box.hidden = !items.length;
+      document.title = items.length ? `(${items.length}) ${baseTitle}` : baseTitle;
       box.innerHTML = items.slice(0, 5).map((a) => {
         const mins = Math.max(1, Math.round(a.seconds / 60));
         const cancel = a.kind === 'offer_unanswered' ? `<button type="button" class="btn btn--quiet btn--small" data-cancel="${a.run_id}" data-name="${esc(a.name)}">${esc(t('ad.cancelRun'))}</button>` : '';

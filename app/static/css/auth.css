@@ -77,3 +77,8 @@ body { font-family: "Montserrat", system-ui, sans-serif; color: var(--ink); back
 .auth-single { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+/* Error and notice pages */
+.auth--notice { text-align: center; }
+.submit--link { display: flex; align-items: center; justify-content: center; text-decoration: none; }
+:root[data-theme="dark"] .auth__logo { background: #fff; padding: 6px 8px; border-radius: 12px; width: 124px; }
