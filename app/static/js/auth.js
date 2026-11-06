@@ -41,7 +41,7 @@
   // ----- strength meter -----
   $('password')?.addEventListener('input', (e) => {
     const v = e.target.value;
-    const score = (v.length > 5) + /[A-Z]/.test(v) + /[0-9]/.test(v) + /[^A-Za-z0-9]/.test(v);
+    const score = (v.length > 7) + /[A-Z]/.test(v) + /[0-9]/.test(v) + /[^A-Za-z0-9]/.test(v);
     const fill = $('strengthFill');
     if (!fill) return;
     fill.style.width = `${score * 25}%`;
@@ -58,9 +58,9 @@
       const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.success) {
-        toast(t(okKey), 'ok');
+        toast(data.pending ? tm(data.message) : t(okKey), 'ok');
         progress('100%', 'var(--live)');
-        setTimeout(() => { location.href = data.redirect || onOk; }, 650);
+        setTimeout(() => { location.href = data.redirect || onOk; }, data.pending ? 2600 : 650);
         return;
       }
       toast(tm(data.message || 'Server error'), 'error');

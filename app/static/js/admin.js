@@ -142,6 +142,7 @@
         ${canShare ? `<button type="button" class="btn" data-act="share"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i>${esc(t('inv.share'))}</button>` : ''}
         <a class="btn ${canShare ? 'btn--quiet' : ''}" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(message)}"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i>WhatsApp</a>
         <button type="button" class="btn btn--quiet" data-act="message">${esc(t('inv.copyMessage'))}</button>
+        <button type="button" class="btn btn--quiet" data-act="rotate"><i class="fa-solid fa-rotate" aria-hidden="true"></i>${esc(t('inv.rotate'))}</button>
       </div>
       <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-act="close">${esc(t('c.close'))}</button></div>`, { label: t('inv.title') });
     loadQr().then(() => { const box = dlg.querySelector('#inviteQr'); if (box && window.QRCode) new window.QRCode(box, { text: link, width: 148, height: 148, correctLevel: window.QRCode.CorrectLevel.M }); })
@@ -152,6 +153,14 @@
       if (act === 'link') copy(link);
       if (act === 'message') copy(message);
       if (act === 'close') closeDialog();
+      if (act === 'rotate') {
+        closeDialog();
+        if (!(await confirmDialog({ title: t('inv.rotate'), text: t('inv.rotateAsk'), okKey: 'inv.rotate', danger: false }))) return;
+        const r = await api('/api/admin/code/rotate', { method: 'POST' });
+        if (!r.ok) { toast(errorText(r), 'error'); return; }
+        toast(t('inv.rotated'), 'ok');
+        setTimeout(() => location.reload(), 600);
+      }
       if (act === 'share') { try { await navigator.share({ title: 'Inspectra', text: message }); } catch (err) { /* cancelled */ } }
     });
   }

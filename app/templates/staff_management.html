@@ -89,6 +89,12 @@
       </section>
     </div>
 
+    <section class="card hidden" id="approvalsCard" style="margin-top:16px">
+      <h2 data-i18n="st.appr.title"></h2>
+      <p class="hint" style="margin:-6px 0 12px" data-i18n="st.appr.sub"></p>
+      <ul class="assign" id="approvalsList"></ul>
+    </section>
+
     <section class="card hidden" id="removedCard" style="margin-top:16px">
       <h2 data-i18n="st.removed"></h2>
       <p class="hint" style="margin:-6px 0 12px" data-i18n="st.removedHint"></p>
@@ -122,7 +128,26 @@
 
     const num = (v) => Number(v ?? 0).toLocaleString(window.I18n.lang);
 
+    async function loadApprovals() {
+      const r = await api('/api/approvals');
+      const list = r.ok && r.data.owner ? r.data.pending : [];
+      $('approvalsCard').classList.toggle('hidden', !list.length);
+      $('approvalsList').innerHTML = list.map((p) => `<li><div><strong><bdi>${esc(p.name)}</bdi></strong><div class="hint ltr">${esc(p.username)}</div></div>
+        <div class="row-actions"><button class="btn btn--small" data-appr="approve" data-user="${esc(p.username)}">${esc(t('st.appr.approve'))}</button>
+        <button class="btn btn--quiet btn--small" data-appr="reject" data-user="${esc(p.username)}">${esc(t('st.appr.reject'))}</button></div></li>`).join('');
+    }
+    $('approvalsList').addEventListener('click', async (e) => {
+      const b = e.target.closest('[data-appr]');
+      if (!b) return;
+      if (b.dataset.appr === 'reject' && !(await confirmDialog({ title: t('st.appr.reject'), text: t('st.appr.rejectAsk') }))) return;
+      const r = await api(`/api/approvals/${encodeURIComponent(b.dataset.user)}/${b.dataset.appr}`, { method: 'POST' });
+      if (!r.ok) { toast(errorText(r), 'error'); return; }
+      toast(t('st.appr.done'), 'ok');
+      loadApprovals();
+    });
+
     async function load() {
+      loadApprovals();
       const [r, gone] = await Promise.all([api('/api/staff'), api('/api/staff/deactivated')]);
       if (!r.ok) { toast(errorText(r), 'error'); return; }
       staff = r.data || [];

@@ -49,7 +49,11 @@ def audit(admin_code, actor, action, target=None, detail=None):
 
 def recent_audit(admin_code, limit=50):
     now = now_local()
-    rows = AuditLog.query.filter_by(admin_code=admin_code).order_by(AuditLog.id.desc()).limit(max(1, min(int(limit), 200))).all()
+    try:
+        limit = max(1, min(int(limit), 200))
+    except (TypeError, ValueError):
+        limit = 50
+    rows = AuditLog.query.filter_by(admin_code=admin_code).order_by(AuditLog.id.desc()).limit(limit).all()
     return [{"id": r.id, "at": r.at.isoformat(), "seconds_ago": max(0, int((now - r.at).total_seconds())), "actor": r.actor,
              "action": r.action, "target": r.target, "detail": r.detail} for r in rows]
 

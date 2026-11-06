@@ -59,7 +59,7 @@ class ReachabilityTests(ApiTestCase):
     def test_new_accounts_start_offline_without_an_invented_position(self):
         code = User.query.filter_by(role="admin").first().manager_code
         client = self.app.test_client()
-        self.assertEqual(client.post("/api/register", json={"name": "New One", "phone": "I777", "password": "pw12345", "role": "inspector", "manager_code": code}).status_code, 200)
+        self.assertEqual(client.post("/api/register", json={"name": "New One", "phone": "I777", "password": "pw123456", "role": "inspector", "manager_code": code}).status_code, 200)
         created = Inspector.query.filter_by(inspector_id="I777").one()
         self.assertIsNone(created.latitude)
         self.assertFalse(created.available)
@@ -67,7 +67,7 @@ class ReachabilityTests(ApiTestCase):
     def test_manager_code_is_accepted_in_any_case(self):
         code = User.query.filter_by(role="admin").first().manager_code
         client = self.app.test_client()
-        self.assertEqual(client.post("/api/register", json={"name": "Typed By Hand", "phone": "I778", "password": "pw12345", "role": "inspector", "manager_code": f" {code.lower()} "}).status_code, 200)
+        self.assertEqual(client.post("/api/register", json={"name": "Typed By Hand", "phone": "I778", "password": "pw123456", "role": "inspector", "manager_code": f" {code.lower()} "}).status_code, 200)
         self.assertEqual(User.query.filter_by(inspector_id="I778").one().manager_code, code)
 
     def test_demo_data_is_off_unless_asked_for(self):

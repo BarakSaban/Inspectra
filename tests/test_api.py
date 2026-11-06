@@ -32,36 +32,38 @@ class AuthorizationTests(ApiTestCase):
 
 class AccountFlowTests(ApiTestCase):
     def test_register_admin_then_inspector_with_manager_code_then_login(self):
-        admin = self.client.post("/api/register", json={"name": "Boss", "email": "boss@x.io", "password": "pw12345", "role": "admin"})
-        self.assertEqual(admin.get_json(), {"success": True, "redirect": "/admin"})
-        code = User.query.filter_by(username="boss@x.io").one().manager_code
+        admin = self.client.post("/api/register", json={"name": "Boss", "email": "boss@x.io", "password": "pw123456", "role": "admin"})
+        self.assertTrue(admin.get_json()["pending"])
+        boss = User.query.filter_by(username="boss@x.io").one()
+        self.assertFalse(boss.approved)
+        code = boss.manager_code
 
         inspector = self.app.test_client()
-        registered = inspector.post("/api/register", json={"name": "Insp", "phone": "I777", "password": "pw12345",
+        registered = inspector.post("/api/register", json={"name": "Insp", "phone": "I777", "password": "pw123456",
                                                            "role": "inspector", "manager_code": code})
         self.assertEqual(registered.get_json(), {"success": True, "redirect": "/inspect"})
         self.assertEqual(Inspector.query.filter_by(inspector_id="I777").one().name, "Insp")
 
         fresh = self.app.test_client()
-        self.assertEqual(fresh.post("/api/login", json={"username": "I777", "password": "pw12345"}).get_json()["redirect"], "/inspect")
+        self.assertEqual(fresh.post("/api/login", json={"username": "I777", "password": "pw123456"}).get_json()["redirect"], "/inspect")
 
     def test_invalid_manager_code_is_rejected(self):
-        response = self.client.post("/api/register", json={"name": "X", "email": "x@x.io", "password": "pw",
+        response = self.client.post("/api/register", json={"name": "X", "email": "x@x.io", "password": "pw123456",
                                                           "role": "inspector", "manager_code": "NOPE00"})
         self.assertEqual(response.status_code, 400)
 
     def test_unknown_roles_are_rejected(self):
-        response = self.client.post("/api/register", json={"name": "X", "email": "x@x.io", "password": "pw", "role": "superuser"})
+        response = self.client.post("/api/register", json={"name": "X", "email": "x@x.io", "password": "pw123456", "role": "superuser"})
         self.assertEqual((response.status_code, response.get_json()["message"]), (400, "Invalid role"))
         self.assertIsNone(User.query.filter_by(username="x@x.io").first())
 
     def test_taken_usernames_get_a_numeric_suffix(self):
-        self.client.post("/api/register", json={"name": "A", "email": "dup@x.io", "password": "pw", "role": "admin"})
-        self.app.test_client().post("/api/register", json={"name": "B", "email": "dup@x.io", "password": "pw", "role": "admin"})
+        self.client.post("/api/register", json={"name": "A", "email": "dup@x.io", "password": "pw123456", "role": "admin"})
+        self.app.test_client().post("/api/register", json={"name": "B", "email": "dup@x.io", "password": "pw123456", "role": "admin"})
         self.assertEqual(sorted(u.username for u in User.query.filter(User.username.like("dup@x.io%"))), ["dup@x.io", "dup@x.io_1"])
 
     def test_inspector_without_manager_code_still_gets_an_inspector_record(self):
-        self.app.test_client().post("/api/register", json={"name": "Solo", "phone": "0501234567", "password": "pw", "role": "inspector"})
+        self.app.test_client().post("/api/register", json={"name": "Solo", "phone": "0501234567", "password": "pw123456", "role": "inspector"})
         user = User.query.filter_by(username="0501234567").one()
         self.assertTrue(user.inspector_id.startswith("I"))
         self.assertEqual(Inspector.query.filter_by(inspector_id=user.inspector_id).one().name, "Solo")
@@ -75,7 +77,7 @@ class AccountFlowTests(ApiTestCase):
     def test_repeated_failed_logins_are_locked_out_even_for_the_right_password(self):
         for _ in range(config.LOGIN_MAX_FAILURES):
             self.assertEqual(self.client.post("/api/login", json={"username": "lior", "password": "bad"}).status_code, 401)
-        locked = self.client.post("/api/login", json={"username": "lior", "password": "pw"})
+        locked = self.client.post("/api/login", json={"username": "lior", "password": "pw123456"})
         self.assertEqual(locked.status_code, 429)
         self.assertEqual(self.client.get("/api/profile").status_code, 401)  # not logged in
 
@@ -83,17 +85,17 @@ class AccountFlowTests(ApiTestCase):
         for _ in range(config.LOGIN_MAX_FAILURES - 1):
             self.client.post("/api/login", json={"username": "lior", "password": "bad"})
         self.assertEqual(self.client.post("/api/login", json={"username": "dana", "password": "bad"}).status_code, 401)
-        self.assertEqual(self.client.post("/api/login", json={"username": "lior", "password": "pw"}).status_code, 200)
+        self.assertEqual(self.client.post("/api/login", json={"username": "lior", "password": "pw123456"}).status_code, 200)
         for _ in range(config.LOGIN_MAX_FAILURES - 1):  # the earlier failures no longer count
             self.client.post("/api/login", json={"username": "lior", "password": "bad"})
-        self.assertEqual(self.client.post("/api/login", json={"username": "lior", "password": "pw"}).status_code, 200)
+        self.assertEqual(self.client.post("/api/login", json={"username": "lior", "password": "pw123456"}).status_code, 200)
 
     def test_lockout_expires(self):
         for _ in range(config.LOGIN_MAX_FAILURES):
             self.client.post("/api/login", json={"username": "lior", "password": "bad"})
         with patch.object(config, "LOGIN_LOCKOUT_SECONDS", 0):
             time.sleep(0.01)
-            self.assertEqual(self.client.post("/api/login", json={"username": "lior", "password": "pw"}).status_code, 200)
+            self.assertEqual(self.client.post("/api/login", json={"username": "lior", "password": "pw123456"}).status_code, 200)
 
     def test_credentials_in_the_query_string_are_ignored(self):
         response = self.client.post("/api/login?username=lior&password=pw")

@@ -408,3 +408,8 @@ td a:hover, .assign a:hover { color: var(--accent-strong); text-decoration: unde
 @media (max-width: 999px) { .profile__forms { order: -1; } }
 .profile__save { display: flex; justify-content: flex-end; }
 .profile__save .btn { min-width: 180px; }
+
+/* A message that must be read before carrying on (e.g. replace a temporary password). */
+.notice-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; padding: 14px 18px; border: 1px solid #e6c36a; border-radius: var(--radius, 12px); background: #fdf4dc; color: #5c4200; font-weight: 600; }
+.notice-bar i { color: #b97a00; }
+:root[data-theme="dark"] .notice-bar { background: #2a2210; border-color: #6b5313; color: #f0d58a; }

@@ -98,8 +98,12 @@ def seed_admin(password):
     if User.query.filter_by(username='admin').first():
         return
     from app import config
-    if password == config.DEFAULT_ADMIN_PASSWORD:
-        logger.warning("Default admin created with the default password. Set INSPECTRA_ADMIN_PW and change it.")
+    if password == config.DEFAULT_ADMIN_PASSWORD and not config.DEBUG:
+        from app.utils.auth import generate_temp_password
+        password = generate_temp_password()
+        logger.warning("INSPECTRA_ADMIN_PW is not set. The admin account was created with the one-time password %s (change it in Profile).", password)
+    elif password == config.DEFAULT_ADMIN_PASSWORD:
+        logger.warning("Default admin created with the default password (debug mode only).")
     admin = User(username='admin', role='admin', manager_code=generate_manager_code(), full_name='Admin')
     admin.set_password(password)
     db.session.add(admin)
@@ -113,7 +117,8 @@ def _add_missing_columns():
     additions = {
         "inspector_runs": [("fines_in_progress", "INTEGER NOT NULL DEFAULT 0")],
         "inspectors": [("break_until", "DATETIME"), ("location_updated_at", "DATETIME")],
-        "users": [("former_manager_code", "VARCHAR(20)")],
+        "users": [("former_manager_code", "VARCHAR(20)"), ("session_version", "INTEGER NOT NULL DEFAULT 0"),
+                  ("approved", "BOOLEAN NOT NULL DEFAULT 1"), ("must_change", "BOOLEAN NOT NULL DEFAULT 0")],
         "team_settings": [("max_break_minutes", "INTEGER NOT NULL DEFAULT 90")],
     }
     inspector = inspect(db.engine)
@@ -126,7 +131,7 @@ def _add_missing_columns():
 
 
 def bootstrap_database(app_config):
-    """Create tables and seed data. A failure is logged and never prevents the app from starting."""
+    """Create tables and seed data. A schema failure stops the start; demo seeding failures only log."""
     try:
         db.create_all()
         _add_missing_columns()
@@ -134,7 +139,7 @@ def bootstrap_database(app_config):
     except Exception:
         logger.exception("DB init/create_all failed")
         db.session.rollback()
-        return
+        raise   # a half-built schema must stop the start, not hide until the first query
 
     # Demo data is only inserted into an empty database; INSPECTRA_SEED_DEMO=0 disables it.
     if app_config["SEED_DEMO_DATA"]:

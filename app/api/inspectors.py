@@ -6,7 +6,7 @@ from app.extensions import db
 from app.models import Fine, Inspector, InspectorRun, User
 from app.services.inspectors import find_owned_inspector
 from app.services.team import audit
-from app.utils.auth import admin_required_api, generate_temp_password
+from app.utils.auth import admin_required_api, generate_temp_password, clean_text
 
 logger = logging.getLogger(__name__)
 
@@ -39,18 +39,20 @@ def _coordinate(value, low, high, default):
 def _apply_fields(inspector, data):
     """Copy the editable fields present in `data` onto the inspector. Raises ValueError on bad values."""
     if "name" in data:
-        name = (data["name"] or "").strip()
+        name = clean_text(data["name"], 120)
         if not name:
             raise ValueError("name cannot be empty")
         inspector.name = name
     if "email" in data:
-        inspector.email = (data["email"] or "").strip() or None
+        inspector.email = clean_text(data["email"], 200) or None
     if "latitude" in data:
         inspector.latitude = _coordinate(data["latitude"], -90, 90, inspector.latitude)
     if "longitude" in data:
         inspector.longitude = _coordinate(data["longitude"], -180, 180, inspector.longitude)
     if "available" in data:
-        inspector.available = bool(data["available"])
+        if not isinstance(data["available"], bool):
+            raise ValueError("available must be true or false")
+        inspector.available = data["available"]
 
 
 @inspectors_api.route('/api/inspector', methods=['POST'])
@@ -58,8 +60,8 @@ def _apply_fields(inspector, data):
 def create_inspector():
     admin_code = session.get('admin_code')
     data = request.get_json(silent=True) or {}
-    inspector_id = (data.get("inspector_id") or "").strip()
-    name = (data.get("name") or "").strip()
+    inspector_id = clean_text(data.get("inspector_id"), 40)
+    name = clean_text(data.get("name"), 120)
     if not inspector_id or not name:
         return jsonify({"error": "inspector_id and name are required"}), 400
     if not admin_code:
@@ -78,7 +80,7 @@ def create_inspector():
         # The inspector needs an account to belong to this admin; the admin hands over the temporary password.
         temp_password = generate_temp_password()
         user = User(username=inspector_id, role='inspector', inspector_id=inspector_id,
-                    manager_code=admin_code, full_name=name)
+                    manager_code=admin_code, full_name=name, must_change=True)
         user.set_password(temp_password)
         db.session.add_all([inspector, user])
         db.session.commit()
@@ -136,6 +138,8 @@ def reset_inspector_password(inspector_id):
     temp_password = generate_temp_password()
     try:
         user.set_password(temp_password)
+        user.must_change = True
+        user.end_sessions()
         db.session.commit()
     except Exception:
         db.session.rollback()
@@ -161,6 +165,7 @@ def delete_inspector(inspector_id):
         if has_history:
             # Keep runs/fines for reporting integrity: detach from the admin and take offline instead of deleting.
             user.former_manager_code, user.manager_code = user.manager_code, None
+            user.end_sessions()
             inspector.available = False
             inspector.break_until = None
             db.session.commit()

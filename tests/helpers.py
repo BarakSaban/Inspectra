@@ -19,8 +19,8 @@ from app.services.walking import WalkingNetwork
 from app.utils.clock import now_israel
 from app.utils.ratelimit import login_limiter
 
-# Password hashing is deliberately slow; every fixture user shares one hash of "pw" computed once.
-PASSWORD_HASH = generate_password_hash("pw")
+# Password hashing is deliberately slow; every fixture user shares one hash of "pw123456" computed once.
+PASSWORD_HASH = generate_password_hash("pw123456")
 ADMIN_CODE = "ADM001"
 OTHER_ADMIN_CODE = "ADM002"
 

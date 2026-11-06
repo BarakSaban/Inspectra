@@ -53,6 +53,23 @@ def get_request_data():
     return request.get_json(silent=True) or request.form.to_dict()
 
 
+def password_problem(password):
+    """Why this password is not acceptable (an English message the pages translate), or None when it is fine."""
+    from app import config
+    if not isinstance(password, str) or not password:
+        return "Missing required fields"
+    if len(password) < config.MIN_PASSWORD_LENGTH:
+        return "Password must be at least 8 characters"
+    if len(password) > 128:
+        return "Password is too long"
+    return None
+
+
+def clean_text(value, limit=120):
+    """A trimmed string capped at `limit` characters; anything that is not text becomes empty."""
+    return value.strip()[:limit] if isinstance(value, str) else ""
+
+
 def generate_manager_code(length=6):
     # Manager codes gate who can attach inspectors to an admin, so they must be unguessable.
     return ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(length))

@@ -17,6 +17,9 @@ def create_app(overrides=None):
     app = Flask(__name__)
     app.config.from_object(config.Config)
     app.config.update(overrides or {})
+    if config.TRUST_PROXY:
+        from werkzeug.middleware.proxy_fix import ProxyFix
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     if app.config["SECRET_KEY"] == config.DEFAULT_SECRET:
         logger.warning("INSPECTRA_SECRET is not set: sessions are signed with the public default key. Set it in production.")
@@ -26,6 +29,8 @@ def create_app(overrides=None):
         CORS(app, supports_credentials=True, resources={r"/*": {"origins": app.config["CORS_ORIGINS"]}})
 
     db.init_app(app)
+    from app.security import init_security
+    init_security(app)
     _register_blueprints(app)
     _register_language(app)
     _register_error_pages(app)
@@ -76,6 +81,9 @@ def _register_error_pages(app):
     def not_found(_error):
         return respond(404, "not found")
 
+    for status, message in ((400, "bad request"), (405, "method not allowed"), (413, "request too large"), (429, "too many requests")):
+        app.register_error_handler(status, lambda _error, c=status, m=message: respond(c, m))
+
     @app.errorhandler(500)
     def server_error(_error):
         return respond(500, "server error")
@@ -84,6 +92,7 @@ def _register_error_pages(app):
 def _register_blueprints(app):
     from app.api.admin_ops import admin_ops_api
     from app.api.analytics import analytics_api
+    from app.api.approvals import approvals_api
     from app.api.assignments import assignments_api
     from app.api.events import events_api
     from app.api.auth import auth_api
@@ -94,6 +103,6 @@ def _register_blueprints(app):
     from app.api.trips import trips_api
     from app.views.pages import views_bp
 
-    for blueprint in (views_bp, auth_api, profile_api, staff_api, analytics_api, assignments_api, inspectors_api, runs_api, admin_ops_api, events_api):
+    for blueprint in (views_bp, auth_api, profile_api, staff_api, analytics_api, assignments_api, inspectors_api, runs_api, admin_ops_api, events_api, approvals_api):
         app.register_blueprint(blueprint)
     app.register_blueprint(trips_api, url_prefix="/api")

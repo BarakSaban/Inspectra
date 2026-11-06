@@ -4,6 +4,8 @@ Settings are read once at import. Code that needs a setting reads it from this m
 (`config.SIRI_TIMEOUT_SECONDS`), which keeps it overridable in tests. See `.env.example` for the full list.
 """
 import os
+import secrets
+from datetime import timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -45,7 +47,23 @@ def _env_flag(name, default):
 DEFAULT_SECRET = "inspectra_dev_secret_please_change"
 DEFAULT_ADMIN_PASSWORD = "admin"
 
-SECRET_KEY = _env("INSPECTRA_SECRET", DEFAULT_SECRET)
+def _secret_key():
+    """The signing key: from the environment, else one generated once and kept beside the project (never the public default)."""
+    value = _env("INSPECTRA_SECRET")
+    if value:
+        return value
+    path = ROOT / ".secret_key"
+    try:
+        if path.exists() and path.read_text(encoding="utf-8").strip():
+            return path.read_text(encoding="utf-8").strip()
+        key = secrets.token_hex(32)
+        path.write_text(key, encoding="utf-8")
+        return key
+    except OSError:
+        return DEFAULT_SECRET
+
+
+SECRET_KEY = _secret_key()
 ADMIN_PASSWORD = _env("INSPECTRA_ADMIN_PW", DEFAULT_ADMIN_PASSWORD)
 DB_PATH = Path(_env("INSPECTRA_DB_PATH", str(ROOT / "inspectra.db")))
 # The UI is served by this app (same origin), so CORS is off unless origins are listed explicitly.
@@ -63,6 +81,12 @@ LOGIN_MAX_FAILURES = int(_env("INSPECTRA_LOGIN_MAX_FAILURES", "5"))
 LOGIN_LOCKOUT_SECONDS = int(_env("INSPECTRA_LOGIN_LOCKOUT_SECONDS", "300"))
 # Load GTFS and the routing engine in the background at startup so the first request is not slow.
 WARM_UP = _env_flag("INSPECTRA_WARM_UP", True)
+# Sessions end after this many days even if the browser stays open.
+SESSION_DAYS = int(_env("INSPECTRA_SESSION_DAYS", "14"))
+# Set to 1 only when a reverse proxy sits in front, so the real client address and host are read from its headers.
+TRUST_PROXY = _env_flag("INSPECTRA_TRUST_PROXY", False)
+MAX_BODY_BYTES = int(_env("INSPECTRA_MAX_BODY_BYTES", str(1024 * 1024)))
+MIN_PASSWORD_LENGTH = 8
 
 
 class Config:
@@ -73,6 +97,8 @@ class Config:
     SESSION_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SECURE = COOKIE_SECURE
+    PERMANENT_SESSION_LIFETIME = timedelta(days=SESSION_DAYS)
+    MAX_CONTENT_LENGTH = MAX_BODY_BYTES
     # Application settings
     CORS_ORIGINS = CORS_ORIGINS
     BOOTSTRAP_DB = True  # create tables and the default admin on startup
@@ -83,7 +109,7 @@ class Config:
 
 # ---------------- Live data (SIRI stop-monitoring proxy) ----------------
 SIRI_BASE_URL = _env(
-    "INSPECTRA_SIRI_BASE_URL", "https://raspberry-phy.taila18e05.ts.net", legacy="SIRI_BASE_URL"
+    "INSPECTRA_SIRI_BASE_URL", "http://127.0.0.1:8080", legacy="SIRI_BASE_URL"
 ).rstrip("/")
 # Requests run inside a web request, so a dead proxy must fail fast.
 SIRI_TIMEOUT_SECONDS = float(_env("INSPECTRA_SIRI_TIMEOUT_SECONDS", "8", legacy="SIRI_TIMEOUT_SECONDS"))

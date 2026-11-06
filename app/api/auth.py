@@ -1,11 +1,12 @@
 import logging
-import random
+import secrets
 
 from flask import Blueprint, jsonify, request, session
 
 from app.extensions import db
 from app.models import Inspector, User
-from app.utils.auth import generate_manager_code, get_request_data
+from app.security import is_deactivated
+from app.utils.auth import clean_text, generate_manager_code, get_request_data, password_problem
 from app.utils.ratelimit import login_limiter
 
 logger = logging.getLogger(__name__)
@@ -22,17 +23,18 @@ def _start_session(user):
     session['role'] = user.role
     session['inspector_id'] = user.inspector_id
     session['admin_code'] = user.manager_code
-    session.permanent = False
+    session['sv'] = user.session_version or 0
+    session.permanent = True
     return '/admin' if user.role == 'admin' else '/inspect'
 
 
 @auth_api.route('/api/login', methods=['POST'])
 def api_login():
     data = get_request_data()
-    contact = (data.get('contact') or data.get('username') or "").strip()
+    contact = clean_text(data.get('contact') or data.get('username'), 200)
     password = data.get('password')
 
-    if not contact or not password:
+    if not contact or not isinstance(password, str) or not password:
         return jsonify({"success": False, "message": "Missing credentials"}), 400
 
     attempt_key = (request.remote_addr, contact.lower())
@@ -45,8 +47,13 @@ def api_login():
         if not user or not user.check_password(password):
             login_limiter.record_failure(attempt_key)
             return jsonify({"success": False, "message": "Invalid credentials"}), 401
+        if user.approved is False:
+            return jsonify({"success": False, "message": "Your manager account is waiting for approval"}), 403
+        if is_deactivated(user):
+            return jsonify({"success": False, "message": "This account was deactivated by the manager"}), 403
         login_limiter.reset(attempt_key)
-        return jsonify({"success": True, "redirect": _start_session(user)})
+        landing = _start_session(user)
+        return jsonify({"success": True, "redirect": '/profile' if user.must_change else landing})
     except Exception:
         logger.exception("api_login error")
         return jsonify({"success": False, "message": "Server error"}), 500
@@ -67,7 +74,7 @@ def _new_inspector_id(preferred):
     if preferred and preferred.upper().startswith('I') and not Inspector.query.filter_by(inspector_id=preferred.upper()).first():
         return preferred.upper()
     for _ in range(500):
-        candidate = f"I{random.randint(1000, 9999)}"
+        candidate = f"I{secrets.randbelow(900000) + 100000}"
         if not Inspector.query.filter_by(inspector_id=candidate).first():
             return candidate
     return None
@@ -84,18 +91,21 @@ def _new_manager_code():
 @auth_api.route('/api/register', methods=['POST'])
 def api_register():
     data = get_request_data()
-    name = (data.get('name') or data.get('full_name') or "").strip()
-    email = (data.get('email') or "").strip()
-    phone = (data.get('phone') or data.get('phone_number') or "").strip()
-    role = (data.get('role') or 'inspector').lower()
+    name = clean_text(data.get('name') or data.get('full_name'), 120)
+    email = clean_text(data.get('email'), 200)
+    phone = clean_text(data.get('phone') or data.get('phone_number'), 40)
+    role = clean_text(data.get('role') or 'inspector', 20).lower()
     password = data.get('password')
     manager_code = data.get("manager_code") or data.get("manager_code_input")
 
     def fail(message, status):
         return jsonify({"success": False, "message": message}), status
 
-    if not password or not (email or phone or name):
+    if not (email or phone or name):
         return fail("Missing required fields", 400)
+    problem = password_problem(password)
+    if problem:
+        return fail(problem, 400)
     if role not in ROLES:
         return fail("Invalid role", 400)
 
@@ -107,7 +117,7 @@ def api_register():
 
         # The account and (for inspectors) their inspector record are created in one transaction.
         if role == 'inspector':
-            manager_code = (manager_code or "").strip().upper() or None   # people type it by hand, in any case
+            manager_code = clean_text(manager_code, 20).upper() or None   # people type it by hand, in any case
             if manager_code and not User.query.filter_by(manager_code=manager_code, role='admin').first():
                 return fail("Invalid manager code", 400)
             inspector_id = _new_inspector_id(phone)
@@ -116,12 +126,16 @@ def api_register():
             user = User(username=username, role=role, inspector_id=inspector_id,
                         manager_code=manager_code, full_name=display_name)
         else:
-            user = User(username=username, role=role, manager_code=_new_manager_code(), full_name=display_name)
+            # A manager account can see a team's people and positions, so the owner approves each new one first.
+            user = User(username=username, role=role, manager_code=_new_manager_code(), full_name=display_name, approved=False)
 
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
 
+        if user.approved is False:
+            return jsonify({"success": True, "pending": True, "redirect": "/login",
+                            "message": "Your manager account was created and is waiting for approval"})
         return jsonify({"success": True, "redirect": _start_session(user)})
     except Exception:
         logger.exception("register error")
@@ -129,7 +143,7 @@ def api_register():
         return fail("Server error", 500)
 
 
-@auth_api.route('/api/logout', methods=['GET', 'POST'])
+@auth_api.route('/api/logout', methods=['POST'])
 def api_logout():
     session.clear()
     return jsonify({"success": True, "redirect": "/login"})

@@ -17,6 +17,8 @@
       </div>
     </div>
 
+    {% if user.must_change %}<div class="notice-bar" role="alert"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><span data-i18n="p.mustChange"></span></div>{% endif %}
+
     <div class="profile">
       <section class="card profile__who" aria-label="{{ user.full_name or user.username }}">
         <div class="avatar" aria-hidden="true">{{ ((user.full_name or user.username or "?").strip() or "?")[:1] }}</div>
@@ -52,6 +54,14 @@
 
         <section class="card">
           <h2 data-i18n="p.passwordTitle"></h2>
+          {% if not user.must_change %}
+          <div class="field">
+            <label for="current_password" data-i18n="p.current"></label>
+            <div class="input"><i class="fa-solid fa-lock" aria-hidden="true"></i>
+              <input id="current_password" type="password" autocomplete="current-password"></div>
+            <p class="hint" data-i18n="p.currentHint"></p>
+          </div>
+          {% endif %}
           <div class="fields-2">
             <div class="field">
               <label for="password" data-i18n="p.newPassword"></label>
@@ -78,6 +88,7 @@
   (() => {
     const { t } = window.I18n, { toast, api, errorText } = window.Admin;
     const $ = (id) => document.getElementById(id);
+    const MUST_CHANGE = {{ 'true' if user.must_change else 'false' }};
     const roleField = $('role');
     const setRole = () => { roleField.value = t('p.role.' + roleField.dataset.role); $('roleBadge').textContent = roleField.value; };
     setRole();
@@ -88,17 +99,18 @@
       const name = $('full_name').value.trim();
       const password = $('password').value;
       if (!name) { toast(t('p.err.name'), 'error'); $('full_name').focus(); return; }
-      if (password && password.length < 6) { toast(t('p.err.short'), 'error'); $('password').focus(); return; }
+      if ((password || MUST_CHANGE) && password.length < 8) { toast(t('p.err.short'), 'error'); $('password').focus(); return; }
       if (password !== $('password2').value) { toast(t('a.signup.mismatch'), 'error'); $('password2').focus(); return; }
 
       const body = { full_name: name };
-      if (password) body.password = password;
+      if (password) { body.password = password; const cur = $('current_password'); if (cur) body.current_password = cur.value; }
       $('saveBtn').disabled = true;
       const r = await api('/api/profile', { method: 'POST', body });
       $('saveBtn').disabled = false;
       if (r.ok) {
         $('password').value = $('password2').value = '';
         toast(t('p.saved'), 'ok');
+        if (MUST_CHANGE) setTimeout(() => { location.href = '/'; }, 700);
       } else {
         toast(errorText(r), 'error');
       }

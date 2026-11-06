@@ -187,9 +187,10 @@ class BootstrapTests(unittest.TestCase):
         bootstrap_database({"ADMIN_PASSWORD": "x", "SEED_DEMO_DATA": True})
         self.assertEqual((Inspector.query.count(), InspectorRun.query.count(), Fine.query.count()), counts)
 
-    def test_a_failing_database_does_not_stop_startup(self):
+    def test_a_failing_database_stops_startup(self):
         with patch("app.seeds.db.create_all", side_effect=RuntimeError("disk full")):
-            bootstrap_database({"ADMIN_PASSWORD": "x", "SEED_DEMO_DATA": True})  # must not raise
+            with self.assertRaises(RuntimeError):
+                bootstrap_database({"ADMIN_PASSWORD": "x", "SEED_DEMO_DATA": True})
 
 
 if __name__ == "__main__":

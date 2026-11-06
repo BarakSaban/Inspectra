@@ -17,3 +17,4 @@ data/raw/
 .impeccable/
 .ruff_cache/
 .pytest_cache/
+.secret_key

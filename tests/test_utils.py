@@ -97,16 +97,16 @@ class ProfileEdgeCaseTests(ApiTestCase):
         self.assertEqual(self.client.post("/api/profile", json={"username": "   "}).status_code, 400)
 
     def test_changing_username_and_password(self):
-        response = self.client.post("/api/profile", json={"username": "lior2", "password": "new-pass-1"})
+        response = self.client.post("/api/profile", json={"username": "lior2", "password": "new-pass-1", "current_password": "pw123456"})
         self.assertEqual(response.status_code, 200)
         user = User.query.filter_by(username="lior2").one()
         self.assertTrue(user.check_password("new-pass-1"))
         self.assertEqual(self.client.get("/api/profile").get_json()["username"], "lior2")  # the session followed the rename
 
-    def test_a_deleted_user_gets_404(self):
+    def test_a_deleted_user_is_logged_out(self):
         with self.client.session_transaction() as sess:
             sess["user"] = "ghost"
-        self.assertEqual(self.client.get("/api/profile").status_code, 404)
+        self.assertEqual(self.client.get("/api/profile").status_code, 401)
 
 
 if __name__ == "__main__":
