@@ -4,7 +4,7 @@ window.I18N_ROWS = (window.I18N_ROWS || []).concat([
 ["a.login.title", "ברוכים השבים", "Welcome back", "مرحباً بعودتك", "С возвращением"],
 ["a.login.sub", "התחברו לחשבון Inspectra שלכם", "Log in to your Inspectra account", "سجّل الدخول إلى حسابك في Inspectra", "Войдите в свой аккаунт Inspectra"],
 ["a.role.aria", "סוג חשבון", "Account type", "نوع الحساب", "Тип аккаунта"],
-["a.role.inspector", "מפקח", "Inspector", "مفتش", "Инспектор"],
+["a.role.inspector", "פקח", "Inspector", "مفتش", "Инспектор"],
 ["a.role.admin", "מנהל", "Manager", "مدير", "Менеджер"],
 ["a.f.contact", "טלפון, אימייל או קוד מנהל", "Phone, email or manager code", "الهاتف أو البريد أو رمز المدير", "Телефон, email или код менеджера"],
 ["a.f.password", "סיסמה", "Password", "كلمة المرور", "Пароль"],
