@@ -18,3 +18,5 @@ data/raw/
 .ruff_cache/
 .pytest_cache/
 .secret_key
+*.db-shm
+*.db-wal

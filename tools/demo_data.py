@@ -2,6 +2,7 @@
 
 Usage (from the repository root):
     python -m tools.demo_data create [--days 45]   add two managers, their inspectors and past shifts, breaks, rides and fines
+    python -m tools.demo_data owner                make sure the `admin` owner account exists with the documented demo password
     python -m tools.demo_data status               list the demo accounts and what they own
     python -m tools.demo_data live                 keep four demo inspectors online (fresh position every 30 s) until Ctrl-C
     python -m tools.demo_data delete [--yes]       remove everything this tool created (shows counts first, asks unless --yes)
@@ -26,6 +27,7 @@ from app.utils.auth import generate_manager_code
 from app.utils.clock import now_local
 
 PASSWORD = "demo1234"
+OWNER_PASSWORD = "Owner-demo-1234"
 USER_PREFIX = "demo."
 ID_PREFIX = "DM"
 FINE_AMOUNT = 100
@@ -72,6 +74,20 @@ def _stop_pool(gtfs):
         pool.append({"stop_id": str(row["stop_id"]), "lat": float(row["stop_lat"]), "lon": float(row["stop_lon"]),
                      "trips": [str(t) for t in frame["trip_id"].unique()[:30]]})
     return pool
+
+
+def owner():
+    """The owner (`admin`) approves manager sign-ups. Give it the documented demo password so a shared demo can be entered."""
+    user = User.query.filter_by(username="admin").first()
+    if user is None:
+        user = User(username="admin", role="admin", manager_code=generate_manager_code(), full_name="Admin")
+        db.session.add(user)
+    user.set_password(OWNER_PASSWORD)
+    user.approved, user.must_change = True, False
+    user.end_sessions()
+    db.session.commit()
+    print(f"Owner account: admin / {OWNER_PASSWORD}  (demo databases only; change it in Profile for real use)")
+    return 0
 
 
 def create(days):
@@ -127,6 +143,7 @@ def create(days):
         inspector.last_assignment_completed_at = max((r.finished_at for r in runs), default=None)
     db.session.commit()
 
+    owner()
     print(f"Created {len(accounts)} accounts, password for all of them: {PASSWORD}\n")
     for username, role, name, extra in accounts:
         print(f"  {role:<9} {username:<15} {name:<14} {'manager code ' if role == 'manager' else 'inspector id '}{extra}")
@@ -277,6 +294,7 @@ def main(argv=None):
     sub = parser.add_subparsers(dest="command", required=True)
     make = sub.add_parser("create")
     make.add_argument("--days", type=int, default=45)
+    sub.add_parser("owner")
     sub.add_parser("status")
     sub.add_parser("live")
     remove = sub.add_parser("delete")
@@ -289,6 +307,8 @@ def main(argv=None):
     with app.app_context():
         if args.command == "create":
             return create(max(7, min(args.days, 120)))
+        if args.command == "owner":
+            return owner()
         if args.command == "status":
             return status()
         if args.command == "live":

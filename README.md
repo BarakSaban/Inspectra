@@ -197,7 +197,7 @@ Log in at `/login`. The password of every demo account is `demo1234`, except the
 
 | Role | Username | Name | Notes |
 |---|---|---|---|
-| Owner (admin) | `admin` | Admin | password `Owner-avp27AsC`; approves manager sign-ups under Staff. Local demo database only: change it before any real use |
+| Owner (admin) | `admin` | Admin | password `Owner-demo-1234`; approves manager sign-ups under Staff. Set by `python -m tools.demo_data owner` (also run by `create`). Demo databases only: change it before any real use |
 | Manager | `demo.manager1` | מירי הדר | team of 6, longest break 90 min |
 | Manager | `demo.manager2` | עומר ביטון | team of 3, longest break 60 min |
 | Inspector | `demo.i01` | דנה לוי | team of manager 1 |
@@ -209,6 +209,8 @@ Log in at `/login`. The password of every demo account is `demo1234`, except the
 | Inspector | `demo.i07` | מיכל גולן | team of manager 2 |
 | Inspector | `demo.i08` | אורי פרץ | team of manager 2 |
 | Inspector | `demo.i09` | תמר אביב | team of manager 2 |
+
+**On a new computer** the database is not part of the repository (`*.db` is git-ignored), so the accounts above do not exist yet. After `python run.py` has run once, run `python -m tools.demo_data create` (accounts plus six weeks of history) and sign in with the table above. If you only need the owner, run `python -m tools.demo_data owner`.
 
 A manager's invite code is shown in the *Invite* dialog on the dashboard (it is random per database). Inspectors are offline with six weeks of history; log in as one and swipe to go online, or run `python -m tools.demo_data live` to keep four online.
 
