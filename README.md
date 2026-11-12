@@ -187,6 +187,15 @@ The manager pages have a light/dark toggle (remembered in the browser), a QR cod
 
 A fresh database contains just the `admin` account: no demo inspectors, runs or fines (`INSPECTRA_SEED_DEMO=1` brings the old demo data back for screenshots). New inspectors start offline with no position; the phone reports a real one (every 30 s, also while standing still). An inspector counts as reachable only while available and reporting within the last 3 minutes, so the manager sees who is really there and "Run assignment" skips phones that went dark. Manager codes are accepted in any case. Removing an inspector detaches them from the team but does not delete their login.
 
+## Choosing a bus yourself
+
+Besides the offers the system makes, the live board in the field app is a menu. Each row shows the walk to its stop, whether
+the inspector would catch the bus (green, *tight* or *you'd miss it*) and the expected fines; the list can be sorted by
+*Soonest* or *Most fines*. Tapping a row marks the bus on the map and offers *Navigate to stop* (walking directions in a
+map app) and, while on shift, *Take this bus*, which opens the same card as an offer (walk, bus time, verdict, map) without
+a countdown and starts the ride when confirmed. `/api/arrivals` carries `trip_id`, the stop's position and `potential_fines`
+for this.
+
 ## Breaks, shifts and stats
 
 An inspector picks any break length from 5 minutes up to the cap the manager sets under *Staff* (default 90), with a reason (lunch, rest, other). When the time is up the phone alerts and the inspector is available again; +10 minutes extends it within the cap. Every shift (from going available until offline or the phone going dark) and every break is logged, so hours are measured and never inflated: an unfinished shift is closed at the last time the phone was heard. The inspector sees only the map, the swipe and the lines on the main page; numbers over time live on `/inspect/stats`. The manager's dashboard opens with an attention strip, four key numbers and the live map; on phones it has a bottom tab bar. The manager's view of one inspector reuses the same stats and adds the shift and break logs, and Analytics adds date presets and an hours-and-breaks table per inspector.

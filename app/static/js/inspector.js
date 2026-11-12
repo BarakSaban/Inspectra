@@ -149,6 +149,8 @@
   let currentRunId = null, trip = null;
   let me = { name: document.body.dataset.name || '', today_runs: 0, today_fines: 0, total_runs: 0, total_fines: 0 };
   let arrivals = [], selectedKey = null;
+  let boardSort = 'soon';                     // soon | fines
+  try { boardSort = localStorage.getItem('inspectra.sort') === 'fines' ? 'fines' : 'soon'; } catch (e) { /* ignore */ }
   let lastGoodPoll = null, pollError = null, pollTimer = null, pollInFlight = false, lastPolledFrom = null;
   let lastReport = 0, geoStatus = 'waiting';  // waiting | ok | denied | error | unsupported
   let searchTimer = null, searching = false;
@@ -248,19 +250,74 @@
       } else board.innerHTML = `<li class="board__state">${esc(t('i.board.empty', { r: settings.radius }))}</li>`;
       return;
     }
-    board.innerHTML = arrivals.map((a) => {
+    renderSort();
+    board.innerHTML = sortedArrivals().map((a) => {
       const eta = etaParts(a), key = rowKey(a);
-      const sub = [a.stop_name ? bdi(a.stop_name) : null, a.stop_distance_m != null ? t('i.unit.m', { n: esc(a.stop_distance_m) }) : null].filter(Boolean).join(' · ');
+      const sub = [a.stop_name ? bdi(a.stop_name) : null, a.stop_distance_m != null ? t('i.unit.m', { n: esc(a.stop_distance_m) }) : null].filter(Boolean).join(' \u00b7 ');
+      const reach = reachOf(a);
+      const walk = walkMinOf(a);
+      const meta = [
+        walk != null ? `<span class="arrival__walk${reach ? ` is-${reach}` : ''}"><i class="fa-solid fa-person-walking" aria-hidden="true"></i>${esc(minText(walk))}${reach === 'miss' ? ` \u00b7 ${esc(t('i.board.miss'))}` : reach === 'tight' ? ` \u00b7 ${esc(t('i.board.tight'))}` : ''}</span>` : '',
+        a.potential_fines > 0 ? `<span class="arrival__fines"><i class="fa-solid fa-receipt" aria-hidden="true"></i>${esc(t('i.board.finesN', { n: a.potential_fines }))}</span>` : '',
+      ].join('');
       const tag = a.is_live
         ? `<span class="arrival__tag"><i class="fa-solid fa-tower-broadcast" aria-hidden="true"></i> ${esc(t('i.board.live'))}</span>`
         : `<span class="arrival__tag arrival__tag--sched"><i class="fa-regular fa-clock" aria-hidden="true"></i> ${esc(t('i.board.sched'))}</span>`;
       const dest = a.destination || t('i.board.destUnknown');
       return `<li><button type="button" class="arrival${key === selectedKey ? ' is-selected' : ''}${eta.soon ? ' is-soon' : ''}${eta.gone ? ' is-gone' : ''}" data-key="${esc(key)}" aria-label="${esc(t('i.board.rowAria', { line: a.route_num, dest, eta: `${eta.text} ${eta.unit}` }))}">
         <span class="route-badge">${esc(a.route_num)}</span>
-        <span class="arrival__main"><span class="arrival__dest">${bdi(dest)}</span><span class="arrival__sub">${sub}</span></span>
+        <span class="arrival__main"><span class="arrival__dest">${bdi(dest)}</span><span class="arrival__sub">${sub}</span>${meta ? `<span class="arrival__meta">${meta}</span>` : ''}</span>
         <span class="arrival__eta"><span class="arrival__min">${esc(eta.text)}${eta.unit ? `<small>${esc(eta.unit)}</small>` : ''}</span>${tag}</span>
-      </button></li>`;
+      </button>${key === selectedKey ? rowActions(a, key) : ''}</li>`;
     }).join('');
+  }
+
+  // ----- choosing a bus yourself: sort, walking time, "can I make it", navigate, take it -----
+  const walkMinOf = (a) => (a.stop_distance_m != null ? Math.max(1, Math.round(a.stop_distance_m / WALK_M_PER_MIN)) : null);
+  function reachOf(a) {
+    const walk = walkMinOf(a), ms = Date.parse(a.arrival_at) - Date.now();
+    if (walk == null || !Number.isFinite(ms)) return null;
+    const margin = ms / 60000 - walk;
+    return margin < 0 ? 'miss' : margin < 2 ? 'tight' : 'ok';
+  }
+  function sortedArrivals() {
+    const list = arrivals.slice();
+    if (boardSort === 'fines') list.sort((x, y) => (y.potential_fines || 0) - (x.potential_fines || 0) || Date.parse(x.arrival_at) - Date.parse(y.arrival_at));
+    return list;
+  }
+  function renderSort() {
+    const el = $('boardSort');
+    if (!el) return;
+    el.hidden = arrivals.length < 2;
+    segment(el, [{ value: 'soon', label: t('i.board.sortSoon') }, { value: 'fines', label: t('i.board.sortFines') }], boardSort, (v) => {
+      boardSort = v;
+      try { localStorage.setItem('inspectra.sort', v); } catch (e) { /* ignore */ }
+      renderBoard();
+    });
+  }
+  function rowActions(a, key) {
+    const go = a.stop_lat != null && a.stop_lon != null
+      ? `<a class="btn btn--ghost" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${esc(a.stop_lat)},${esc(a.stop_lon)}&travelmode=walking"><i class="fa-solid fa-diamond-turn-right" aria-hidden="true"></i> ${esc(t('i.board.navigate'))}</a>` : '';
+    const take = mode === 'searching' && a.trip_id
+      ? `<button type="button" class="btn btn--primary" data-take="${esc(key)}"><i class="fa-solid fa-bus" aria-hidden="true"></i> ${esc(t('i.board.take'))}</button>`
+      : `<span class="arrival__hint">${esc(t('i.board.needOnline'))}</span>`;
+    return `<div class="arrival__actions">${go}${take}</div>`;
+  }
+  /** The chosen bus goes through the same offer card as a recommendation (walk, bus time, verdict, map), minus the countdown. */
+  function takeArrival(key) {
+    const a = arrivals.find((x) => rowKey(x) === key);
+    if (!a || mode !== 'searching') return;
+    clearTimeout(searchTimer);
+    showOffer({
+      kind: 'recommended', manual: true,
+      json: {
+        is_live: true, shape_feature: null,
+        best_option: { trip_id: a.trip_id, route_id: a.route_id, route_num: a.route_num, destination: a.destination, stop_id: a.stop_id,
+          walk_time: walkMinOf(a), minutes_until_arrival: a.minutes_until_arrival, potential_fines: a.potential_fines ?? 0 },
+        stop_feature: { type: 'Feature', properties: { stop_id: a.stop_id, stop_code: a.stop_code, stop_name: a.stop_name },
+          geometry: { type: 'Point', coordinates: [Number(a.stop_lon), Number(a.stop_lat)] } },
+      },
+    });
   }
 
   function tickCountdowns() {
@@ -653,7 +710,7 @@
         walk: Number.isFinite(best.walk_time) ? best.walk_time : null,
         bus: Number.isFinite(best.minutes_until_arrival) ? best.minutes_until_arrival : null,
         fines: Number.isFinite(best.potential_fines) ? best.potential_fines : null,
-        source: t(o.json.is_live ? 'i.offer.srcLive' : 'i.offer.srcSched'),
+        source: t(o.manual ? 'i.offer.srcSelf' : o.json.is_live ? 'i.offer.srcLive' : 'i.offer.srcSched'),
         stopFeature: o.json.stop_feature, walkGeometry: best.route_geometry, shape: o.json.shape_feature,
         vehicle: o.json.vehicle_location || arrival?.vehicle_location || null, arrival,
       };
@@ -768,12 +825,18 @@
     renderOffer();
     drawOfferMap(o, v);
     requestAnimationFrame(fitOffer);
-    if (settings.sound) beep();
-    if (settings.vibrate && navigator.vibrate) navigator.vibrate([200, 100, 200]);
-    offerEndsAt = Date.now() + OFFER_SECONDS * 1000;
-    tickOffer();
+    $('offer').classList.toggle('is-manual', !!o.manual);
+    $('offerDecline').textContent = t(o.manual ? 'i.offer.back' : 'i.offer.decline');
+    $('offerTitle').textContent = t(o.manual ? 'i.offer.titleSelf' : 'i.offer.title');
+    $('offerAccept').querySelector('.btn__text').textContent = t(o.manual ? 'i.board.take' : 'i.offer.accept');
     clearInterval(offerTimer);
-    offerTimer = setInterval(tickOffer, 250);
+    if (!o.manual) {                       // a bus you picked yourself waits for you: no countdown, no alert
+      if (settings.sound) beep();
+      if (settings.vibrate && navigator.vibrate) navigator.vibrate([200, 100, 200]);
+      offerEndsAt = Date.now() + OFFER_SECONDS * 1000;
+      tickOffer();
+      offerTimer = setInterval(tickOffer, 250);
+    }
     $('offerAccept').focus();
   }
 
@@ -794,7 +857,8 @@
     const o = offer;
     offer = null;
     if (!o) return;
-    if (o.kind === 'recommended') {
+    if (o.manual) { /* going back from a bus you looked at is not a refusal */ }
+    else if (o.kind === 'recommended') {
       const best = o.json.best_option;
       declined.set(`${best.route_id}|${best.stop_id}`, Date.now() + DECLINE_TTL_MS);
     } else snoozedRuns.set(o.run.id, Date.now() + 60000);
@@ -803,7 +867,7 @@
     clearRideLayers();
     if (reason === 'expired') toast(t('i.offer.expired'));
     setMode('searching');
-    scheduleSearch(reason === 'decline' ? 2500 : SEARCH_MS);
+    scheduleSearch(o.manual ? SEARCH_MS : reason === 'decline' ? 2500 : SEARCH_MS);
   }
 
   async function acceptOffer() {
@@ -816,11 +880,12 @@
       let runId, v = offerView(o), shape = null;
       if (o.kind === 'recommended') {
         const best = o.json.best_option;
-        const created = await api('/api/runs', 'POST', { trip_id: best.trip_id, stop_id: o.json.stop_feature?.properties?.stop_id ?? best.stop_id, potential_fines: best.potential_fines });
+        const created = await api('/api/runs', 'POST', { trip_id: best.trip_id, stop_id: o.json.stop_feature?.properties?.stop_id ?? best.stop_id, potential_fines: best.potential_fines ?? 0 });
         if (created.ok) runId = created.data.id;
         else if (created.status === 409) { runId = (await api('/api/runs/current')).data?.run?.id ?? null; }
         else { toast(created.data.error || t('i.toast.runFail'), 'error'); offerEndsAt = Date.now() + 5000; offerTimer = setInterval(tickOffer, 250); return; }
         shape = o.json.shape_feature;
+        if (o.manual && runId) shape = (await api(`/api/runs/${runId}/details`)).data?.details?.shape_feature || null;
       } else {
         const acc = await api(`/api/runs/${o.run.id}/accept`, 'POST');
         if (!acc.ok) { toast(acc.data.error || t('i.toast.runFail'), 'error'); closeOffer('expired'); return; }
@@ -890,7 +955,7 @@
     if (!$('navLinks').hidden) {
       const [la, lo] = trip.stopLL;
       $('navGoogle').href = `https://www.google.com/maps/dir/?api=1&destination=${la},${lo}&travelmode=walking`;
-      $('navWaze').href = `https://waze.com/ul?ll=${la},${lo}&navigate=yes`;
+      $('navOther').href = `geo:${la},${lo}?q=${la},${lo}`;
     }
     updateRideLive();
     sheet.refresh();
@@ -1327,7 +1392,12 @@
     $('settingsClose').addEventListener('click', closeSettings);
     $('settings').addEventListener('click', (e) => { if (e.target.id === 'settings') closeSettings(); });
     document.addEventListener('keydown', (e) => { if (e.key !== 'Escape') return; if (!$('settings').hidden) closeSettings(); else if (!$('menu').hidden) closeMenu(); else if (!$('breakOverlay').hidden) closeBreakSheet(); });
-    $('board').addEventListener('click', (e) => { const row = e.target.closest('.arrival'); if (row) selectArrival(row.dataset.key); });
+    $('board').addEventListener('click', (e) => {
+      const take = e.target.closest('[data-take]');
+      if (take) { takeArrival(take.dataset.take); return; }
+      const row = e.target.closest('.arrival');
+      if (row) selectArrival(row.dataset.key);
+    });
     document.addEventListener('visibilitychange', () => { if (!document.hidden) { pollArrivals(true); if (mode !== 'offline') requestWakeLock(); } });
     document.addEventListener('langchange', onLangChange);
     setInterval(tickCountdowns, 1000);

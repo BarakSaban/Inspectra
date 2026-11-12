@@ -372,3 +372,17 @@ button:disabled { cursor: not-allowed; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* ---------- choosing a bus yourself ---------- */
+.board__head { flex-wrap: wrap; }
+.seg--sort { flex-basis: 100%; grid-template-columns: 1fr 1fr; gap: 6px; }
+.seg--sort button { min-height: 38px; font-size: .8125rem; }
+.arrival__meta { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 3px; font-size: .8125rem; font-weight: 600; }
+.arrival__walk, .arrival__fines { display: inline-flex; align-items: center; gap: 5px; color: var(--ink-soft); }
+.arrival__fines { color: var(--accent-strong); }
+.arrival__walk.is-tight { color: var(--warn); }
+.arrival__walk.is-miss { color: var(--bad); }
+.arrival__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 0 18px 14px; background: var(--accent-tint); }
+.arrival__actions .btn { flex: 1 1 140px; min-height: 48px; }
+.arrival__hint { font-size: .8125rem; color: var(--ink-soft); }
+.offer.is-manual .offer__timer { visibility: hidden; }

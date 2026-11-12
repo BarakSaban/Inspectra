@@ -81,6 +81,27 @@ def api_find_best_trip():
     return jsonify(to_serializable(result))
 
 
+_FINES_CACHE = {}
+_FINES_CACHE_MAX = 2000
+
+
+def _add_expected_fines(engine, arrivals):
+    """Each arrival gets `potential_fines`: what boarding it from that stop is expected to yield, so the inspector can
+    pick a bus himself. Per (route, stop, hour) the answer does not change, so it is remembered."""
+    hour = datetime.now().hour
+    for arrival in arrivals:
+        key = (str(arrival.get("route_id")), str(arrival.get("stop_id")), hour)
+        if key not in _FINES_CACHE:
+            try:
+                _FINES_CACHE[key] = engine.estimate_potential_fines(arrival.get("route_id"), arrival.get("stop_id"))
+            except Exception:
+                logger.exception("fines estimate failed for %s", key)
+                _FINES_CACHE[key] = None
+            if len(_FINES_CACHE) > _FINES_CACHE_MAX:
+                _FINES_CACHE.pop(next(iter(_FINES_CACHE)))
+        arrival["potential_fines"] = _FINES_CACHE[key]
+
+
 @trips_api.route("/arrivals", methods=["GET"])
 @login_required_api
 def api_arrivals():
@@ -104,6 +125,7 @@ def api_arrivals():
         logger.exception("arrivals lookup failed for lat=%s lon=%s", lat, lon)
         return jsonify({"arrivals": [], "source": "error", "fetched_at": fetched_at})
 
+    _add_expected_fines(engine, arrivals)
     return jsonify(to_serializable({"arrivals": arrivals, "source": "live", "fetched_at": fetched_at}))
 
 

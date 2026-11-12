@@ -345,6 +345,14 @@ class ArrivalsEndpointTests(ApiTestCase):
         self.assertIn("fetched_at", body)
         self.assertEqual((listing.call_args.kwargs["radius_m"], listing.call_args.kwargs["limit"]), (500.0, 5))
 
+    def test_arrivals_carry_expected_fines_so_a_bus_can_be_chosen(self):
+        self.login()
+        arrivals = [{"route_id": "7", "route_num": "66", "stop_id": "S1", "minutes_until_arrival": 3.5, "is_live": True}]
+        engine = make_engine()
+        with patch("app.api.trips.get_engine", return_value=engine),              patch.object(engine, "estimate_potential_fines", return_value=4),              patch("app.api.trips.list_live_arrivals", return_value=arrivals):
+            body = self.client.get("/api/arrivals").get_json()
+        self.assertEqual(body["arrivals"][0]["potential_fines"], 4)
+
     def test_missing_engine_or_siri_failure_degrades_to_empty_board(self):
         self.login()
         with patch("app.api.trips.get_engine", return_value=None):
