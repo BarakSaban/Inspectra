@@ -116,8 +116,11 @@ window.I18N_ROWS = (window.I18N_ROWS || []).concat([
 
 ["i.settings.title", "הגדרות", "Settings", "الإعدادات", "Настройки"],
 ["i.settings.language", "שפה", "Language", "اللغة", "Язык"],
-["i.settings.radius", "רדיוס חיפוש", "Search radius", "نطاق البحث", "Радиус поиска"],
-["i.settings.radiusHint", "המרחק המרבי ממך שבו מחפשים תחנות.", "How far from you we look for stops.", "أقصى مسافة نبحث فيها عن محطات حولك.", "Как далеко от вас мы ищем остановки."],
+["i.settings.radius", "עד כמה רחוק לחפש אוטובוסים", "How far to look for buses", "إلى أي مدى نبحث عن الحافلات", "Как далеко искать автобусы"],
+["i.settings.rad.near", "קרוב", "Near", "قريب", "Близко"],
+["i.settings.rad.mid", "בינוני", "Medium", "متوسط", "Средне"],
+["i.settings.rad.far", "רחוק", "Far", "بعيد", "Далеко"],
+["i.settings.radiusHint", "ככל שרחוק יותר, יותר אוטובוסים ברשימה.", "Farther means more buses in the list.", "كلما كان أبعد، زادت الحافلات في القائمة.", "Чем дальше, тем больше автобусов в списке."],
 ["i.settings.alerts", "התראות", "Alerts", "التنبيهات", "Оповещения"],
 ["i.settings.sound", "צליל בעת משימה חדשה", "Sound on new assignment", "صوت عند وصول مهمة جديدة", "Звук при новом задании"],
 ["i.settings.vibrate", "רטט בעת משימה חדשה", "Vibrate on new assignment", "اهتزاز عند وصول مهمة جديدة", "Вибрация при новом задании"],

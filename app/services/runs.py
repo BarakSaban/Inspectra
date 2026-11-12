@@ -56,7 +56,7 @@ def _claim(run, allowed, **values):
     if changed != 1:
         db.session.rollback()
         db.session.refresh(run)
-        raise RunError(f"a {run.status} run cannot be changed this way", 409)
+        raise RunError("this run can no longer be changed", 409)
     db.session.refresh(run)
 
 
@@ -80,7 +80,7 @@ def start_run(inspector_id, trip_id=None, stop_id=None, potential_fines=0):
 
 def accept_run(run):
     if run.status != "assigned":
-        raise RunError(f"a {run.status} run cannot be accepted", 409)
+        raise RunError("this run can no longer be accepted", 409)
     _claim(run, ("assigned",), status="accepted", accepted_at=now_local())
     db.session.commit()
     return run
@@ -88,7 +88,7 @@ def accept_run(run):
 
 def cancel_run(run):
     if run.status not in ACTIVE_STATUSES:
-        raise RunError(f"a {run.status} run cannot be cancelled", 409)
+        raise RunError("this run can no longer be cancelled", 409)
     _claim(run, ACTIVE_STATUSES, status="cancelled", finished_at=now_local())
     db.session.commit()
     return run
@@ -97,7 +97,7 @@ def cancel_run(run):
 def update_progress(run, fines=0):
     """Save the inspector's running fine count so it survives a reload; only an accepted run can change."""
     if run.status != "accepted":
-        raise RunError(f"a {run.status} run cannot be updated", 409)
+        raise RunError("this run can no longer be updated", 409)
     count = _non_negative_int(fines, "fines")
     if count > MAX_FINES_PER_RUN:
         raise RunError(f"fines cannot exceed {MAX_FINES_PER_RUN}")
@@ -111,7 +111,7 @@ def complete_run(run, actual_fines=0):
     if run.status == "assigned":
         raise RunError("accept the run before completing it", 409)
     if run.status != "accepted":
-        raise RunError(f"a {run.status} run cannot be completed", 409)
+        raise RunError("this run can no longer be completed", 409)
     fines = _non_negative_int(actual_fines, "actual_fines")
     if fines > MAX_FINES_PER_RUN:
         raise RunError(f"actual_fines cannot exceed {MAX_FINES_PER_RUN}")

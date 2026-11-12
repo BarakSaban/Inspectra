@@ -114,8 +114,8 @@
 .radar span:nth-child(2) { animation-delay: .8s; }
 .radar span:nth-child(3) { animation-delay: 1.6s; }
 @keyframes radar { from { transform: scale(.45); opacity: .7; } to { transform: scale(1.25); opacity: 0; } }
-#modeSearching { text-align: center; }
-#modeSearching .sheet__desc { margin-inline: auto; }
+#modeSearching, #modeOffline { text-align: center; }
+#modeSearching .sheet__desc, #modeOffline .sheet__desc { margin-inline: auto; }
 .btn--block { width: 100%; }
 .btn--danger { color: var(--bad); }
 .btn--danger:hover:not(:disabled) { background: var(--bad-tint); }
@@ -316,9 +316,8 @@ body.hc .btn--ghost { border: 2px solid #000; color: #000; }
 /* =====================================================================
    Menu (replaces the settings button) and the flexible break sheet
    ===================================================================== */
-.overlay--menu { align-items: flex-end; justify-content: flex-end; background: transparent; padding: 0 0 calc(var(--sheet-visible, 220px) + 12px + 110px); padding-inline: 12px 74px; }
-@media (min-width: 900px) { .overlay--menu { padding-bottom: 140px; } }
-.menu { min-width: 220px; display: grid; gap: 2px; padding: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 12px 40px rgba(15, 27, 45, .28); animation: rise .2s var(--ease-out); }
+.overlay--menu { align-items: center; justify-content: center; background: rgba(15, 27, 45, .4); padding: 20px; }
+.menu { min-width: min(300px, 100%); display: grid; gap: 2px; padding: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 12px 40px rgba(15, 27, 45, .28); animation: rise .2s var(--ease-out); }
 .menu__item { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 14px; border: 0; border-radius: 12px; background: transparent; color: var(--ink); font: 700 1rem/1 var(--font); text-decoration: none; cursor: pointer; text-align: start; }
 .menu__item i { width: 22px; text-align: center; color: var(--accent); }
 .menu__item:hover { background: var(--accent-tint); }

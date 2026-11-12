@@ -182,6 +182,11 @@ window.I18N_ROWS = (window.I18N_ROWS || []).concat([
 
 // ----- server messages for these pages -----
 ["srv.unauthorized", "נדרשת התחברות", "Please log in", "يلزم تسجيل الدخول", "Требуется вход"],
+["srv.this run can no longer be changed", "הנסיעה הזו כבר לא ניתנת לשינוי", "This ride can no longer be changed", "لا يمكن تغيير هذه الرحلة بعد الآن", "Эту поездку уже нельзя изменить"],
+["srv.this run can no longer be accepted", "הנסיעה הזו כבר לא ניתנת לאישור", "This ride can no longer be accepted", "لا يمكن قبول هذه الرحلة بعد الآن", "Эту поездку уже нельзя принять"],
+["srv.this run can no longer be cancelled", "הנסיעה הזו כבר לא ניתנת לביטול", "This ride can no longer be cancelled", "لا يمكن إلغاء هذه الرحلة بعد الآن", "Эту поездку уже нельзя отменить"],
+["srv.this run can no longer be updated", "הנסיעה הזו כבר לא ניתנת לעדכון", "This ride can no longer be updated", "لا يمكن تحديث هذه الرحلة بعد الآن", "Эту поездку уже нельзя обновить"],
+["srv.this run can no longer be completed", "הנסיעה הזו כבר הסתיימה", "This ride is already finished", "هذه الرحلة انتهت بالفعل", "Эта поездка уже завершена"],
 ["srv.not found", "לא נמצא", "Not found", "غير موجود", "Не найдено"],
 ["srv.name cannot be empty", "השם לא יכול להיות ריק", "Name cannot be empty", "لا يمكن أن يكون الاسم فارغاً", "Имя не может быть пустым"],
 ["srv.coordinate out of range", "קואורדינטה מחוץ לטווח", "Coordinate out of range", "إحداثية خارج النطاق", "Координата вне допустимого диапазона"],

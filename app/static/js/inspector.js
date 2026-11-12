@@ -19,6 +19,7 @@
   const SHIFT_RESUME_MS = 30 * 60 * 1000;   // a shift is offered back if the app was closed less than this long ago
   const RADIUS_OPTIONS = [300, 500, 666, 1000, 1500];
   const GOAL_OPTIONS = [5, 10, 15, 20];
+  const RADIUS_SHOWN = [500, 666, 1000];   // what the settings offer: near, medium, far
   const BREAK_PRESETS = [15, 30, 45, 60];
   const BREAK_REASONS = ['lunch', 'rest', 'other'];
   const BREAK_MIN = 5, BREAK_EXTEND = 10;
@@ -121,7 +122,7 @@
         q = readQueue().slice(1);                                                  // delivered, or refused for good
         writeQueue(q);
         if (res.ok) done += 1;
-        else toast(t('i.toast.saveFail', { err: res.data.error || '' }), 'error');
+        else toast(t('i.toast.saveFail', { err: res.data.error ? window.I18n.tm(res.data.error) : '' }), 'error');
       }
       if (done && !readQueue().length) { toast(t('i.net.synced'), 'ok'); refreshMe(); }
     } finally { flushing = false; }
@@ -253,7 +254,7 @@
     renderSort();
     board.innerHTML = sortedArrivals().map((a) => {
       const eta = etaParts(a), key = rowKey(a);
-      const sub = [a.stop_name ? bdi(a.stop_name) : null, a.stop_distance_m != null ? t('i.unit.m', { n: esc(a.stop_distance_m) }) : null].filter(Boolean).join(' \u00b7 ');
+      const sub = a.stop_name ? bdi(a.stop_name) : '';
       const reach = reachOf(a);
       const walk = walkMinOf(a);
       const meta = [
@@ -261,7 +262,7 @@
         a.potential_fines > 0 ? `<span class="arrival__fines"><i class="fa-solid fa-receipt" aria-hidden="true"></i>${esc(t('i.board.finesN', { n: a.potential_fines }))}</span>` : '',
       ].join('');
       const tag = a.is_live
-        ? `<span class="arrival__tag"><i class="fa-solid fa-tower-broadcast" aria-hidden="true"></i> ${esc(t('i.board.live'))}</span>`
+        ? ''                                   // live is the normal case: only the exception (a timetable time) gets a label
         : `<span class="arrival__tag arrival__tag--sched"><i class="fa-regular fa-clock" aria-hidden="true"></i> ${esc(t('i.board.sched'))}</span>`;
       const dest = a.destination || t('i.board.destUnknown');
       return `<li><button type="button" class="arrival${key === selectedKey ? ' is-selected' : ''}${eta.soon ? ' is-soon' : ''}${eta.gone ? ' is-gone' : ''}" data-key="${esc(key)}" aria-label="${esc(t('i.board.rowAria', { line: a.route_num, dest, eta: `${eta.text} ${eta.unit}` }))}">
@@ -354,7 +355,6 @@
 
   function updateChip() {
     const chip = $('liveChip'), text = $('liveChipText'), meta = $('boardMeta');
-    chip.hidden = mode === 'offline';
     let cls = 'chip--idle', label = t('i.chip.locating'), metaText = '';
     if (geoStatus === 'denied' || geoStatus === 'error' || geoStatus === 'unsupported') { cls = 'chip--down'; label = t('i.chip.locOff'); }
     else if (userLatLng) {
@@ -368,6 +368,7 @@
       }
     }
     chip.className = `chip ${cls}`;
+    chip.hidden = mode === 'offline' || cls === 'chip--live';   // "live" is the normal state: no need to say it
     if (text.textContent !== label) text.textContent = label;
     meta.textContent = metaText;
   }
@@ -1041,7 +1042,7 @@
     const path = `/api/runs/${currentRunId}/progress`;
     const res = await api(path, 'PATCH', { fines: rideFines });
     if (res.status === 0) { enqueue(path, 'PATCH', { fines: rideFines }); return; }
-    if (!res.ok) toast(t('i.toast.saveFail', { err: res.data.error || '' }), 'error');
+    if (!res.ok) toast(t('i.toast.saveFail', { err: res.data.error ? window.I18n.tm(res.data.error) : '' }), 'error');
   }
 
   function goWaiting() {
@@ -1075,7 +1076,13 @@
     });
   }
 
+  let completing = false;
   async function completeRide() {
+    if (completing) return;               // a second tap on the button must not open a second dialog or save twice
+    completing = true;
+    try { await finishRide(); } finally { completing = false; }
+  }
+  async function finishRide() {
     const fines = await askFines(rideFines);
     if (fines === null) return;
     rideFines = fines;                       // what was typed is kept: if saving fails, the next try starts from it
@@ -1084,7 +1091,7 @@
       const path = `/api/runs/${currentRunId}/complete`;
       const done = await api(path, 'POST', { actual_fines: fines });
       if (done.status === 0 || done.status >= 500) { enqueue(path, 'POST', { actual_fines: fines }); toast(t('i.net.savedOffline'), 'ok'); }   // no signal or a server hiccup: keep it and sync later
-      else if (!done.ok) { toast(t('i.toast.saveFail', { err: done.data.error || '' }), 'error'); return; }
+      else if (!done.ok) { toast(t('i.toast.saveFail', { err: done.data.error ? window.I18n.tm(done.data.error) : '' }), 'error'); return; }
       currentRunId = null;
     }
     clearTimeout(fineSaveTimer);
@@ -1273,7 +1280,8 @@
 
   function renderSettings() {
     segment($('langSeg'), window.I18n.LANGS.map((l) => ({ value: l.code, label: l.name, lang: l.code })), window.I18n.lang, (v) => window.I18n.setLang(v));
-    segment($('radiusSeg'), RADIUS_OPTIONS.map((r) => ({ value: String(r), label: t('i.unit.m', { n: r }) })), String(settings.radius), (v) => {
+    const near = settings.radius <= 500 ? 500 : settings.radius >= 1500 ? 1000 : settings.radius;
+    segment($('radiusSeg'), [[500, 'i.settings.rad.near'], [666, 'i.settings.rad.mid'], [1000, 'i.settings.rad.far']].map(([r, k]) => ({ value: String(r), label: t(k) })), String(RADIUS_SHOWN.includes(near) ? near : 666), (v) => {
       settings.radius = Number(v); saveSettings(); renderSettings(); arrivals = []; lastGoodPoll = null; renderBoard(); pollArrivals(true);
     });
     for (const [id, key] of [['setSound', 'sound'], ['setVibrate', 'vibrate'], ['setAwake', 'awake']]) {
